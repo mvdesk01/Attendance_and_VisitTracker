@@ -1,0 +1,2 @@
+/Users/apple/Downloads/Flutter_Attendance/android/app/.cxx/RelWithDebInfo/4u1z2744/x86/CMakeFiles/rebuild_cache.dir
+/Users/apple/Downloads/Flutter_Attendance/android/app/.cxx/RelWithDebInfo/4u1z2744/x86/CMakeFiles/edit_cache.dir
