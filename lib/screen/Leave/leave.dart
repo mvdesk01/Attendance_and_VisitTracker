@@ -647,14 +647,16 @@ class _PendingLeaveState extends State<PendingLeave> {
           // // I/flutter (23822): Response Status Code: 200
           // // I/flutter (23822): Response Status Code: 200
           else if (state is GetPendingLeaveErrorState) {
+            print("GetPendingLeaveErrorState mess: ${state.msg}");
             setState(() {
               _isLoading = false;
             });
-            Fluttertoast.showToast(
-              msg: "Error in fetching data!!.",
-              toastLength: Toast.LENGTH_SHORT,
-              timeInSecForIosWeb: 1,
-            );
+            // Fluttertoast.showToast(
+            //   msg: "Error in fetching data!!.",
+            //   toastLength: Toast.LENGTH_SHORT,
+            //   timeInSecForIosWeb: 1,
+            // );
+            LogFileManager.writeLog("Error in fetching leave data: ${state.msg}");
           }
 
           // Handling Cancel Leave State Changes
