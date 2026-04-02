@@ -20,6 +20,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:jiffy/jiffy.dart';
 import 'package:loading_overlay/loading_overlay.dart';
 // import '../../model/GatePass/GatePassResponse.dart';
 import '../../util/MyColor.dart';
@@ -28,13 +29,19 @@ class MinutesOfTheMeetingFormScreen extends StatefulWidget {
 
   late  String visitSrNo;
   late String minuteforno;
+  String visitDateMOM;
+  String toTimeMOM;
+  String visitNameMOM;
 
 
   MinutesOfTheMeetingFormScreen(
       {
         Key? key,
         required this.visitSrNo,
-        required this.minuteforno
+        required this.minuteforno,
+        required this.visitDateMOM,
+        required this.toTimeMOM,
+        required this.visitNameMOM,
       })
       : super(key: key);
 
@@ -69,7 +76,7 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
   var toTimeController;
   TextEditingController toTimeInput = TextEditingController();
   String srno="";
-  String SRNOtable="";
+  List<String> SRNOtable = [];
   String? Auth_Token = "";
 
   String? staffCode = "";
@@ -89,6 +96,7 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
   TextEditingController textFieldController5 = TextEditingController();
   List<Message> listofRows=[];
   int index = 0;
+  bool isNextDateEnabled = false;
 
   @override
   void initState() {
@@ -126,23 +134,20 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
 
     print("Auth_Token-->" + Auth_Token!);
 
+    if ( _gatepassdatecontroller.text == "") {
+      _gatepassdatecontroller.text = DateFormat('dd/MM/yyyy').format(Jiffy.parse(widget.visitDateMOM).dateTime);
+    }
+    if(fromTimeInput.text.isEmpty) {
+      fromTimeInput.text = widget.toTimeMOM/*DateFormat('hh:mm a').format(DateTime.now())*/;
+    }
+    if(_subjectController.text.isEmpty){
+      _subjectController.text=widget.visitNameMOM;
+    }
+
     mainBloc.add(GetMinutesOfTheMeetingAllDataByVisitSrNoEvents(token: Auth_Token!,SrNo:widget.visitSrNo));
 
-
-
     mainBloc.add(GetMinutesOfTheMeetingDataByVisitSrNoEvents(token: Auth_Token!,VisitSrNo: widget.visitSrNo));
-    // GetStaffDetailsEvents(StaffCode: staffCode!, token: Auth_Token!));
-    /*dynamicRows.add(DynamicRow(
-      index: index,
-      onDelete: (int deleteIndex) => deleteRow(deleteIndex),
-    ));
-    index++;*/
-
   }
-  // void getminutesdata() {
-  //
-  //   mainBloc.add(GetMinutesOfTheMeetingAllDataByVisitSrNoEvents(SrNo: widget.visitSrNo, token: Auth_Token!));
-  // }
 
   void getAllRowsData() {
     List<Map<String, String>> allRowsData = [];
@@ -169,8 +174,6 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
     }
     else
     {
-
-
       for (int i=0;i<allRowsData.length;i++)
       {
         Map<String, String> rowData=allRowsData.elementAt(i);
@@ -231,28 +234,25 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
           );
         }
 
-        else if(rowData['nextDate']!.isEmpty)
-
-        {
-          Fluttertoast.showToast(
-            msg: "  Please Enter nextDate...!  ",
-            toastLength: Toast.LENGTH_SHORT,
-            timeInSecForIosWeb: 1,
-          );
-        }
+        // else if(rowData['nextDate']!.isEmpty && isNextDateEnabled == true)
+        // {
+        //   Fluttertoast.showToast(
+        //     msg: "  Please Enter nextDate...!  ",
+        //     toastLength: Toast.LENGTH_SHORT,
+        //     timeInSecForIosWeb: 1,
+        //   );
+        // }
         else if(i==allRowsData.length-1)
         {
-          //_updateMinutesOfTheMeetingForm(allRowsData);
+          print("All row data print: ${allRowsData.toString()}");
           _addMinutesOfTheMeetingForm(allRowsData);
-
         }
         // break;
 
       }
-
-
     }
   }
+
   void getAllRowsDataupdate() {
     List<Map<String, String>> allRowsData = [];
 
@@ -278,8 +278,6 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
     }
     else
     {
-
-
       for (int i=0;i<allRowsData.length;i++)
       {
         Map<String, String> rowData=allRowsData.elementAt(i);
@@ -340,52 +338,23 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
           );
         }
 
-        else if(rowData['nextDate']!.isEmpty)
-
-        {
-          Fluttertoast.showToast(
-            msg: "  Please Enter nextDate...!  ",
-            toastLength: Toast.LENGTH_SHORT,
-            timeInSecForIosWeb: 1,
-          );
-        }
+        // else if(rowData['nextDate']!.isEmpty)
+        //
+        // {
+        //   Fluttertoast.showToast(
+        //     msg: "  Please Enter nextDate...!  ",
+        //     toastLength: Toast.LENGTH_SHORT,
+        //     timeInSecForIosWeb: 1,
+        //   );
+        // }
         else if(i==allRowsData.length-1)
         {
           _updateMinutesOfTheMeetingForm(allRowsData);
-          //_addMinutesOfTheMeetingForm(allRowsData);
-
         }
-        // break;
-
       }
-
-
     }
   }
 
-
-
-  // Method to add a new row
-/*  void addRow() {
-    GlobalKey<_DynamicRowState> key = GlobalKey<
-        _DynamicRowState>(); // Create a new key for each row
-    rowKeys.add(key); // Add the key to rowKeys list
-    int length = 0;
-    length = dynamicRows.length;
-
-    print("addRow : " + length.toString());
-
-    setState(() {
-      dynamicRows.add(DynamicRow(
-        key: key,
-        index: index,
-        onDelete: (int deleteIndex) {
-          deleteRow(deleteIndex);
-        },
-      ));
-      index++;
-    });
-  }*/
   void addRow() {
     GlobalKey<_DynamicRowState> key = GlobalKey<_DynamicRowState>();
 
@@ -394,40 +363,25 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
       dynamicRows.add(
         DynamicRow(
           key: key,
-          index: dynamicRows.length, // Use current length as new index
+          index: 1,
           onDelete: deleteRow,
         ),
       );
-      index = dynamicRows.length;
+      index = 1;
+    });
+
+    // wait for widget build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+
+      // if nextDate empty → keep it grey
+      if (key.currentState?.dateController2.text.isEmpty ?? true) {
+        key.currentState?.enableNextDate();
+      }
+
     });
 
     print('Added row. Total rows now: ${dynamicRows.length}');
   }
-
-  // Method to delete a specific row
-  // void deleteRow(int sindex) {
-  //   setState(() {
-  //     print("deleteRow : " + sindex.toString());
-  //     dynamicRows.removeAt(sindex);
-  //
-  //     index--;
-  //     print("deleteRow : " + index.toString());
-  //   });
-  // }
-
-/*  void deleteRow(int deleteIndex) {
-    setState(() {
-      dynamicRows.removeAt(deleteIndex);
-      rowKeys.removeAt(deleteIndex);
-
-      // Adjust indices for remaining rows
-      for (int i = deleteIndex; i < dynamicRows.length; i++) {
-        rowKeys[i].currentState?.updateIndex(i);
-      }
-
-      index = dynamicRows.length; // Re-align global index
-    });
-  }*/
 
   void deleteRow(int deleteIndex) {
     setState(() {
@@ -444,14 +398,6 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
       }
     });
   }
-
-
-  // void updateIndex(int newIndex) {
-  //   setState(() {
-  //     widget.index = newIndex;
-  //   });
-  // }
-
 
   void addRowFromData(String points,
       String discussed, String decision,
@@ -493,9 +439,11 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
       key.currentState?.textFieldController5.text = status;
       key.currentState?.dateController1.text = targetDate;
       key.currentState?.dateController2.text = nextDate;
+      if (nextDate.trim().isEmpty) {
+        key.currentState?.enableNextDate();
+      }
     });
   }
-
 
 
   @override
@@ -530,12 +478,8 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
       ),
 
 
-      body:
-      WillPopScope(
+      body: WillPopScope(
         onWillPop: () async {
-          /*   Navigator.pop(context, {"FilterAlert":false});
-            return false;*/
-
 
           if (Navigator.canPop(context)) {
             Navigator.pop(context);
@@ -559,9 +503,9 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
           }
           return true;
         },
-        child:
-        _addForm(),),
-      bottomNavigationBar: BottomAppBar(
+        child: _addForm(),),
+
+        bottomNavigationBar: BottomAppBar(
         child: SizedBox(
           height: 70,
           child: Row(
@@ -636,29 +580,7 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
                   ],
                 ),
               ),
-              // GestureDetector(
-              //   onTap: () {
-              //     _validation();
-              //   },
-              //   child: Container(
-              //     alignment: Alignment.center,
-              //     width: 148,
-              //     height: 56,
-              //     margin: const EdgeInsets.only(left: 15),
-              //     padding: const EdgeInsets.only(
-              //         top: 6.0, bottom: 6, left: 20, right: 20),
-              //     decoration: BoxDecoration(
-              //         color: MyColors.blueColorCode,
-              //         borderRadius: BorderRadius.all(Radius.circular(10)),
-              //         border:
-              //         Border.all(color: MyColors.textBoxBorderColorCode)),
-              //     child: Text(
-              //       "Save",
-              //       style:
-              //       TextStyle(color: MyColors.whiteColorCode, fontSize: 20),
-              //     ),
-              //   ),
-              // )
+
               Row(
                 children: [
                   if (!isUpdateMode)
@@ -684,29 +606,6 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
                       ),
                     ),
                   if (isUpdateMode)
-                  /*  GestureDetector(
-                      onTap: () {
-                        _updatevalidation();
-                        Fluttertoast.showToast(msg: "Update button clicked!");
-                        // TODO: Add your update logic here
-                      },
-                      child: Container(
-                        alignment: Alignment.center,
-                        width: 140,
-                        height: 56,
-                        margin: const EdgeInsets.only(left: 10),
-                        padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 20),
-                        decoration: BoxDecoration(
-                          color: Colors.green,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: MyColors.textBoxBorderColorCode),
-                        ),
-                        child: Text(
-                          "Update",
-                          style: TextStyle(color: Colors.white, fontSize: 20),
-                        ),
-                      ),
-                    ),*/
                   // Replace the update button GestureDetector with this:
                     GestureDetector(
                       onTap: _isFormEdited ? _updatevalidation : null,
@@ -736,6 +635,7 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
       ),
     );
   }
+
   void _checkForFormEdits() {
     bool hasEdits = false;
 
@@ -763,6 +663,7 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
       });
     }
   }
+
   _addForm() {
     return LoadingOverlay(
       isLoading: _isLoading,
@@ -792,8 +693,6 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
 
             DialogForUpdate().popUp(
                 context, " Your Minutes Of The Meeting Form Submitted Successfully!", "4");
-
-
           }
           else if (state is InsertMMRowsDataErrorState) {
             setState(() {
@@ -809,11 +708,7 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
 
           }
           else if (state is InsertMMAllDataLoadedState) {
-//             setState(() {
-//               _isLoading = false;
-//             });
-//             print("InsertMMAllDataLoadedState......... ");
-// //insertMMALLDataRequest response :Record Inserted Successfully. SrNo - 54
+
             Fluttertoast.showToast(
               msg: state.cancelGatepassResponse,
               toastLength: Toast.LENGTH_SHORT,
@@ -834,55 +729,13 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
             } else {
               print("No SrNo found.");
             }
-            // setState(() {
-            //   _isLoading = false;
-            // });
-            // print("InsertMMRowsDataLoadedState ");
-            // Fluttertoast.showToast(
-            //   msg: "   Record Inserted Successfully..!   ",
-            //   toastLength: Toast.LENGTH_SHORT,
-            //   timeInSecForIosWeb: 1,
-            // );
-            //
-            // DialogForUpdate().popUp(
-            //     context, " Your Minutes Of The Meeting Form Submitted Successfully!", "4");
-
           }
           else if (state is InsertMMAllDataErrorState) {
             setState(() {
               _isLoading = false;
             });
-
           }
 
-          ///////////////
-
-          // if (state is UpdateMeetingFormNoLoadingState) {
-          //   setState(() {
-          //     _isLoading = true;
-          //   });
-          //
-          // }
-          // else if (state is UpdateMeetingFormNoLoadedState) {
-          //   setState(() {
-          //     _isLoading = false;
-          //   });
-          //   print("UpdateMeetingFormNoLoadedState......... ");
-          //   Fluttertoast.showToast(
-          //     msg: state.cancelGatepassResponse.message!,
-          //     toastLength: Toast.LENGTH_SHORT,
-          //     timeInSecForIosWeb: 1,
-          //   );
-          //
-          // }
-          // else if (state is UpdateMeetingFormNoErrorState) {
-          //   setState(() {
-          //     _isLoading = false;
-          //   });
-          //
-          // }
-
-          //
           if (state is GetMinutesOfTheMeetingAllDataByVisitSrNoLoadingState) {
             setState(() {
               _isLoading = true;
@@ -919,7 +772,6 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
             });
 
           }
-//GetMinutesOfTheMeetingDataByVisitSrNoEvents
 
           if (state is GetMinutesOfTheMeetingDataByVisitSrNoLoadingState) {
             setState(() {
@@ -939,6 +791,8 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
               timeInSecForIosWeb: 1,
             );
 
+            listofRows.clear();
+            SRNOtable.clear();
             listofRows.addAll(state.getMinutesOfTheMeetingDataByVisitSrNoResponse.message!);
 
             String? pointsOrIssues="";
@@ -956,7 +810,7 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
               });
               for(int i=0;i<listofRows.length;i++)
               {
-                SRNOtable=listofRows[i].srNo.toString();
+                SRNOtable.add(listofRows[i].srNo.toString());
                 pointsOrIssues=listofRows[i].pointsOrIssues!;
                 discussedWith=listofRows[i].disccussedwith!;
                 decisionTaken=listofRows[i].decisionTaken!;
@@ -969,10 +823,7 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
               }
               print("table:"+pointsOrIssues!+discussedWith!+decisionTaken!+responsibility!+statusOrRemark!
                   +targetDate!+nextDate!);
-
             }
-
-
           }
           else if (state is GetMinutesOfTheMeetingDataByVisitSrNoErrorState) {
             setState(() {
@@ -1022,7 +873,7 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
                       child: Row(
                         children: [
                           Text(
-                            "Date",
+                            "Visit Date",
                             style: TextStyle(fontSize: 18),
                           ),
                           Padding(
@@ -1037,13 +888,13 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
                     )),
                 TextField(
                   controller: _gatepassdatecontroller,
-                  onChanged: (value) => _checkForFormEdits(),
+                  // onChanged: (value) => _checkForFormEdits(),
                   enabled: true,
                   readOnly: true,
-                  onTap: () {
-                    FocusScope.of(context).requestFocus(new FocusNode());
-                    _selectDate(context);
-                  },
+                  // onTap: () {
+                  //   FocusScope.of(context).requestFocus(new FocusNode());
+                  //   _selectDate(context);
+                  // },
                   // to trigger disabledBorder
                   decoration: InputDecoration(
                     filled: true,
@@ -1100,7 +951,7 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
                       child: Row(
                         children: [
                           Text(
-                            "From Time ",
+                            "To Time ",
                             style: TextStyle(fontSize: 18),
                           ),
                           Padding(
@@ -1120,38 +971,38 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
                     // onChanged: (value) {
                     //   fromTimeController = value;
                     // },
-                    onTap: () async {
-                      final DateFormat
-                      formatter =
-                      DateFormat(
-                          'H:mm',
-                          Localizations.localeOf(
-                              context).toLanguageTag());
-                      final TimeOfDay? picked =
-                      await showTimePicker(context: context,
-                          initialTime:
-                          TimeOfDay.now());
-                      builder:
-                          (BuildContext
-                      context,
-                          Widget? child) {
-                        return MediaQuery(
-                            data: MediaQuery.of(context)
-                                .copyWith(
-                                alwaysUse24HourFormat:
-                                true),
-                            child:
-                            child!);
-                      };
-                      if (picked != null) {final String
-                      fromTime = formatter.format(DateTime(0, 1, 1, picked.hour, picked.minute));
-                      fromTimeController = fromTime;
-                      setState(() {
-                        fromTimeInput.text = fromTimeController;
-                        _checkForFormEdits();
-                      });
-                      }
-                    },
+                    // onTap: () async {
+                    //   final DateFormat
+                    //   formatter =
+                    //   DateFormat(
+                    //       'H:mm',
+                    //       Localizations.localeOf(
+                    //           context).toLanguageTag());
+                    //   final TimeOfDay? picked =
+                    //   await showTimePicker(context: context,
+                    //       initialTime:
+                    //       TimeOfDay.now());
+                    //   builder:
+                    //       (BuildContext
+                    //   context,
+                    //       Widget? child) {
+                    //     return MediaQuery(
+                    //         data: MediaQuery.of(context)
+                    //             .copyWith(
+                    //             alwaysUse24HourFormat:
+                    //             true),
+                    //         child:
+                    //         child!);
+                    //   };
+                    //   if (picked != null) {final String
+                    //   fromTime = formatter.format(DateTime(0, 1, 1, picked.hour, picked.minute));
+                    //   fromTimeController = fromTime;
+                    //   setState(() {
+                    //     fromTimeInput.text = fromTimeController;
+                    //     _checkForFormEdits();
+                    //   });
+                    //   }
+                    // },
                     readOnly: true,
                     enabled:
                     true,
@@ -1254,7 +1105,7 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
                       child: Row(
                         children: [
                           Text(
-                            "Subject",
+                            "Visit Name",
                             style: TextStyle(fontSize: 18),
                           ),
                           Padding(
@@ -1269,8 +1120,9 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
                     )),
                 TextField(
                   controller: _subjectController,
-                  onChanged: (value) => _checkForFormEdits(),
+                  // onChanged: (value) => _checkForFormEdits(),
                   enabled: true, // to trigger disabledBorder
+                  readOnly: true,
                   decoration: InputDecoration(
                     filled: true,
                     fillColor: MyColors.whiteColorCode,
@@ -1461,10 +1313,7 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
 
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-
-
                     children: [
-
                       SizedBox(height: 8),
 
                       ElevatedButton(
@@ -1523,32 +1372,21 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
 
                                   SizedBox(
                                     width: 200, // Adjust the width as needed
-
-
                                     child: _buildDynamicTextField(
                                         "Field 5", dateController2),
-
                                   ),
 
                                 ],
 
                               ),
                               ...dynamicRows,
-
-
                             ],
                           )
-
-
                       ),
 
                     ],
                   ),
-
-
                 ),
-
-
               ],
             ),
           ),
@@ -1651,6 +1489,7 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
       getAllRowsData();
     }
   }
+
   _updatevalidation() {
     if (_gatepassdatecontroller.text.isEmpty) {
       Fluttertoast.showToast(
@@ -1691,41 +1530,11 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
     else {
       print(" _else..............");
       getAllRowsDataupdate();
-
-
-    }
-  }
-
-  Future<void> _selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime.now().subtract(const Duration(days: 15)),
-      lastDate: DateTime.now(),
-    );
-    if (picked != null && picked != selectedDate) {
-      setState(() {
-        selectedDate = picked;
-        _gatepassdatecontroller.text =
-            selectedDate.day.toString() + "/" + selectedDate.month.toString() +
-                "/" + selectedDate.year.toString();
-        date =
-            selectedDate.year.toString() + "-" + selectedDate.month.toString() +
-                "-" + selectedDate.day.toString();
-        _checkForFormEdits();
-      });
-
     }
   }
 
   void  _updateMinutesOfTheMeetingForm(List<Map<String, String>> allRowsData){
 
-    // mainBloc.add(UpdateMMALLDataEvents(
-    //     updateMMAllData: UpdateMMAllData(
-    //         srNo: srno,
-    //
-    //
-    //     ), token: Auth_Token!));
     mainBloc.add(UpdateMMALLDataEvents(updateMMAllData: UpdateMMAllData(
         srNo: srno,
         date: _gatepassdatecontroller.text,
@@ -1743,32 +1552,17 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
       String pointsOrIssues = rowData['pointsOrIssues'] ?? 'Not provided';
       mainBloc.add(UpdateMMDataEvents(
           updateMMData: UpdateMMData(
-              srNo: SRNOtable,
+              srNo: SRNOtable[i],
               pointsOrIssues: rowData['pointsOrIssues'] ?? 'Not provided',
               discussedWith: rowData['discussedWith'] ?? 'Not provided',
               decisionTaken:  rowData['decisionTaken'] ?? 'Not provided',
               responsibility: rowData['responsibility'] ?? 'Not provided',
               targetDate: rowData['targetDate'] ?? 'Not provided',
               statusOrRemark: rowData['statusOrRemark'] ?? 'Not provided',
-              nextDate:rowData['nextDate'] ?? 'Not provided',
+              nextDate:rowData['nextDate']!.isEmpty ? 'Not provided' : rowData['nextDate'],
               visitSrNo:widget.visitSrNo),
-          token: Auth_Token!));
-      // mainBloc.add(InsertMMRowsDataEvents(
-      //     insertMMRowDataRequest: InsertMMRowDataRequest(
-      //       pointsOrIssues: rowData['pointsOrIssues'] ?? 'Not provided',
-      //       discussedWith: rowData['discussedWith'] ?? 'Not provided',
-      //       decisionTaken: rowData['decisionTaken'] ?? 'Not provided',
-      //       responsibility: rowData['responsibility'] ?? 'Not provided',
-      //       targetDate: rowData['targetDate'] ?? 'Not provided',
-      //       statusOrRemark: rowData['statusOrRemark'] ?? 'Not provided',
-      //       nextDate: rowData['nextDate'] ?? 'Not provided',
-      //       visitSrNo: "3531",
-      //     ),
-      //     token: Auth_Token!)) ;
-      // break;
-
+              token: Auth_Token!));
     }
-
   }
 
   void _addMinutesOfTheMeetingForm(List<Map<String, String>> allRowsData) {
@@ -1792,6 +1586,7 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
       Map<String, String> rowData=allRowsData.elementAt(i);
       print("rowData :"+rowData.length.toString());
       String pointsOrIssues = rowData['pointsOrIssues'] ?? 'Not provided';
+      print("next target date data: ${rowData['nextDate']!.isEmpty ? 'Not provided' : rowData['nextDate']}");
       mainBloc.add(InsertMMRowsDataEvents(
           insertMMRowDataRequest: InsertMMRowDataRequest(
             pointsOrIssues: rowData['pointsOrIssues'] ?? 'Not provided',
@@ -1800,7 +1595,7 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
             responsibility: rowData['responsibility'] ?? 'Not provided',
             targetDate: rowData['targetDate'] ?? 'Not provided',
             statusOrRemark: rowData['statusOrRemark'] ?? 'Not provided',
-            nextDate: rowData['nextDate'] ?? 'Not provided',
+            nextDate: rowData['nextDate']!.isEmpty ? 'Not provided' : rowData['nextDate'],
             visitSrNo: widget.visitSrNo,
           ),
           token: Auth_Token!)) ;
@@ -1808,7 +1603,6 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
 
     }
   }
-
 
 }
 
@@ -1821,13 +1615,13 @@ class DynamicRow extends StatefulWidget {
 
   DynamicRow({Key? key,required this.index, required this.onDelete}) : super(key: key);
 
-
   @override
   _DynamicRowState createState() => _DynamicRowState();
 }
 
 class _DynamicRowState extends State<DynamicRow> {
   late int rowNumber;
+
   TextEditingController dateController1 = TextEditingController();
   TextEditingController dateController2 = TextEditingController();
   TextEditingController textFieldController1 = TextEditingController();
@@ -1835,6 +1629,21 @@ class _DynamicRowState extends State<DynamicRow> {
   TextEditingController textFieldController3 = TextEditingController();
   TextEditingController textFieldController4 = TextEditingController();
   TextEditingController textFieldController5 = TextEditingController();
+
+  bool isNextDateEnabled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    rowNumber = widget.index;
+  }
+
+  void enableNextDate() {
+    setState(() {
+      isNextDateEnabled = true;
+    });
+  }
+
   Map<String, String> getRowData() {
     return {
       'pointsOrIssues': textFieldController1.text,
@@ -1843,13 +1652,8 @@ class _DynamicRowState extends State<DynamicRow> {
       'responsibility': textFieldController4.text,
       'statusOrRemark': textFieldController5.text,
       'targetDate': dateController1.text,
-      'nextDate': dateController2.text,
+      'nextDate': dateController2.text?? '',
     };
-  }
-  @override
-  void initState() {
-    super.initState();
-    rowNumber = widget.index;
   }
 
   @override
@@ -1936,19 +1740,33 @@ class _DynamicRowState extends State<DynamicRow> {
                     obscureText: false,
                   ),
                 ),
-                SizedBox(
+
+                  SizedBox(
                   width: 200, // Adjust the width as needed
                   child: TextField(
+
                     controller: dateController2,
                     enabled: true,
                     readOnly: true,
                     onTap: () {
+                      if (isNextDateEnabled) {
+                        Fluttertoast.showToast(
+                          msg: "Please select Target Date first and save",
+                          toastLength: Toast.LENGTH_SHORT,
+                        );
+                        return;
+                      }
                       FocusScope.of(context).requestFocus(FocusNode());
                       _selectDate(context, dateController2);
                     },
                     decoration: InputDecoration(
                       filled: true,
-                      fillColor: MyColors.whiteColorCode,
+
+                      // 👇 change color depending on enabled state
+                      fillColor: isNextDateEnabled
+                          ? Colors.grey.shade400
+                          : MyColors.whiteColorCode,
+
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(4)),
                         borderSide: BorderSide(width: 1, color: MyColors.buttonColorCode),
@@ -1977,15 +1795,21 @@ class _DynamicRowState extends State<DynamicRow> {
                       suffixIcon: Icon(
                         Icons.calendar_month,
                         size: 24,
-                        color: MyColors.dateIconColorCode,
+                        color: isNextDateEnabled
+                            ? Colors.grey : MyColors.dateIconColorCode,
                       ),
-                      hintStyle: TextStyle(fontSize: 16, color: MyColors.datePlacehoderColorCode),
-                      errorText: "",
+                      hintStyle: TextStyle(
+                        fontSize: 16,
+                        color: isNextDateEnabled
+                            ? MyColors.datePlacehoderColorCode
+                            : Colors.grey,
+                      ),                      errorText: "",
                       contentPadding: EdgeInsets.symmetric(vertical: 30.0, horizontal: 10.0),
                     ),
                     obscureText: false,
                   ),
                 ),
+
                 SizedBox(
                   width: 50,
                   child: Padding(
@@ -2013,30 +1837,50 @@ class _DynamicRowState extends State<DynamicRow> {
       ),
     );
   }
+
   void updateIndex(int newIndex) {
     setState(() {
       rowNumber = newIndex;
     });
   }
-  // final DateTime? picked = await showDatePicker(
-  // context: context,
-  // initialDate: DateTime.now(),
-  // firstDate: DateTime.now().subtract(const Duration(days: 15)),
-  // lastDate: DateTime.now().add(const Duration(days: 15)),
-  // );
-  // Method to open a date picker
-  void _selectDate(BuildContext context,
-      TextEditingController controller) async {
+
+  void _selectDate(BuildContext context, TextEditingController controller) async {
+
     DateTime? pickedDate = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 15)),
     );
+
     if (pickedDate != null) {
+
+      // If selecting NEXT TARGET DATE
+      if (controller == dateController2 && dateController1.text.isNotEmpty) {
+
+        DateTime targetDate =
+        DateFormat('dd/MM/yyyy').parse(dateController1.text);
+
+        if (!pickedDate.isAfter(targetDate)) {
+
+          Fluttertoast.showToast(
+            msg: "Next Target Date must be greater than Target Date",
+            toastLength: Toast.LENGTH_SHORT,
+          );
+
+          return;
+        }
+      }
+
       setState(() {
         controller.text = DateFormat('dd/MM/yyyy').format(pickedDate);
+      });
 
+      // Trigger update button enable
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        context
+            .findAncestorStateOfType<_MinutesOfTheMeetingFormScreenState>()
+            ?._checkForFormEdits();
       });
     }
   }

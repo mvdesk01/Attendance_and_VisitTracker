@@ -804,12 +804,11 @@ catch(e){
 
     }
     else if (response.statusCode == 404) {
-      // Fluttertoast.showToast(
-      //   msg: "  No Pending Leaves To Show!",
-      //   toastLength: Toast.LENGTH_LONG,
-      //   timeInSecForIosWeb: 1,
-      // );
-      return LeavePendingResponse.fromJson(jsonDecode(response.body));
+      Fluttertoast.showToast(
+        msg: "  No Pending Leaves To Show!",
+        toastLength: Toast.LENGTH_LONG,
+        timeInSecForIosWeb: 1,
+      );
     }
     return LeavePendingResponse.fromJson(jsonDecode(response.body));
   }
