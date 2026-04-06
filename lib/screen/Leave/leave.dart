@@ -762,7 +762,7 @@ class _PendingLeaveState extends State<PendingLeave> {
                                     borderRadius: BorderRadius.all(Radius.circular(10))),
                                 child: Text(
                                   "EDIT",
-                                  style: TextStyle(color: MyColors.whiteColorCode, fontSize: 18, fontWeight: FontWeight.bold),
+                                  style: TextStyle(color: MyColors.whiteColorCode, fontSize: 12, fontWeight: FontWeight.bold),
                                 ),
                               ),
                             ),
@@ -772,10 +772,10 @@ class _PendingLeaveState extends State<PendingLeave> {
                               },
                               child: Container(
                                 height: 32,
-                                margin: EdgeInsets.only(left: 20),
-                                padding: EdgeInsets.symmetric(horizontal: 15, vertical: 5),
+                                margin: EdgeInsets.only(top: 7, left: 20),
+                                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 5),
                                 decoration: BoxDecoration(
-                                    color: MyColors.redColorCode, borderRadius: BorderRadius.circular(20)),
+                                    color: MyColors.redColorCode, borderRadius: BorderRadius.circular(10)),
                                 child: Text(
                                   "DELETE",
                                   style: TextStyle(fontWeight: FontWeight.bold, color: MyColors.whiteColorCode, fontSize: 12),

@@ -101,6 +101,13 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     // _resetInactivityTimer();
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
+    //   Future.delayed(Duration(seconds: 1), () {
+    //     InternetService().startListening(
+    //       MyApp.navigatorKey.currentState!.overlay!.context,
+    //     );
+    //   });
+    // });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       InternetService().startListening(MyApp.navigatorKey.currentState!.overlay!.context);
     });
@@ -113,59 +120,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     super.dispose();
   }
 
-  // @override
-  // void didChangeAppLifecycleState(AppLifecycleState state) {
-  //   if (state == AppLifecycleState.paused) {
-  //     _startLogoutTimer();
-  //   } else if (state == AppLifecycleState.resumed) {
-  //     if (_inactivityTimer?.isActive == false) {
-  //       _logoutUser();
-  //     } else {
-  //       _resetInactivityTimer();
-  //     }
-  //   }
-  // }
 
-  // void _resetInactivityTimer() {
-  //   _inactivityTimer?.cancel();
-  //   _inactivityTimer = Timer(Duration(minutes: 30), _logoutUser);
-  // }
-  // @override
-  // void didChangeAppLifecycleState(AppLifecycleState state) {
-  //   if (state == AppLifecycleState.paused) {
-  //     _lastActiveTime = DateTime.now();
-  //     _startLogoutTimer();
-  //   } else if (state == AppLifecycleState.resumed) {
-  //     final now = DateTime.now();
-  //     if (_lastActiveTime != null &&
-  //         now.difference(_lastActiveTime!).inMinutes > 30) {
-  //       _logoutUser();
-  //     } else {
-  //       _resetInactivityTimer();
-  //     }
-  //   }
-  // }
-  //
-  // void _resetInactivityTimer() {
-  //   _lastActiveTime = DateTime.now();
-  //   _inactivityTimer?.cancel();
-  //   _inactivityTimer = Timer(const Duration(minutes: 30), _logoutUser);
-  // }
-  //
-  // void _startLogoutTimer() {
-  //   _inactivityTimer?.cancel();
-  //   _inactivityTimer = Timer(Duration(minutes: 30), _logoutUser);
-  // }
-
-  // void _logoutUser() {
-  //   _inactivityTimer?.cancel();
-  //     isloggedIn=true;
-  //   MyApp.navigatorKey.currentState?.pushAndRemoveUntil(
-  //
-  //     MaterialPageRoute(builder: (context) => SplashScreen()),
-  //         (Route<dynamic> route) => false, // Clears all previous routes
-  //   );
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -201,6 +156,75 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     );
   }
 }
+
+
+class MyHttpOverrides extends HttpOverrides {
+  @override
+  HttpClient createHttpClient(SecurityContext? context) {
+    return super.createHttpClient(context)
+      ..badCertificateCallback = (X509Certificate cert, String host, int port) => true;
+  }
+}
+
+class VisitState {
+  static final ValueNotifier<bool> isVisitRunning = ValueNotifier(false);
+  static final ValueNotifier<bool> isVisitStarted = ValueNotifier(false);
+  static final ValueNotifier<int> countRemainingLatLong = ValueNotifier(0);
+}
+
+// @override
+// void didChangeAppLifecycleState(AppLifecycleState state) {
+//   if (state == AppLifecycleState.paused) {
+//     _startLogoutTimer();
+//   } else if (state == AppLifecycleState.resumed) {
+//     if (_inactivityTimer?.isActive == false) {
+//       _logoutUser();
+//     } else {
+//       _resetInactivityTimer();
+//     }
+//   }
+// }
+
+// void _resetInactivityTimer() {
+//   _inactivityTimer?.cancel();
+//   _inactivityTimer = Timer(Duration(minutes: 30), _logoutUser);
+// }
+// @override
+// void didChangeAppLifecycleState(AppLifecycleState state) {
+//   if (state == AppLifecycleState.paused) {
+//     _lastActiveTime = DateTime.now();
+//     _startLogoutTimer();
+//   } else if (state == AppLifecycleState.resumed) {
+//     final now = DateTime.now();
+//     if (_lastActiveTime != null &&
+//         now.difference(_lastActiveTime!).inMinutes > 30) {
+//       _logoutUser();
+//     } else {
+//       _resetInactivityTimer();
+//     }
+//   }
+// }
+//
+// void _resetInactivityTimer() {
+//   _lastActiveTime = DateTime.now();
+//   _inactivityTimer?.cancel();
+//   _inactivityTimer = Timer(const Duration(minutes: 30), _logoutUser);
+// }
+//
+// void _startLogoutTimer() {
+//   _inactivityTimer?.cancel();
+//   _inactivityTimer = Timer(Duration(minutes: 30), _logoutUser);
+// }
+
+// void _logoutUser() {
+//   _inactivityTimer?.cancel();
+//     isloggedIn=true;
+//   MyApp.navigatorKey.currentState?.pushAndRemoveUntil(
+//
+//     MaterialPageRoute(builder: (context) => SplashScreen()),
+//         (Route<dynamic> route) => false, // Clears all previous routes
+//   );
+// }
 
 // void checkConnectivity() {
 //   Connectivity().onConnectivityChanged.listen((ConnectivityResult result) async {
@@ -266,17 +290,3 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
   //print("✅ Sync complete!");
 }*/
-
-class MyHttpOverrides extends HttpOverrides {
-  @override
-  HttpClient createHttpClient(SecurityContext? context) {
-    return super.createHttpClient(context)
-      ..badCertificateCallback = (X509Certificate cert, String host, int port) => true;
-  }
-}
-
-class VisitState {
-  static final ValueNotifier<bool> isVisitRunning = ValueNotifier(false);
-  static final ValueNotifier<bool> isVisitStarted = ValueNotifier(false);
-  static final ValueNotifier<int> countRemainingLatLong = ValueNotifier(0);
-}
