@@ -44,9 +44,10 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   void initState() {
     super.initState();
     // _mainBloc=BlocProvider.of(context);
-     initiallize();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-
+       await requestPermissions(); // Ensure all permissions are handled first
+      await clearKeychainValues();
+       await checkInternetAndProceed();
       if (widget.initialPayload != null) {
         Navigator.of(context).pushReplacementNamed(
           '/track_visit_location',
@@ -60,17 +61,9 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
   }
 
-  Future<void> initiallize () async {
-    await requestPermissions();
-    await clearKeychainValues();
-    await checkInternetAndProceed();
-  }
-
   Future<void> requestPermissions() async {
-    try {
+    if (await Permission.notification.isDenied) {
       await Permission.notification.request();
-    } catch (e) {
-      print("Permission error: $e");
     }
     await filePermission(context);
   }
@@ -242,8 +235,8 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   void dispose(){
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
         overlays: SystemUiOverlay.values);
-   // InternetService().stopListening();
-   //  InternetService().stopListening();
+    // InternetService().stopListening();
+    //  InternetService().stopListening();
     super.dispose();
   }
 
@@ -312,13 +305,13 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
         // String storedUsername = await storage.read(key: 'username') ?? 'Null';
 
         // if (storedUsername.isNotEmpty && storedUsername != 'Null') {
-         isloggedIn=false;
-         if (storedUsername == "mzdl002" && storedPassword == "Admin@123\$") {
-           Navigator.pushReplacementNamed(context, "/AdminHome");
-         }// Proceed to home
+        isloggedIn=false;
+        if (storedUsername == "mzdl002" && storedPassword == "Admin@123\$") {
+          Navigator.pushReplacementNamed(context, "/AdminHome");
+        }// Proceed to home
         else{
-           Navigator.pushReplacementNamed(context, "/Home");
-         }
+          Navigator.pushReplacementNamed(context, "/Home");
+        }
         // } else {
         //   Navigator.pushReplacementNamed(context, "/Login"); // Go to login
         // }
@@ -366,7 +359,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   }
 
   _splashscreen() {
-   // Access Bloc safely inside build()
+    // Access Bloc safely inside build()
     return LoadingOverlay(
       isLoading: _isLoading,
       opacity: 0.5,

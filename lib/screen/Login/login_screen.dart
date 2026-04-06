@@ -71,6 +71,10 @@ class _LoginScreenState extends State<LoginScreen> {
   void initState() {
     super.initState();
     print(isloggedIn);
+    ///changes
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
+    //   InternetService().startListening(MyApp.navigatorKey.currentState!.overlay!.context);
+    // });
 
   }
   void dispose() {
