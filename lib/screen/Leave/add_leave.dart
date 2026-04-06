@@ -42,7 +42,7 @@ class _AddLeavePageState extends State<AddLeavePage> {
   DateTime selectedDate = DateTime.now();
   late String date = '';
   List<String> yearlist = [];
-  String year = "2025";
+  String year = "2026";
   bool isYearselected = false;
   bool ClickStatus = false;
   String? staffCode = "";
@@ -328,6 +328,7 @@ class _AddLeavePageState extends State<AddLeavePage> {
                         await storage.write(key: 'doj', value: _StaffDOJController.text);
                         await storage.write(key: 'plantname', value: _StaffplantnameController.text);
                         await storage.write(key: 'department', value: _StaffdepartmentnameController.text);
+                       // await storage.write(key:"leavetypecode",value: )
                         print((key: 'stafcodeee', value: staffCode));
                         // Navigate to the next page
                         Navigator.push(

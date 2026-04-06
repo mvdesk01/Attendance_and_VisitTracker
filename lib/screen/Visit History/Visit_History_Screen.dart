@@ -53,6 +53,10 @@ class _VisitHistoryScreenState extends State<VisitHistoryScreen>{
   String? value;
   bool isVisitRunning = false;
 
+  String visitDateMOM = '';
+  String toTimeMOM = '';
+  String vistNameMOM = '';
+
   @override
   void initState() {
     //  data=widget.datum;
@@ -289,7 +293,7 @@ class _VisitHistoryScreenState extends State<VisitHistoryScreen>{
                                 return MainBloc(
                                     webService: WebService());
                               },
-                              child: MinutesOfTheMeetingFormScreen(visitSrNo:  state.getMinutesOfMeetingFormNoResponse.message!.srNo.toString(),minuteforno: state.getMinutesOfMeetingFormNoResponse.message!.minutesofMeetFormNo.toString(),))));
+                              child: MinutesOfTheMeetingFormScreen(visitSrNo:  state.getMinutesOfMeetingFormNoResponse.message!.srNo.toString(), minuteforno: state.getMinutesOfMeetingFormNoResponse.message!.minutesofMeetFormNo.toString(), visitDateMOM: visitDateMOM,toTimeMOM: toTimeMOM,visitNameMOM: vistNameMOM))));
 
                   print("not Filled yet...");
 
@@ -311,7 +315,7 @@ class _VisitHistoryScreenState extends State<VisitHistoryScreen>{
                                 return MainBloc(
                                     webService: WebService());
                               },
-                              child: MinutesOfTheMeetingFormScreen(visitSrNo: state.getMinutesOfMeetingFormNoResponse.message!.srNo.toString(),minuteforno: state.getMinutesOfMeetingFormNoResponse.message!.minutesofMeetFormNo.toString(),))));
+                              child: MinutesOfTheMeetingFormScreen(visitSrNo: state.getMinutesOfMeetingFormNoResponse.message!.srNo.toString(),minuteforno: state.getMinutesOfMeetingFormNoResponse.message!.minutesofMeetFormNo.toString(), visitDateMOM: visitDateMOM,toTimeMOM: toTimeMOM,visitNameMOM: vistNameMOM))));
                 }
 
               }
@@ -548,6 +552,11 @@ class _VisitHistoryScreenState extends State<VisitHistoryScreen>{
 
                                                       // Format the date into the desired format "dd-MMM-yyyy"
                                                       String formattedDate = DateFormat("dd-MMM-yyyy").format(parsedDate);  //yyyy-MM-dd correct formate
+
+                                                      // Set values to prefilled in MOM screen
+                                                      visitDateMOM = visitList[index].visitDate.toString();
+                                                      toTimeMOM = visitList[index].totime.toString();
+                                                      vistNameMOM = visitList[index].reason.toString();
 
                                                       // mainBloc.add(VisitlatLongListEvents(StaffCode: staffCode!, ActualDate: formattedDate, SrNoVal: visitList[index].srNo!.toString(), token: Auth_Token!));
                                                       mainBloc.add(GetMinutesOfMeetingFormNoEvents(UserId: staffCode!,SrNo: visitList[index].srNo!.toString(),token: Auth_Token!));
