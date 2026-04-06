@@ -68,7 +68,7 @@ void main() async {
   //     options: DefaultFirebaseOptions.currentPlatform,
   //   );
   // }
-  tz.initializeTimeZones();
+   tz.initializeTimeZones();
 
   runApp(MyApp(initialPayload: initialPayload));
 }

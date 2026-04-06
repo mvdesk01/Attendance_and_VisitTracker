@@ -37,6 +37,7 @@ import 'package:local_auth/local_auth.dart';
 import '../../model/in_out_details.dart';
 // import '../CancellationRequest/CancellationRequestScreen.dart';
 import '../../service/background_service.dart';
+import '../../service/internet_service.dart';
 import '../AdminProfile/Databasepunchout.dart';
 import '../AdminProfile/Databsepunchin.dart';
 import '../Expense/ExpenseScreen.dart';
@@ -116,6 +117,7 @@ class _HomeScreenState extends State<HomeScreen> {
   ];
 
   @override
+  ///change3
   void initState() {
     // TODO: implement initState
     super.initState();
@@ -128,6 +130,11 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     });
     initialize();
+    // Future.delayed(const Duration(seconds: 1), () {
+    //   if (mounted) {
+    //     InternetService().startListening(context);
+    //   }
+    // });
   }
 
   Future<void> initialize() async {

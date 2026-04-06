@@ -44,10 +44,9 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   void initState() {
     super.initState();
     // _mainBloc=BlocProvider.of(context);
+     initiallize();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await requestPermissions(); // Ensure all permissions are handled first
-      await clearKeychainValues();
-      await checkInternetAndProceed();
+
       if (widget.initialPayload != null) {
         Navigator.of(context).pushReplacementNamed(
           '/track_visit_location',
@@ -61,9 +60,17 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
   }
 
+  Future<void> initiallize () async {
+    await requestPermissions();
+    await clearKeychainValues();
+    await checkInternetAndProceed();
+  }
+
   Future<void> requestPermissions() async {
-    if (await Permission.notification.isDenied) {
+    try {
       await Permission.notification.request();
+    } catch (e) {
+      print("Permission error: $e");
     }
     await filePermission(context);
   }
