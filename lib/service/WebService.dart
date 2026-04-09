@@ -1275,7 +1275,7 @@ catch(e){
       // Handle the response
       if (response.statusCode == 200) {
         Fluttertoast.showToast(
-          msg: "Process Completed",
+          msg: response.body,
           toastLength: Toast.LENGTH_SHORT,
         );
       } else if (response.statusCode == 400) {
@@ -1442,8 +1442,8 @@ catch(e){
 
   Future<CancelGatepassResponse> SubmitCOffEntry(
       CreditCOffEntryRequest creditCOffEntryRequest, String token) async {
-    print("creditCOffEntry==========>"+Constant.SubmitCoff
-        +"otid :"+ creditCOffEntryRequest.otid.toString()
+    print("creditCOffEntry==========>"+Constant.SubmitCoff);
+    print("otid :"+ creditCOffEntryRequest.otid.toString()
         +"staffCode :"+ creditCOffEntryRequest.type.toString()+
         "name :"+ creditCOffEntryRequest.name.toString()+
         "department :"+ creditCOffEntryRequest.department.toString()+
@@ -1467,6 +1467,31 @@ catch(e){
     print("SubmitCoff response :" +response.body);
     print("SubmitCoff response :" +response.statusCode.toString());
 
+    if (response.statusCode == 200) {
+      try {
+        return CancelGatepassResponse.fromJson(jsonDecode(response.body));
+      }catch(e)
+      {
+        print("FetchCoffTransactions  Error catch Block: " + e.toString());
+
+
+        Fluttertoast.showToast(
+          msg: "No records Found...!",
+          toastLength: Toast.LENGTH_LONG,
+          timeInSecForIosWeb: 1,
+        );
+
+      }
+    }
+    else if (response.statusCode == 400) {
+      // Handle error if the response status is 400
+      Fluttertoast.showToast(
+        msg: response.body ,
+        toastLength: Toast.LENGTH_LONG,
+        timeInSecForIosWeb: 1,
+      );
+      return CancelGatepassResponse.fromJson(jsonDecode(response.body));
+    }
     return CancelGatepassResponse.fromJson(jsonDecode(response.body));
   }
 
@@ -1539,7 +1564,8 @@ catch(e){
 
 
   Future<CancelGatepassResponse> CancelCoffOTHWOFF(
-      String staffCode,String transactionId, String token) async {
+      String staffCode,String transactionId, String token)
+  async {
     print(
         Constant.CancelCoffOTHWOFF+"?StaffCode="+staffCode+"&transactionId="+transactionId
 

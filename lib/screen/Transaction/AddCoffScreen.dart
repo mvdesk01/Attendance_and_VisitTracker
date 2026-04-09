@@ -3,6 +3,7 @@ import 'package:attendance_system_ios/bloc/main_event.dart';
 import 'package:attendance_system_ios/bloc/main_state.dart';
 import 'package:attendance_system_ios/model/CoffCredit/CreditCOffEntryRequest.dart';
 import 'package:attendance_system_ios/screen/Gate%20Pass/gate_pass.dart';
+import 'package:attendance_system_ios/screen/Home/home.dart';
 import 'package:attendance_system_ios/service/WebService.dart';
 import 'package:attendance_system_ios/util/DialogForUpdate.dart';
 import 'package:flutter/material.dart';
@@ -78,8 +79,50 @@ class _AddCoffScreenState extends State<AddCoffScreen> {
   String reason="Select";
 
   @override
+  // void initState() {
+  //   mainBloc=BlocProvider.of(context);
+  //   typeList.add("H/WOFF");
+  //   typeList.add("COFF");
+  //
+  //   reasonsList.add("Birthday");
+  //   reasonsList.add("Bus Miss");
+  //   reasonsList.add("Late Come");
+  //   reasonsList.add("Personal Reason");
+  //   reasonsList.add("Work Load");
+  //   reasonsList.add("Work On Holiday");
+  //   reasonsList.add("Work On Weekly Off");
+  //
+  //   //getData();
+  //
+  //   if (widget.flag == 2) {
+  //     print("widget.flag == 2");
+  //
+  //     type = "COFF";
+  //     _totalhrsController.text = widget.datum.ttlHrs.toString();
+  //
+  //     DateTime parsedDate = parseDate(widget.datum.otDate.toString());
+  //
+  //     selectedDate = parsedDate;
+  //
+  //     _gatepassdatecontroller.text =
+  //         DateFormat('dd/MM/yyyy').format(parsedDate);
+  //
+  //     //date = DateFormat('yyyy-MM-dd').format(parsedDate);
+  //
+  //     gatePasstype = widget.datum.type.toString();
+  //
+  //     getData();
+  //   }
+  //   else
+  //   {
+  //     print("widget.flag == 1");
+  //     getData();
+  //   }
+  // }
+
+  @override
   void initState() {
-    mainBloc=BlocProvider.of(context);
+    mainBloc = BlocProvider.of(context);
     typeList.add("H/WOFF");
     typeList.add("COFF");
 
@@ -91,61 +134,81 @@ class _AddCoffScreenState extends State<AddCoffScreen> {
     reasonsList.add("Work On Holiday");
     reasonsList.add("Work On Weekly Off");
 
-    //getData();
-
-    if (widget.flag == 2)
-    {
-
+    if (widget.flag == 2) {
       print("widget.flag == 2");
 
-      //type=widget.datum.type.toString();
-      type="COFF";
+      // ✅ FIX: Map "HW" to "H/WOFF" and set type
+      String savedType = widget.datum.type.toString();
+      if (savedType == "HW ") {
+        type = "H/WOFF";  // Set to H/WOFF if saved value is HW
+      } else {
+        type = savedType;
+      }
 
-      _totalhrsController.text=widget.datum.ttlHrs.toString();
-      _gatepassdatecontroller.text=widget.datum.otDate.toString();
-      gatePasstype=widget.datum.type.toString();
-      // _purposecontroller.text=widget.datum.customerName.toString();
+      _totalhrsController.text = widget.datum.ttlHrs.toString();
+
+      DateTime parsedDate = parseDate(widget.datum.otDate.toString());
+      selectedDate = parsedDate;
+
+      _gatepassdatecontroller.text = DateFormat('dd/MM/yyyy').format(parsedDate);
+      date = DateFormat('yyyy-MM-dd').format(parsedDate);
+
       getData();
-
-    }
-    else
-    {
+    } else {
       print("widget.flag == 1");
       getData();
     }
+  }
 
+
+
+  DateTime parseDate(String input) {
+    try {
+      // Case 1: yyyy-MM-dd (API format)
+      return DateTime.parse(input);
+    } catch (e) {
+      try {
+        // Case 2: dd/MM/yyyy (UI format)
+        return DateFormat('dd/MM/yyyy').parse(input);
+      } catch (e) {
+        return DateTime.now(); // fallback
+      }
+    }
   }
   Future<void> getData() async {
     staffCode = await storage.read(key: 'Staff_Code');
-
     print("staffCode-->"+staffCode!);
     Auth_Token = await storage.read(key: 'Auth_Token');
-
     print("Auth_Token-->"+Auth_Token!);
 
-    // _staffCodecontroller.text="cd02851";
     _staffCodecontroller.text=staffCode!;
 
-
-    DateTime now = DateTime.now();
-
-    // Format the date in dd/MM/yyyy format
-    String formattedDate = DateFormat('dd/MM/yyyy').format(now);
-
-    if (widget.flag == 2)
-    {
-      _gatepassdatecontroller.text = widget.datum.otDate.toString();
-    }
-    else
-    {
-      _gatepassdatecontroller.text=formattedDate;
+    // ✅ FIX: Don't overwrite date when flag == 2
+    if (widget.flag != 2) {
+      DateTime now = DateTime.now();
+      _gatepassdatecontroller.text = DateFormat('dd/MM/yyyy').format(now);
+      date = DateFormat('yyyy-MM-dd').format(now);
+      selectedDate = now;
+    } else {
+      // ✅ For edit mode, keep the existing date from initState
+      // Just use the date already set in _gatepassdatecontroller
+      // Don't set it to current date
+      date = DateFormat('yyyy-MM-dd').format(selectedDate);
     }
 
+    // Use the appropriate formatted date for API call
+    String formattedDate = widget.flag == 2
+        ? _gatepassdatecontroller.text  // Use existing date for edit
+        : DateFormat('dd/MM/yyyy').format(DateTime.now()); // Current date for new
 
-    mainBloc.add(GetStaffDetailsForCoffEvents(type: "H/WOFF", staffCode: staffCode!, date: formattedDate, token: Auth_Token!));
-    // mainBloc.add(GetStaffDetailsEvents(StaffCode: staffCode!, token: Auth_Token!));
-
+    mainBloc.add(GetStaffDetailsForCoffEvents(
+        type: type,
+        staffCode: staffCode!,
+        date: formattedDate,
+        token: Auth_Token!
+    ));
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -164,7 +227,6 @@ class _AddCoffScreenState extends State<AddCoffScreen> {
                           child: Coffcreditscreen())))
 
           ),
-
           title: const Text("C-Off Credit (+)"),
           backgroundColor: MyColors.lightBlue,
           centerTitle: true,
@@ -175,8 +237,6 @@ class _AddCoffScreenState extends State<AddCoffScreen> {
             color: Colors.white,
           )
       ),
-
-
       body:
       WillPopScope(
         onWillPop: () async {
@@ -244,7 +304,6 @@ class _AddCoffScreenState extends State<AddCoffScreen> {
                   } else {
                     // You can also handle custom back button logic here
                     // For example, exit the app, show a confirmation dialog, etc.
-
                     print("Else Navigatorrrrrrrrrrrrr");
 
                     Navigator.pushReplacement(
@@ -255,7 +314,7 @@ class _AddCoffScreenState extends State<AddCoffScreen> {
                                   return MainBloc(
                                       webService: WebService());
                                 },
-                                child: GatePass())));
+                                child: HomeScreen())));
                     // Prevent the app from closing
                   }
                 },
@@ -378,41 +437,53 @@ class _AddCoffScreenState extends State<AddCoffScreen> {
             setState(() {
               _isLoading = false;
             });
-            // Fluttertoast.showToast(
-            //   msg: state.cancelGatepassResponse.message?,
-            //   toastLength: Toast.LENGTH_SHORT,
-            //   timeInSecForIosWeb: 1,
-            // );
-            if(widget.flag==1) {
+
+            // Check if it's an update or insert based on flag
+            if(widget.flag == 1) {
+              // INSERT new record
               if(state.cancelGatepassResponse.message == "Your Attendance data is not available on selected date"){
                 Fluttertoast.showToast(msg: "No attendance available for selected date");
               }
               else if(state.cancelGatepassResponse.message == "Shift not found for staff ! OT/WOFF is not allowed"){
                 Fluttertoast.showToast(msg: "No shift details found!!");
               }
-              else if (state.cancelGatepassResponse.message ==
-                  "COff Saved Successfully!") {
-                DialogForUpdate().popUp(
-                    context, "COFF Saved Successfully!", "2");
+              else if (state.cancelGatepassResponse.message == "Record Inserted Successfully") {
+                // ✅ Show success toast
+                Fluttertoast.showToast(msg: "COFF Saved Successfully!");
+
+                // ✅ GO BACK TO PREVIOUS SCREEN
+                Navigator.pop(context, true);
               }
-              else if( state.cancelGatepassResponse.message == null)
+              else if(state.cancelGatepassResponse.message == null)
               {
                 Fluttertoast.showToast(msg: "Enter correct data");
               }
-            }
-            else if(widget.flag==2)
-            {
-
-              if (state.cancelGatepassResponse.message ==
-                  "COff Updated Successfully!") {
-                DialogForUpdate().popUp(
-                    context, "COFF Updated Successfully!", "2");
+              else {
+                // ✅ Handle any other messages
+                Fluttertoast.showToast(msg: state.cancelGatepassResponse.message ?? "Something went wrong");
               }
-            }else
-            {
+            }
+            else if(widget.flag == 2) {
+              // UPDATE existing record
+              if (state.cancelGatepassResponse.message == "Record Updated Successfully") {
+                // ✅ Show success toast for update
+                Fluttertoast.showToast(msg: "COFF Updated Successfully!");
 
+                // ✅ GO BACK TO PREVIOUS SCREEN
+                Navigator.pop(context, true);
+              }
+              else if (state.cancelGatepassResponse.message == "COff Updated Successfully!") {
+                // Handle both possible success messages
+                Fluttertoast.showToast(msg: "COFF Updated Successfully!");
+                Navigator.pop(context, true);
+              }
+              else {
+                // ✅ Show error message if update fails
+                Fluttertoast.showToast(msg: state.cancelGatepassResponse.message ?? "Update failed");
+              }
             }
           }
+
           else if (state is SubmitCoffEventsErrorState )
           {
             setState(() {
@@ -424,7 +495,6 @@ class _AddCoffScreenState extends State<AddCoffScreen> {
               timeInSecForIosWeb: 1,
             );
           }
-
         },
         child:
         SingleChildScrollView(
@@ -456,7 +526,6 @@ class _AddCoffScreenState extends State<AddCoffScreen> {
                     setState(() {});
                   },
                   child:
-
                   Padding(
                       padding: const EdgeInsets.only(bottom: 2),
                       child:
@@ -538,7 +607,6 @@ class _AddCoffScreenState extends State<AddCoffScreen> {
                   ),
                 )
                     : SizedBox(),
-
                 Align(
                     alignment: Alignment.centerLeft,
                     child: Padding(
@@ -1190,8 +1258,6 @@ class _AddCoffScreenState extends State<AddCoffScreen> {
                                 String value=_purposecontroller.text;
                                 print("purpose value---" +value.toString());
 
-                                //    _purposecontroller.clear();
-                                //     _purposecontroller.text=" Enter Purpose ";
                               }
                               else{
                                 _purposecontroller.clear();
@@ -1200,8 +1266,6 @@ class _AddCoffScreenState extends State<AddCoffScreen> {
                               print("checkvalue---" +newValue.toString());
 
                             });
-
-
                           },
                           dense: true,
                           controlAffinity: ListTileControlAffinity.leading,
@@ -1290,8 +1354,6 @@ class _AddCoffScreenState extends State<AddCoffScreen> {
                         ],
                       ),
                     ))
-
-
               ],
             ),
           ),
@@ -1314,10 +1376,6 @@ class _AddCoffScreenState extends State<AddCoffScreen> {
         timeInSecForIosWeb: 1,
       );
     }
-
-
-
-
     else if (ClickStatus==true) {
 
       if(_purposecontroller.text.isEmpty) {
@@ -1343,8 +1401,6 @@ class _AddCoffScreenState extends State<AddCoffScreen> {
 
   }
 
-
-
   _CoffCredit(){
 
     print(" _CoffCredit() called ClickStatus.............."+ClickStatus.toString());
@@ -1358,7 +1414,7 @@ class _AddCoffScreenState extends State<AddCoffScreen> {
           department: _departmentNamecontroller.text,
           date: _gatepassdatecontroller.text,
           designation: _designationController.text,
-          shift: "GS",
+          shift: _shiftController.text,
           totalHrs: _totalhrsController.text,
           balanceHrs: _balancehrsController.text,
           reason: reason,
@@ -1369,73 +1425,30 @@ class _AddCoffScreenState extends State<AddCoffScreen> {
 
     clearfields();
 
-/*
-    if(widget.flag==1){
-      mainBloc.add(AddGatePassEvents(
-          addGatepassRequest: AddGatepassRequest(
-              transactionID:_TransactionidController.text,
-              gatePassDate:_gatepassdatecontroller.text,
-              staffCode:_staffCodecontroller.text,
-              designation:designation,
-              dept:_departmentNamecontroller.text,
-              gatePassTypeCode:gatePasstype,
-              fromTime:fromTimeInput.text,
-              toTime:toTimeInput.text,
-              totalTime:int.parse(_designationController.text),
-              shiftCode:"GS",
-              reason:gatePassReason,
-              purpose:_purposecontroller.text,
-              chkActive:ClickStatus,
-              add:true
-          ),
-          token: Auth_Token!));
-    }
-    else if(widget.flag==2){
-      mainBloc.add(AddGatePassEvents(
-          addGatepassRequest: AddGatepassRequest(
-              transactionID:_TransactionidController.text,
-              gatePassDate:_gatepassdatecontroller.text,
-              staffCode:_staffCodecontroller.text,
-              designation:designation,
-              dept:_departmentNamecontroller.text,
-              gatePassTypeCode:gatePasstype,
-              fromTime:fromTimeInput.text,
-              toTime:toTimeInput.text,
-              totalTime:int.parse(_designationController.text),
-              shiftCode:"GS",
-              reason:gatePassReason,
-              purpose:_purposecontroller.text,
-              chkActive:ClickStatus,
-              add:false
-          ),
-          token: Auth_Token!));
-    }*/
-
-
   }
 
+
   Future<void> _selectDate(BuildContext context) async {
-    //  DateTime dateBefore45Days = selectedDate.subtract(Duration(days: 45));
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: selectedDate,
-      // firstDate: DateTime.now(),
-      // firstDate: DateTime(2015, 8),
-      // firstDate: DateTime.now().subtract(Duration(days: 1)),
       firstDate: selectedDate.subtract(Duration(days:40)),
       lastDate: DateTime(2030),
-      // lastDate: DateTime(2102)
     );
+
     if (picked != null && picked != selectedDate) {
       setState(() {
         selectedDate = picked;
-        _gatepassdatecontroller.text=selectedDate.day.toString()+"/"+selectedDate.month.toString()+"/"+selectedDate.year.toString();
-        date=selectedDate.year.toString()+"-"+selectedDate.month.toString()+"-"+selectedDate.day.toString();
 
+        // ✅ Correct format with leading zeros
+        _gatepassdatecontroller.text =
+            DateFormat('dd/MM/yyyy').format(selectedDate);
+
+        // API format (if needed)
+        date = DateFormat('yyyy-MM-dd').format(selectedDate);
       });
     }
   }
-
 
   void calculateTotalMin() {
     // Define start and end time as strings
