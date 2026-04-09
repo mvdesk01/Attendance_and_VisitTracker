@@ -3831,6 +3831,7 @@ class _AttendanceReportState extends State<AttendanceReport> {
 
   FlutterSecureStorage storage = FlutterSecureStorage();
   String? staffCode;
+  String? token;
   DateTime? fromDate;
   DateTime? toDate;
   bool isLoading = false;
@@ -3947,18 +3948,26 @@ class _AttendanceReportState extends State<AttendanceReport> {
       String formattedToDate = DateFormat('dd/MM/yyyy').format(now);
 
       final response = await http.post(
-        Uri.parse('https://m-techinnovations.co.in/PersonTrackingAPI/API/InOutDetails'),
-        headers: {"Content-Type": "application/json"},
+        Uri.parse('http://114.143.140.28:8020/api/InOut/InOutDetails'),
+        headers: {"Content-Type": "application/json",
+          'Authorization': 'Bearer $token'},
         body: jsonEncode({
-          "FromDate": formattedFromDate,
-          "ToDate": formattedToDate,
-          "StaffCode": staffCode
+          "staffCode": staffCode,
+          "fromDate": formattedFromDate,
+          "toDate": formattedToDate,
+
         }),
       ).timeout(const Duration(seconds: 15));
 
-      if (response.statusCode == 201) {
-        List<dynamic> data = jsonDecode(response.body);
-        List<InOutDetail> details = data.map((item) => InOutDetail.fromJson(item)).toList();
+      print("inout details statuscode: ${response.statusCode}");
+      print("inout details body: ${response.body}");
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        final Map<String, dynamic> decoded = jsonDecode(response.body);
+
+        List<dynamic> data = decoded['data'] ?? [];
+
+        List<InOutDetail> details =
+        data.map((item) => InOutDetail.fromJson(item)).toList();
 
         attendanceData.clear();
         presentDays.clear();
@@ -4011,6 +4020,8 @@ class _AttendanceReportState extends State<AttendanceReport> {
   Future<void> fetchData() async {
     staffCode = await storage.read(key: 'Staff_Code');
     print('staffcode --> $staffCode');
+    token = await storage.read(key: 'Auth_Token');
+    print('token --> $token');
   }
 
   // Fetch data for today by default
@@ -4085,20 +4096,27 @@ class _AttendanceReportState extends State<AttendanceReport> {
       String formattedToDate = DateFormat('dd/MM/yyyy').format(toDate!);
 
       final response = await http.post(
-        Uri.parse('https://m-techinnovations.co.in/PersonTrackingAPI/API/InOutDetails'),
-        headers: {"Content-Type": "application/json"},
+        Uri.parse('http://114.143.140.28:8020/api/InOut/InOutDetails'),
+        headers: {"Content-Type": "application/json",
+          'Authorization': 'Bearer $token'},
         body: jsonEncode({
-          "FromDate": formattedFromDate,
-          "ToDate": formattedToDate,
-          "StaffCode": staffCode
+          "staffCode": staffCode,
+          "fromDate": formattedFromDate,
+          "toDate": formattedToDate,
+
         }),
       ).timeout(const Duration(seconds: 15));
 
-      if (response.statusCode == 201)
-      {
-        List<dynamic> data = jsonDecode(response.body);
-        List<InOutDetail> details = data.map((item) => InOutDetail.fromJson(item)).toList();
-        // inOutDetails = details;
+      print("inout details statuscode: ${response.statusCode}");
+      print("inout details body: ${response.body}");
+      final Map<String, dynamic> decoded = jsonDecode(response.body);
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+
+        List<dynamic> data = decoded['data'] ?? [];
+
+        List<InOutDetail> details =
+        data.map((item) => InOutDetail.fromJson(item)).toList();
 
         // Group data by date
         groupedInOutDetails = _groupByDate(details);
@@ -4106,8 +4124,20 @@ class _AttendanceReportState extends State<AttendanceReport> {
         setState(() {
           isLoading = false;
         });
-      } else
-      {
+      } else if (response.statusCode == 400){
+        if(decoded['message'] == "No Records Found."){
+          setState(() {
+            isLoading = false;
+          });
+        } else{
+        // Handle error
+        setState(() {
+          isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Failed to fetch data"))
+        ); }
+      } else {
         // Handle error
         setState(() {
           isLoading = false;

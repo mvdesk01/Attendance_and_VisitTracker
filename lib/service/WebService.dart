@@ -3283,7 +3283,7 @@ print(url);
   }
 
   Future<CancelGatepassResponse> nondistancecheck(String staffcode, String approvedflag, String token) async {
-    print("deleteStaffEntry==========>" + Constant.nondistancecheckrequest + "/" + approvedflag + "/" + staffcode);
+    print("nondistancecheck==========>" + Constant.nondistancecheckrequest + "/" + approvedflag + "/" + staffcode);
 
     final response = await http.post(
       Uri.parse(
@@ -3294,8 +3294,8 @@ print(url);
       },
 
     );
-    print("deleteStaffEntry response :" + response.body);
-    print("deleteStaffEntry response :" + response.statusCode.toString());
+    print("nondistancecheck response :" + response.body);
+    print("nondistancecheck responseCode :" + response.statusCode.toString());
 
     if (response.statusCode == 200) {
       return CancelGatepassResponse.fromJson(jsonDecode(response.body));
