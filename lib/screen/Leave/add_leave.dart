@@ -5,9 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:loading_overlay/loading_overlay.dart';
+
 import '../../bloc/main_bloc.dart';
 import '../../bloc/main_event.dart';
 import '../../bloc/main_state.dart';
@@ -19,6 +19,7 @@ class AddLeavePage extends StatefulWidget {
   final dynamic leaveData;
 
   const AddLeavePage({super.key, required this.flag, required this.leaveData});
+
   @override
   _AddLeavePageState createState() => _AddLeavePageState();
 }
@@ -32,7 +33,8 @@ class _AddLeavePageState extends State<AddLeavePage> {
   TextEditingController _StaffcodeController = new TextEditingController();
   TextEditingController _StaffnameController = new TextEditingController();
   TextEditingController _StaffplantnameController = new TextEditingController();
-  TextEditingController _StaffdepartmentnameController = new TextEditingController();
+  TextEditingController _StaffdepartmentnameController =
+      new TextEditingController();
   TextEditingController _StaffDOJController = new TextEditingController();
   final TextEditingController leaveBalanceController = TextEditingController();
   late Message leaveDetailss;
@@ -59,6 +61,7 @@ class _AddLeavePageState extends State<AddLeavePage> {
 
     getData();
   }
+
   Future<void> getData() async {
     print("Received Flag: ${widget.flag}");
 
@@ -66,7 +69,7 @@ class _AddLeavePageState extends State<AddLeavePage> {
     staffCode = await storage.read(key: 'Staff_Code');
     print("staffCode-->" + staffCode!);
     Auth_Token = await storage.read(key: 'Auth_Token');
-    print("authtoken->"+Auth_Token!);
+    print("authtoken->" + Auth_Token!);
 
     // Set leave details from the widget
     // leaveDetailss = widget.leaveData;
@@ -81,11 +84,11 @@ class _AddLeavePageState extends State<AddLeavePage> {
     //transactioniD = leaveDetailss.transactionId.toString();
 
     print("Auth_Token-->${Auth_Token!}");
-    print( leaveDetailss);
+    print(leaveDetailss);
     print("leaveDetails -->" + leaveDetailss.transactionId.toString());
 
-    mainBloc.add(
-        GetLeaveStaffDetails(StaffCode: staffCode!, token: Auth_Token!));
+    mainBloc
+        .add(GetLeaveStaffDetails(StaffCode: staffCode!, token: Auth_Token!));
   }
 
   Widget build(BuildContext context) {
@@ -93,20 +96,16 @@ class _AddLeavePageState extends State<AddLeavePage> {
       isLoading: _isLoading,
       child: Scaffold(
         appBar: AppBar(
-          leading:IconButton(
+          leading: IconButton(
               icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
-              onPressed: () =>
-                  Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                          builder: (_) => BlocProvider(
-                              create: (context) {
-                                return MainBloc(
-                                    webService: WebService());
-                              },
-                              child: PendingLeave())))
-
-          ),
+              onPressed: () => Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => BlocProvider(
+                          create: (context) {
+                            return MainBloc(webService: WebService());
+                          },
+                          child: PendingLeave())))),
           title: const Text("Apply For Leave"),
           backgroundColor: MyColors.lightBlue,
           centerTitle: true,
@@ -117,16 +116,18 @@ class _AddLeavePageState extends State<AddLeavePage> {
               setState(() {
                 _isLoading = true;
               });
-            }
-            else if (state is GetLeaveStaffDetailsLoadedtstate) {
+            } else if (state is GetLeaveStaffDetailsLoadedtstate) {
               setState(() {
                 _isLoading = false;
               });
 
-              _StaffcodeController.text = state.staffdetails.message!.staffCode!;
+              _StaffcodeController.text =
+                  state.staffdetails.message!.staffCode!;
               _StaffnameController.text = state.staffdetails.message!.fullName!;
-              _StaffplantnameController.text = state.staffdetails.message!.plantName!;
-              _StaffdepartmentnameController.text = state.staffdetails.message!.department!;
+              _StaffplantnameController.text =
+                  state.staffdetails.message!.plantName!;
+              _StaffdepartmentnameController.text =
+                  state.staffdetails.message!.department!;
               _StaffDOJController.text = "05/02/2025";
               // parseAndSetDate(state.staffdetails.message!.dateOfJoining);
               print(state.staffdetails.message?.dateOfJoining);
@@ -134,8 +135,7 @@ class _AddLeavePageState extends State<AddLeavePage> {
                 msg: "Success!",
                 toastLength: Toast.LENGTH_SHORT,
               );
-            }
-            else if (state is GetLeaveStaffDetailsErrorState) {
+            } else if (state is GetLeaveStaffDetailsErrorState) {
               setState(() {
                 _isLoading = false;
               });
@@ -145,13 +145,11 @@ class _AddLeavePageState extends State<AddLeavePage> {
               );
             }
 
-            if(state is GetLeaveTypeLoadingState ){
+            if (state is GetLeaveTypeLoadingState) {
               setState(() {
-                _isLoading=true;
+                _isLoading = true;
               });
-
-            }
-            else if (state is GetLeaveTypeLoadedState) {
+            } else if (state is GetLeaveTypeLoadedState) {
               setState(() {
                 _isLoading = false;
                 leaveDetails = state.leavedetails.leaveTypes!.map((detail) {
@@ -165,10 +163,9 @@ class _AddLeavePageState extends State<AddLeavePage> {
                   };
                 }).toList();
               });
-            }
-            else if(state is GetLeaveTypeErrorState){
+            } else if (state is GetLeaveTypeErrorState) {
               setState(() {
-                _isLoading=false;
+                _isLoading = false;
               });
               Fluttertoast.showToast(msg: "No Leave Details Found");
             }
@@ -189,7 +186,6 @@ class _AddLeavePageState extends State<AddLeavePage> {
                           decoration: InputDecoration(
                             labelText: 'Staff Code',
                             border: OutlineInputBorder(),
-
                           ),
                         ),
                       ),
@@ -198,7 +194,7 @@ class _AddLeavePageState extends State<AddLeavePage> {
                         onPressed: () {
                           //Fluttertoast.showToast(msg: "under progress");
                           setState(() {
-                            showTable=true;
+                            showTable = true;
                           });
                           if (staffCode != null && Auth_Token != null) {
                             mainBloc.add(GetLeavetypeEvents(
@@ -206,7 +202,7 @@ class _AddLeavePageState extends State<AddLeavePage> {
                               token: Auth_Token!,
                               Year: year,
                             ));
-                            print("error"+ staffCode! + Auth_Token! + year);
+                            print("error" + staffCode! + Auth_Token! + year);
                           }
                         },
                         child: Text('OK'),
@@ -214,11 +210,11 @@ class _AddLeavePageState extends State<AddLeavePage> {
                       SizedBox(width: 10),
                       DropdownButton<String>(
                         value: year,
-                        items: ['2024', '2025','2026']
+                        items: ['2026']
                             .map((year) => DropdownMenuItem(
-                          value: year,
-                          child: Text(year),
-                        ))
+                                  value: year,
+                                  child: Text(year),
+                                ))
                             .toList(),
                         onChanged: (value) {
                           setState(() {
@@ -246,19 +242,46 @@ class _AddLeavePageState extends State<AddLeavePage> {
                         TableRow(
                           decoration: BoxDecoration(color: Colors.grey[300]),
                           children: [
-                            TableCell(child: Padding(padding: EdgeInsets.all(8.0), child: Text('Code', textAlign: TextAlign.center))),
-                            TableCell(child: Padding(padding: EdgeInsets.all(8.0), child: Text('Leave Type', textAlign: TextAlign.center))),
-                            TableCell(child: Padding(padding: EdgeInsets.all(8.0), child: Text('Days Remaining', textAlign: TextAlign.center))),
-                            TableCell(child: Padding(padding: EdgeInsets.all(8.0), child: Text('Total Days', textAlign: TextAlign.center))),
-                            TableCell(child: Padding(padding: EdgeInsets.all(8.0), child: Text('Min Days Allowed', textAlign: TextAlign.center))),
-                            TableCell(child: Padding(padding: EdgeInsets.all(8.0), child: Text('Max Days Allowed', textAlign: TextAlign.center))),
+                            TableCell(
+                                child: Padding(
+                                    padding: EdgeInsets.all(8.0),
+                                    child: Text('Code',
+                                        textAlign: TextAlign.center))),
+                            TableCell(
+                                child: Padding(
+                                    padding: EdgeInsets.all(8.0),
+                                    child: Text('Leave Type',
+                                        textAlign: TextAlign.center))),
+                            TableCell(
+                                child: Padding(
+                                    padding: EdgeInsets.all(8.0),
+                                    child: Text('Days Remaining',
+                                        textAlign: TextAlign.center))),
+                            TableCell(
+                                child: Padding(
+                                    padding: EdgeInsets.all(8.0),
+                                    child: Text('Total Days',
+                                        textAlign: TextAlign.center))),
+                            TableCell(
+                                child: Padding(
+                                    padding: EdgeInsets.all(8.0),
+                                    child: Text('Min Days Allowed',
+                                        textAlign: TextAlign.center))),
+                            TableCell(
+                                child: Padding(
+                                    padding: EdgeInsets.all(8.0),
+                                    child: Text('Max Days Allowed',
+                                        textAlign: TextAlign.center))),
                           ],
                         ),
                         ...leaveDetails.map((row) {
                           return TableRow(
                             children: row.values.map((cell) {
                               return TableCell(
-                                child: Padding(padding: EdgeInsets.all(8.0), child: Text(cell, textAlign: TextAlign.center)),
+                                child: Padding(
+                                    padding: EdgeInsets.all(8.0),
+                                    child: Text(cell,
+                                        textAlign: TextAlign.center)),
                               );
                             }).toList(),
                           );
@@ -322,20 +345,29 @@ class _AddLeavePageState extends State<AddLeavePage> {
                       onPressed: () async {
                         // Store the selected year in FlutterSecureStorage
                         await storage.write(key: 'selectedYear', value: year);
-                        await storage.write(key: 'stafcodeee', value: staffCode);
-                        await storage.write(key: 'authtokenn', value: Auth_Token);
-                        await storage.write(key: 'staffname', value: _StaffnameController.text);
-                        await storage.write(key: 'doj', value: _StaffDOJController.text);
-                        await storage.write(key: 'plantname', value: _StaffplantnameController.text);
-                        await storage.write(key: 'department', value: _StaffdepartmentnameController.text);
-                       // await storage.write(key:"leavetypecode",value: )
+                        await storage.write(
+                            key: 'stafcodeee', value: staffCode);
+                        await storage.write(
+                            key: 'authtokenn', value: Auth_Token);
+                        await storage.write(
+                            key: 'staffname', value: _StaffnameController.text);
+                        await storage.write(
+                            key: 'doj', value: _StaffDOJController.text);
+                        await storage.write(
+                            key: 'plantname',
+                            value: _StaffplantnameController.text);
+                        await storage.write(
+                            key: 'department',
+                            value: _StaffdepartmentnameController.text);
+                        // await storage.write(key:"leavetypecode",value: )
                         print((key: 'stafcodeee', value: staffCode));
                         // Navigate to the next page
+
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => BlocProvider<MainBloc>(
-                              create: (context) => MainBloc(webService: WebService()),
+                            builder: (context) => BlocProvider.value(
+                              value: BlocProvider.of<MainBloc>(context),
                               child: LeaveDetailsPage(
                                 flag: 1,
                                 tokennn: Auth_Token!,
@@ -343,12 +375,16 @@ class _AddLeavePageState extends State<AddLeavePage> {
                               ),
                             ),
                           ),
-                        );
+                        ).then((result) {
+                          // This will be called when the details page is popped
+                          if (result == true) {
+                            getData(); // Refresh your data
+                          }
+                        });
                       },
                       child: Text('Next Page'),
                     ),
                   ),
-
                 ],
               ),
             ),
@@ -361,7 +397,8 @@ class _AddLeavePageState extends State<AddLeavePage> {
   void parseAndSetDate(String? originalDOJ) {
     print("Received DOJ: '$originalDOJ'"); // Debugging output
 
-    if (originalDOJ != null && originalDOJ.trim().isNotEmpty) { // Trim spaces and check
+    if (originalDOJ != null && originalDOJ.trim().isNotEmpty) {
+      // Trim spaces and check
       try {
         String formattedDate = _formatDate(originalDOJ);
         _StaffDOJController.text = formattedDate;
@@ -373,8 +410,6 @@ class _AddLeavePageState extends State<AddLeavePage> {
       _StaffDOJController.text = "N/A";
     }
   }
-
-
 
   String _formatDate(String? date) {
     if (date == null || date.isEmpty) return "N/A";
@@ -395,5 +430,4 @@ class _AddLeavePageState extends State<AddLeavePage> {
       return "Invalid Date";
     }
   }
-
 }

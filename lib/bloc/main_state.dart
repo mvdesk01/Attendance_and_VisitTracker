@@ -42,6 +42,7 @@ import '../model/SanctionModel/Sanctionn.dart';
 import '../model/Tour/AppliedTour.dart';
 import '../model/Tour/Getstaffdetails.dart';
 import '../model/Tour/Submittourdetails.dart';
+import '../model/UsersList/SearchbystaffcodeResponse.dart';
 import '../model/UsersList/UpdateUUID.dart';
 
 class MainState {
@@ -642,31 +643,7 @@ class VisitlatLongListErrorState extends MainState {
   // TODO: implement props
   List<Object> get props => throw UnimplementedError();
 }
-//GETAllUsers
 
-class GetAllUsersListLoadingState extends MainState {
-  @override
-// TODO: implement props
-  List<Object> get props => throw UnimplementedError();
-}
-
-class GetAllUsersListLoadedState extends MainState {
-  GetAllusersListResponse? getAllusersListResponse;
-  GetAllUsersListLoadedState({required this.getAllusersListResponse});
-
-  @override
-  // TODO: implement props
-  List<Object> get props => throw UnimplementedError();
-}
-
-class GetAllUsersListErrorState extends MainState {
-  String msg;
-  GetAllUsersListErrorState({required this.msg});
-
-  @override
-  // TODO: implement props
-  List<Object> get props => throw UnimplementedError();
-}
 //GetVisitByFromDateToDateLoadingState
 
 class GetVisitByFromDateToDateLoadingState extends MainState {
@@ -1472,6 +1449,54 @@ class UpdateMMDataLoadedState extends MainState {
 class UpdateMMDataErrorState extends MainState {
   String msg;
   UpdateMMDataErrorState({required this.msg});
+
+  @override
+  // TODO: implement props
+  List<Object> get props => throw UnimplementedError();
+}
+///searchbystaffcode
+class SearchbyStaffcodeLoadingPage extends MainState {
+  @override
+  List<Object?> get props => [];
+}
+
+class SearchbyStaffcodeLoadedPage extends MainState {
+  UserResponse? userResponse;
+  SearchbyStaffcodeLoadedPage({required this.userResponse});
+
+  @override
+  List<Object?> get props => [userResponse];
+}
+
+class SearchbyStaffcodeErrorPage extends MainState {
+  final String message;
+
+  SearchbyStaffcodeErrorPage({required this.message});
+
+  @override
+  List<Object?> get props => [message];
+}
+
+///GETAllUsers
+
+class GetAllUsersListLoadingState extends MainState {
+  @override
+// TODO: implement props
+  List<Object> get props => throw UnimplementedError();
+}
+
+class GetAllUsersListLoadedState extends MainState {
+  GetAllusersListResponse? getAllusersListResponse;
+  GetAllUsersListLoadedState({required this.getAllusersListResponse});
+
+  @override
+  // TODO: implement props
+  List<Object> get props => throw UnimplementedError();
+}
+
+class GetAllUsersListErrorState extends MainState {
+  String msg;
+  GetAllUsersListErrorState({required this.msg});
 
   @override
   // TODO: implement props

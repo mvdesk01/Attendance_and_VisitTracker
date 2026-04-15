@@ -229,13 +229,7 @@ class VisitlatLongListEvents extends MainEvent {
 }
 
 //GetAllUsersData
-class GetAllUsersListEvent extends MainEvent {
 
-  String token;
-
-  GetAllUsersListEvent({
-    required this.token});
-}
 
 //GetVisitListbetweenFromdateAndToDate
 class GetVisitByFromDateToDate extends MainEvent {
@@ -477,4 +471,19 @@ class UpdateMMDataEvents extends MainEvent{
   UpdateMMData updateMMData;
   String token;
   UpdateMMDataEvents({required this.updateMMData,required this.token});
+}
+
+
+class SearchbyStaffcodeEvents extends MainEvent{
+  String staffcode;
+  String token;
+  SearchbyStaffcodeEvents({required this.staffcode, required this.token});
+}
+
+class GetAllUsersListEvent extends MainEvent {
+  String pagenumber;
+  String pagesize;
+  String token;
+
+  GetAllUsersListEvent({required this.pagenumber, required this.pagesize, required this.token});
 }

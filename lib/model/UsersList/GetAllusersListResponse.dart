@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'SearchbystaffcodeResponse.dart';
+
 GetAllusersListResponse GetAllusersListResponseFromJson(String str) => GetAllusersListResponse.fromJson(json.decode(str));
 
 String GetAllusersListResponseToJson(GetAllusersListResponse data) => json.encode(data.toJson());
@@ -7,25 +9,35 @@ String GetAllusersListResponseToJson(GetAllusersListResponse data) => json.encod
 
 
 class GetAllusersListResponse {
-  List<Message>? message;
+  bool? status;
+  String? message;
+  List<Message>? data;
 
-  GetAllusersListResponse({this.message});
+  GetAllusersListResponse({this.status, this.message, this.data});
 
   GetAllusersListResponse.fromJson(Map<String, dynamic> json) {
-    if (json['message'] != null) {
-      message = <Message>[];
-      json['message'].forEach((v) {
-        message!.add(new Message.fromJson(v));
+    status = json['status'];
+    message = json['message'];
+
+    if (json['data'] != null) {
+      data = <Message>[];
+      json['data'].forEach((v) {
+        data!.add(Message.fromJson(v));
       });
     }
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    if (this.message != null) {
-      data['message'] = this.message!.map((v) => v.toJson()).toList();
+    final Map<String, dynamic> dataMap = {};
+
+    dataMap['status'] = status;
+    dataMap['message'] = message;
+
+    if (data != null) {
+      dataMap['data'] = data!.map((v) => v.toJson()).toList();
     }
-    return data;
+
+    return dataMap;
   }
 }
 
@@ -109,6 +121,15 @@ class Message {
     distanceCheckFlag = json['distanceCheckFlag'];
     profilePic = json['profilePic'];
     isDeletedFlag = json['isDeletedFlag'];
+  }
+  factory Message.fromUserData(UserData e) {
+    return Message(
+      staffCode: e.staffCode,
+      displayName: e.displayName,
+      mobileNo: e.mobileNo,
+      emailId: e.emailId,
+      isDeletedFlag: e.isDeletedFlag,
+    );
   }
 
   Map<String, dynamic> toJson() {

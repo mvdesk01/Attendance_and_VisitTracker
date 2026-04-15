@@ -28,6 +28,7 @@ import 'package:attendance_system_ios/model/SanctionModel/SanctionApprove.dart';
 import 'package:attendance_system_ios/model/SanctionModel/Sanctionn.dart';
 import 'package:attendance_system_ios/model/UsersList/AddStaffRequest.dart';
 import 'package:attendance_system_ios/model/UsersList/GetAllusersListResponse.dart';
+import 'package:attendance_system_ios/model/UsersList/SearchbystaffcodeResponse.dart';
 import 'package:attendance_system_ios/model/VisitHistory/VisitDataResponse.dart';
 import 'package:attendance_system_ios/model/VisitHistory/VisitLatLongListResponse.dart';
 import 'package:attendance_system_ios/model/VisitReport/VisitDetailedRecordsResponse.dart';
@@ -485,15 +486,51 @@ catch(e){
   }
   }
 
-  //getAllUsersData
-  Future<GetAllusersListResponse?> GetAllUsers(String token) async {
-    try{
-      print("GetAllUsers : "+Constant.getAllUsers);
 
-      print("getAllUser Token: $token");
+
+  ///searchbystaffcode
+  Future<UserResponse> searchuserbystaffcode(String token, String staffcode,) async {
+    print("${Constant.searchbystaffcode}${staffcode.toUpperCase()}");
+    try {
+      final uri = Uri.parse(
+          "${Constant.searchbystaffcode}${staffcode.toUpperCase()}"
+      );
 
       final response = await http.get(
-        Uri.parse(Constant.getAllUsers ),
+        uri,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token", // ✅ fixed
+        },
+      );
+
+      print("searchbystaffcode: ${response.body}");
+
+      if (response.statusCode == 200) {
+        final jsonData = jsonDecode(response.body);
+
+        return UserResponse.fromJson(jsonData); // ✅ IMPORTANT
+      } else {
+        throw Exception("Server Error: ${response.statusCode}");
+      }
+
+    } catch (e) {
+      LogFileManager.writeLog("searchbystaffcode $e");
+      throw Exception(e.toString()); // ✅ important
+    }
+  }
+
+  //getAllUsersData
+  Future<GetAllusersListResponse?> GetAllUsers(String token, String pagenumber, String pagesize) async {
+    try{
+      print("GetAllUsers : "+ "${Constant.pageinitiationalluserlist}$pagenumber/$pagesize");
+
+      print("getAllUser Token: $token");
+      final uri = Uri.parse(
+          "${Constant.pageinitiationalluserlist}$pagenumber/$pagesize"
+      );
+      final response = await http.get(
+        uri,
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
           'Authorization': 'Bearer $token',
@@ -501,19 +538,13 @@ catch(e){
       );
       print("GetAllUsers ---->" + response.body);
       print("GetAllUsers --->" + response.statusCode.toString());
-      if(response.statusCode==200)
-      {
+      print("FULL RESPONSE: ${response.body}");
+      if (response.statusCode == 200) {
         return GetAllusersListResponse.fromJson(jsonDecode(response.body));
       }
-      else if(response.statusCode==400)
-      {
-        Fluttertoast.showToast(
-          msg: "Visit Records Not Found",
-          toastLength: Toast.LENGTH_LONG,
-          timeInSecForIosWeb: 1,
-          // Set the text color
-        );
-        // return VisitDataResponse.fromJson(jsonDecode(response.body));
+      else if (response.statusCode == 400) {
+        Fluttertoast.showToast(msg: "No Records Found");
+        return null; // ✅ IMPORTANT
       }
       else if(response.statusCode==401)
       {
@@ -549,6 +580,9 @@ catch(e){
       LogFileManager.writeLog('Error in GetAllUsers: $e');
     }
   }
+
+
+  //searchbystaffcodorname
 
 
   Future<bool> requestDataDeletion(String token, String staffCode) async {

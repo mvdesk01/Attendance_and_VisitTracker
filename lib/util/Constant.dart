@@ -15,8 +15,6 @@ class Constant {
 
   static String getVisitLatLongList=baseUrl+'api/Visit/GetLatitudeLongitude/';
 
-  static String getAllUsers=baseUrl+'Users/GetAllUsers';
-
   static String requestDataDeletion = baseUrl+'Users/UpdateIsDeletedFlag?';
 
   static String getVisitByFromDateToDate = baseUrl+'api/Visit/GetVisitByFromDateToDate/';
@@ -80,6 +78,9 @@ class Constant {
   static String nondistancecheckrequest = baseUrl + 'Users/DistanceCheck';
   static String updateuuid = baseUrl+'Users/UpdateUUID/';
   static String updateatsflag = baseUrl+'Users/UpdateATSCheckFlag/';
+
+  static String searchbystaffcode = baseUrl+'Users/GetUserDataByDetails/';
+  static String pageinitiationalluserlist = baseUrl+'Users/GetAllUsersByPagination/';
 
 }
 

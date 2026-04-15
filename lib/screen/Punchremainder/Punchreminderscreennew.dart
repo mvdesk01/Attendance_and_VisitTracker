@@ -1,7 +1,8 @@
 import 'dart:io';
+
+import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
@@ -17,7 +18,7 @@ class _AlarmScreenState extends State<AlarmScreen> {
   TimeOfDay? _punchInTime;
   TimeOfDay? _punchOutTime;
   final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
-  FlutterLocalNotificationsPlugin();
+      FlutterLocalNotificationsPlugin();
 
   @override
   void initState() {
@@ -27,8 +28,7 @@ class _AlarmScreenState extends State<AlarmScreen> {
   }
 
   Future<void> _requestExactAlarmPermission() async {
-    if (Platform.isAndroid &&
-        await Permission.scheduleExactAlarm.isDenied) {
+    if (Platform.isAndroid && await Permission.scheduleExactAlarm.isDenied) {
       final status = await Permission.scheduleExactAlarm.request();
       if (!status.isGranted) {
         print("Exact alarm permission denied");
@@ -37,7 +37,8 @@ class _AlarmScreenState extends State<AlarmScreen> {
   }
 
   void _initializeNotifications() async {
-    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const androidSettings =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
     // final iosSettings = DarwinInitializationSettings(
     //   onDidReceiveLocalNotification: (id, title, body, payload) async {
     //     print("iOS local notification received: $title");
@@ -72,9 +73,9 @@ class _AlarmScreenState extends State<AlarmScreen> {
 
     await _flutterLocalNotificationsPlugin.initialize(initSettings);
 
-    final iosPlugin = _flutterLocalNotificationsPlugin
-        .resolvePlatformSpecificImplementation<
-        IOSFlutterLocalNotificationsPlugin>();
+    final iosPlugin =
+        _flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
+            IOSFlutterLocalNotificationsPlugin>();
 
     if (iosPlugin != null) {
       final granted = await iosPlugin.requestPermissions(
@@ -122,9 +123,7 @@ class _AlarmScreenState extends State<AlarmScreen> {
         exact: true,
         wakeup: true,
       );
-    }
-
-    else if (Platform.isIOS) {
+    } else if (Platform.isIOS) {
       final scheduledDate = _nextInstanceOfTime(selectedTime);
       print("Scheduling iOS notification at: $scheduledDate (local time)");
       try {
@@ -143,7 +142,7 @@ class _AlarmScreenState extends State<AlarmScreen> {
           ),
           androidAllowWhileIdle: true,
           uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
+              UILocalNotificationDateInterpretation.absoluteTime,
           payload: 'punch_reminder_$alarmId',
         );
         print('✅ Successfully scheduled notification');
@@ -192,12 +191,13 @@ class _AlarmScreenState extends State<AlarmScreen> {
         androidAllowWhileIdle: true,
         matchDateTimeComponents: DateTimeComponents.time,
         uiLocalNotificationDateInterpretation:
-        UILocalNotificationDateInterpretation.absoluteTime,
+            UILocalNotificationDateInterpretation.absoluteTime,
       );
     }
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Daily alarm set for ${selectedTime.format(context)}')),
+      SnackBar(
+          content: Text('Daily alarm set for ${selectedTime.format(context)}')),
     );
   }
 
@@ -210,7 +210,8 @@ class _AlarmScreenState extends State<AlarmScreen> {
   }
 
   tz.TZDateTime _nextInstanceOfTime(TimeOfDay time) {
-    final tz.Location localTz = tz.getLocation('Asia/Kolkata'); // Replace with your timezone
+    final tz.Location localTz =
+        tz.getLocation('Asia/Kolkata'); // Replace with your timezone
     final now = tz.TZDateTime.now(localTz);
 
     var scheduled = tz.TZDateTime(
@@ -281,14 +282,14 @@ class _AlarmScreenState extends State<AlarmScreen> {
   }
 
   Widget _buildPunchCard(
-      BuildContext context, {
-        required String title,
-        required TimeOfDay? time,
-        required IconData icon,
-        required Color primaryColor,
-        required int alarmId,
-        required bool isPunchIn,
-      }) {
+    BuildContext context, {
+    required String title,
+    required TimeOfDay? time,
+    required IconData icon,
+    required Color primaryColor,
+    required int alarmId,
+    required bool isPunchIn,
+  }) {
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(
@@ -350,9 +351,8 @@ class _AlarmScreenState extends State<AlarmScreen> {
                   label: "Once",
                   color: primaryColor,
                   icon: Icons.notifications_active,
-                  onPressed: time != null
-                      ? () => _scheduleAlarm(time, alarmId)
-                      : null,
+                  onPressed:
+                      time != null ? () => _scheduleAlarm(time, alarmId) : null,
                 ),
                 _actionButton(
                   label: "Daily",
@@ -362,12 +362,12 @@ class _AlarmScreenState extends State<AlarmScreen> {
                       ? () => _scheduleRepeatingAlarm(time, alarmId)
                       : null,
                 ),
-                _actionButton(
-                  label: "Delete",
-                  color: Colors.grey,
-                  icon: Icons.delete_outline,
-                  onPressed: () => _cancelAlarm(alarmId),
-                ),
+                // _actionButton(
+                //   label: "Delete",
+                //   color: Colors.grey,
+                //   icon: Icons.delete_outline,
+                //   onPressed: () => _cancelAlarm(alarmId),
+                // ),
               ],
             ),
           ],
@@ -413,7 +413,7 @@ void alarmCallback() async {
 
   // 1. Initialize for both platforms
   const AndroidInitializationSettings androidSettings =
-  AndroidInitializationSettings('@mipmap/ic_launcher');
+      AndroidInitializationSettings('@mipmap/ic_launcher');
 
   final DarwinInitializationSettings iosSettings = DarwinInitializationSettings(
     requestAlertPermission: false, // Already requested in main app

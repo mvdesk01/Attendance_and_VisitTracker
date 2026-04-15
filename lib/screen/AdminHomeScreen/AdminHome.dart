@@ -23,6 +23,7 @@ class AdminHomeScreen extends StatefulWidget {
   State<AdminHomeScreen> createState() => _AdminHomeScreenState();
 }
 
+/*
 class _AdminHomeScreenState extends State<AdminHomeScreen> {
   late List<String> imagePaths;
 
@@ -262,7 +263,8 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
         ),
         TextButton(
           onPressed: () {
-            /* Navigator.pushAndRemoveUntil(
+            */
+/* Navigator.pushAndRemoveUntil(
               context,
               MaterialPageRoute(
                 builder: (context) => BlocProvider(
@@ -271,7 +273,8 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                 ),
               ),
                   (Route<dynamic> route) => false,
-            );*/
+            );*//*
+
             onLogout();
           },
           child: const Text('CONFIRM'),
@@ -313,3 +316,659 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     await storage.deleteAll();  // Clear all stored data
   }
 }
+*/
+class _AdminHomeScreenState extends State<AdminHomeScreen> {
+  late List<String> imagePaths;
+  final storage = FlutterSecureStorage();
+
+  @override
+  void initState() {
+    super.initState();
+    imagePaths = [
+      'assets/icons/mtechinnovationsimage1.jpg',
+      'assets/icons/mtechinnovationsimage2.jpg',
+      'assets/icons/mtechinnovationsimage3.jpg',
+    ];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        backgroundColor: MyColors.backgroundColorCode,
+        appBar: AppBar(
+          elevation: 0,
+          centerTitle: true,
+          backgroundColor: MyColors.lightBlue,
+          title: Text(
+            "Attendance Admin",
+            style: GoogleFonts.poppins(
+              fontWeight: FontWeight.w600,
+              fontSize: 20,
+              color: Colors.white,
+            ),
+          ),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.notifications_none_rounded, color: Colors.white),
+              onPressed: () {
+                Fluttertoast.showToast(msg: "No Notifications Found");
+              },
+            ),
+            const SizedBox(width: 8),
+          ],
+        ),
+        drawer: const MenuDrawer(),
+        body: TabBarView(
+          physics: const NeverScrollableScrollPhysics(),
+          children: [
+            // Home Screen Content
+            SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 20),
+
+                  // Professional Carousel
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: CarouselSlider(
+                      items: imagePaths.map((imagePath) {
+                        return Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 5),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.15),
+                                blurRadius: 12,
+                                offset: const Offset(0, 6),
+                              ),
+                            ],
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(20),
+                            child: Image.asset(
+                              imagePath,
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                      options: CarouselOptions(
+                        autoPlay: true,
+                        height: 220,
+                        enlargeCenterPage: true,
+                        viewportFraction: 0.85,
+                        autoPlayInterval: const Duration(seconds: 4),
+                        pauseAutoPlayOnTouch: true,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 32),
+
+                  // Welcome Admin Section
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.admin_panel_settings_rounded,
+                              color: MyColors.lightBlue,
+                              size: 28,
+                            ),
+                            const SizedBox(width: 12),
+                            Text(
+                              "Welcome, Admin!",
+                              style: GoogleFonts.poppins(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
+                                letterSpacing: -0.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          "Manage your account and oversee all administrative tasks efficiently",
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            color: Colors.grey.shade600,
+                            height: 1.4,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Container(
+                          width: 60,
+                          height: 3,
+                          decoration: BoxDecoration(
+                            color: MyColors.lightBlue,
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+
+                        // Vertical Card View
+                        Column(
+                          children: [
+                            _buildActionCard(
+                              icon: Icons.group_add_rounded,
+                              title: 'User List',
+                              subtitle: 'Manage Staff Members',
+                              description: 'View, add, edit, or remove staff accounts and manage their permissions.',
+                              color: Colors.blue.shade50,
+                              iconColor: Colors.blue.shade700,
+                              onTap: () => _navigateTo(context, UserListScreen()),
+                            ),
+                            const SizedBox(height: 20),
+                            _buildActionCard(
+                              icon: Icons.assignment_turned_in_rounded,
+                              title: 'Approvals',
+                              subtitle: 'Sanction/Reject Requests',
+                              description: 'Review and process pending leave requests, attendance corrections, and other approvals.',
+                              color: Colors.orange.shade50,
+                              iconColor: Colors.orange.shade700,
+                              onTap: () => _navigateTo(context, SanctionRequest()),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 40),
+                ],
+              ),
+            ),
+            const Center(child: Text("Logout Page Content")),
+          ],
+        ),
+        bottomNavigationBar: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(
+                  color: Colors.black.withOpacity(0.08),
+                  blurRadius: 15,
+                  offset: const Offset(0, -3)
+              )
+            ],
+          ),
+          child: TabBar(
+            indicator: UnderlineTabIndicator(
+              borderSide: BorderSide(color: MyColors.lightBlue, width: 3),
+              insets: const EdgeInsets.symmetric(horizontal: 40),
+            ),
+            labelColor: MyColors.lightBlue,
+            unselectedLabelColor: Colors.grey.shade400,
+            labelStyle: GoogleFonts.poppins(fontWeight: FontWeight.w500, fontSize: 12),
+            unselectedLabelStyle: GoogleFonts.poppins(fontWeight: FontWeight.w400, fontSize: 12),
+            tabs: [
+              const Tab(icon: Icon(Icons.dashboard_rounded), text: "Home"),
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => _showLogoutDialog(context),
+                child: const Tab(icon: Icon(Icons.logout_rounded), text: "Logout"),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Enhanced Card Builder with Vertical Layout
+  Widget _buildActionCard({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required String description,
+    required Color color,
+    required Color iconColor,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: Colors.grey.shade100, width: 1.5),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
+            ),
+            BoxShadow(
+              color: Colors.black.withOpacity(0.02),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Icon Container
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: color,
+                borderRadius: BorderRadius.circular(18),
+                boxShadow: [
+                  BoxShadow(
+                    color: iconColor.withOpacity(0.1),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Icon(icon, color: iconColor, size: 32),
+            ),
+            const SizedBox(width: 18),
+
+            // Text Content
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: GoogleFonts.poppins(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.black87,
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: GoogleFonts.poppins(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: iconColor,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    description,
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      color: Colors.grey.shade600,
+                      height: 1.4,
+                    ),
+                  ),
+
+                  // Action Hint
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Text(
+                        'Tap to manage →',
+                        style: GoogleFonts.poppins(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                          color: iconColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Helper for Clean Navigation
+  void _navigateTo(BuildContext context, Widget screen) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => BlocProvider(
+          create: (context) => MainBloc(webService: WebService()),
+          child: screen,
+        ),
+      ),
+    );
+  }
+
+  void _showLogoutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Text("Confirm Logout", style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 20)),
+        content: Text("Are you sure you want to exit the Attendance app?", style: GoogleFonts.poppins(fontSize: 14)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text("CANCEL", style: TextStyle(color: Colors.grey.shade600, fontWeight: FontWeight.w600)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red.shade400,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            ),
+            onPressed: onLogout,
+            child: const Text("LOGOUT", style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // --- Logic remains untouched below ---
+  void onLogout() async {
+    await clearAllSecureStorage();
+    if (!mounted) return;
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(
+        builder: (context) => BlocProvider(
+          create: (context) => MainBloc(webService: WebService()),
+          child: LoginScreen(),
+        ),
+      ),
+          (route) => false,
+    );
+  }
+
+  Future<void> clearAllSecureStorage() async => await storage.deleteAll();
+}/*
+class _AdminHomeScreenState extends State<AdminHomeScreen> {
+  late List<String> imagePaths;
+  final storage = FlutterSecureStorage();
+
+  @override
+  void initState() {
+    super.initState();
+    imagePaths = [
+      'assets/icons/mtechinnovationsimage1.jpg',
+      'assets/icons/mtechinnovationsimage2.jpg',
+      'assets/icons/mtechinnovationsimage3.jpg',
+    ];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return DefaultTabController(
+      length: 1,
+      child: Scaffold(
+        backgroundColor: MyColors.backgroundColorCode,
+
+        drawer: MenuDrawer(),
+        appBar: AppBar(
+          elevation: 0,
+          iconTheme: const IconThemeData(color: Colors.white),
+          title: Text(
+            "M-Tech Innovations",
+            style: GoogleFonts.poppins(
+              fontWeight: FontWeight.w600,
+              fontSize: 25.0,
+              color: Colors.white,
+            ),
+          ),
+          centerTitle: true,
+          backgroundColor: Colors.blue,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.notifications_none_rounded),
+              onPressed: () => Fluttertoast.showToast(msg: "No Notifications"),
+            ),
+          ],
+        ),
+        body: Column(
+          children: [
+            // Blue Header Curve
+            Container(
+              height: 30,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: Colors.blue,
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(30),
+                  bottomRight: Radius.circular(30),
+                ),
+              ),
+            ),
+
+            Expanded(
+              child: ListView(
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                children: [
+                  // 1. Image Carousel Section
+                  CarouselSlider(
+                    items: imagePaths.map((imagePath) {
+                      return Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 5),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.08),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(20),
+                          child: Image.asset(imagePath, fit: BoxFit.cover, width: double.infinity),
+                        ),
+                      );
+                    }).toList(),
+                    options: CarouselOptions(
+                      autoPlay: true,
+                      aspectRatio: 16 / 8,
+                      enlargeCenterPage: true,
+                      viewportFraction: 0.88,
+                    ),
+                  ),
+
+                  const SizedBox(height: 25),
+
+                  // 2. Action Grid (This pulls the cards closer and removes blank space)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text(
+                          "Welcome Admin",
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: MyColors.lightBlue,
+                            letterSpacing: 1,
+                          ),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          "Manage your workforce efficiently",
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                        Divider(
+                          height: 30,
+                          thickness: 1,
+                          color: Colors.grey[300],
+                          indent: 50,
+                          endIndent: 50,
+                        ),
+                        const SizedBox(height: 15),
+                        GridView.count(
+                          shrinkWrap: true, // Crucial to prevent empty space
+                          physics: const NeverScrollableScrollPhysics(),
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 10,
+                          mainAxisSpacing: 10,
+                          childAspectRatio: 1.2,
+                          children: [
+                            _buildActionCard(
+                              icon: Icons.group_add_rounded,
+                              title: 'User List',
+                              color: Colors.blue.shade700,
+                              onTap: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => BlocProvider(
+                                    create: (context) => MainBloc(webService: WebService()),
+                                    child: UserListScreen(),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            _buildActionCard(
+                              icon: Icons.assignment_turned_in_rounded,
+                              title: 'Sanction/Reject',
+                              color: Colors.orange.shade700,
+                              onTap: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => BlocProvider(
+                                    create: (context) => MainBloc(webService: WebService()),
+                                    child: SanctionRequest(),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 25),
+
+                  // 3. Information Section (To fill remaining space professionally)
+
+                ],
+              ),
+            ),
+          ],
+        ),
+        bottomNavigationBar: _buildBottomNav(),
+      ),
+    );
+  }
+
+  Widget _buildActionCard({required IconData icon, required String title, required Color color, required VoidCallback onTap}) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: color.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: color, size: 32),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              title,
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Colors.black87,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBottomNav() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(top: BorderSide(color: Colors.grey.shade200)),
+      ),
+      child: TabBar(
+        indicator: UnderlineTabIndicator(
+          borderSide: BorderSide(color: MyColors.lightBlue, width: 3),
+          insets: const EdgeInsets.symmetric(horizontal: 50),
+        ),
+        labelColor: MyColors.lightBlue,
+        unselectedLabelColor: Colors.grey.shade400,
+        tabs: [
+          const Tab(icon: Icon(Icons.home_filled), text: "Home"),
+          GestureDetector(
+            onTap: () => showDialog(context: context, builder: (context) => _buildPopupDialogforLogout(context)),
+            child: const Tab(icon: Icon(Icons.power_settings_new_rounded), text: "Logout"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPopupDialogforLogout(BuildContext context) {
+    return AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      title: const Text("Confirm Logout", style: TextStyle(fontWeight: FontWeight.bold)),
+      content: const Text("Are you sure you want to log out of the attendance system?"),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context), child: const Text("CANCEL")),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.redAccent,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+          onPressed: () => onLogout(),
+          child: const Text("LOGOUT", style: TextStyle(color: Colors.white)),
+        ),
+      ],
+    );
+  }
+
+  void onLogout() async {
+    await clearAllSecureStorage();
+    Navigator.pop(context);
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(
+        builder: (context) => BlocProvider(
+          create: (context) => MainBloc(webService: WebService()),
+          child: const LoginScreen(),
+        ),
+      ),
+          (Route<dynamic> route) => false,
+    );
+  }
+
+  Future<void> clearAllSecureStorage() async => await storage.deleteAll();
+}*/
