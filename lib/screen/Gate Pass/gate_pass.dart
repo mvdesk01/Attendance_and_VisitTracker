@@ -46,10 +46,12 @@ class _GatePassState extends State<GatePass> {
     mainBloc=BlocProvider.of(context);
     getData();
   }
+
   Future<void> getData() async {
     staffCode = await storage.read(key: 'Staff_Code');
 
     print("staffCodeeee-->"+staffCode!);
+
     Auth_Token = await storage.read(key: 'Auth_Token');
 
     print("Auth_Token-->"+Auth_Token!)  ;
@@ -61,7 +63,6 @@ class _GatePassState extends State<GatePass> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-
       appBar:
       AppBar(
           leading: IconButton(
@@ -116,8 +117,7 @@ class _GatePassState extends State<GatePass> {
           }
           return true;
         },
-        child:
-        _addGatePassScreen(),),
+        child: _addGatePassScreen(),),
 
       floatingActionButton: FloatingActionButton(
         backgroundColor: MyColors.lightBlue,
@@ -136,9 +136,7 @@ class _GatePassState extends State<GatePass> {
             ),
           );
 
-
           //     mainBloc.add(GetStaffDetailsEvents(StaffCode: staffCode!, token: Auth_Token!));
-
 
           //   Navigator.push(context, MaterialPageRoute(builder: (context) => const AddGatePass()));
 
@@ -173,10 +171,7 @@ class _GatePassState extends State<GatePass> {
 
               gatePasslist.addAll(state.gatePassResponse!.message ?? []);
 
-              print("Pending GatePass List Size: "+gatePasslist!.length.toString());
-
-
-
+              print("Pending GatePass List Size: "+gatePasslist.length.toString());
 
             }
             else if (state is GetPendingGatePassErrorState)
@@ -189,7 +184,6 @@ class _GatePassState extends State<GatePass> {
               toastLength: Toast.LENGTH_SHORT,
               timeInSecForIosWeb: 1,
             );*/
-
 
             }
             //-----------Cancel GatePass----------------------
@@ -213,18 +207,15 @@ class _GatePassState extends State<GatePass> {
               );
               //gatePasslist.addAll(state.gatePassResponse.message!);
 
-
               if(state.cancelGatePassResponse!.message =="GatePass Canceled Successfully..")
               {
                 print("deleteposition: "+deleteposition.toString());
                 gatePasslist.removeAt(deleteposition);
 
-
                 print("gatePasslist Size : "+gatePasslist.length.toString());
                 CustomDialog().popUp(context,
                     "Well done! Your GatePass is Canceled....!!");
               }
-
 
             }
             else if (state is CancelGatePassErrorState)
@@ -237,7 +228,6 @@ class _GatePassState extends State<GatePass> {
                 toastLength: Toast.LENGTH_SHORT,
                 timeInSecForIosWeb: 1,
               );
-
 
             }
           },
@@ -509,7 +499,6 @@ class _GatePassState extends State<GatePass> {
                                     ],
                                   )
                               )
-
                             ],
                           ),
                         ),
@@ -555,8 +544,6 @@ class _GatePassState extends State<GatePass> {
                                 ],
                               ),
                             ),
-
-
                           ],
                         ),
                       ],
