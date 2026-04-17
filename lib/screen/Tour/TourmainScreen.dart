@@ -10,7 +10,6 @@ import '../../bloc/main_bloc.dart';
 import '../../bloc/main_state.dart';
 import '../../model/Tour/AppliedTour.dart';
 import '../../service/WebService.dart';
-
 import '../../util/MyColor.dart';
 import '../Home/home.dart';
 import 'AddTour.dart';
@@ -19,20 +18,19 @@ class TourPendingScreen extends StatefulWidget {
   const TourPendingScreen({super.key});
 
   @override
-  State<TourPendingScreen> createState() =>
-      _TourPendingScreenState ();
+  State<TourPendingScreen> createState() => _TourPendingScreenState();
 }
 
-class _TourPendingScreenState extends   State<TourPendingScreen>  {
+class _TourPendingScreenState extends State<TourPendingScreen> {
   late bool _isLoading = false;
   bool showtable = false;
   bool isUpdate = true;
   late MainBloc mainBloc;
   final storage = FlutterSecureStorage();
-  String? staffCode="";
-  String? Auth_Token="";
-  String? slipid="";
-  late List<TourDetail> pendingTourlist=[];
+  String? staffCode = "";
+  String? Auth_Token = "";
+  String? slipid = "";
+  late List<TourDetail> pendingTourlist = [];
   ScrollController vendorRecordController = new ScrollController();
 
   void initState() {
@@ -42,10 +40,10 @@ class _TourPendingScreenState extends   State<TourPendingScreen>  {
   }
 
   Future<void> getData() async {
-
     staffCode = await storage.read(key: 'Staff_Code');
     Auth_Token = await storage.read(key: 'Auth_Token');
-    mainBloc.add(FetchappliedTourevent(Staffcode: staffCode!, token: Auth_Token!));
+    mainBloc
+        .add(FetchappliedTourevent(Staffcode: staffCode!, token: Auth_Token!));
   }
 
   @override
@@ -97,12 +95,12 @@ class _TourPendingScreenState extends   State<TourPendingScreen>  {
               ),
             ),
           );
-
         },
         child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
+
   _appliedscreen() {
     return LoadingOverlay(
         isLoading: _isLoading,
@@ -112,14 +110,13 @@ class _TourPendingScreenState extends   State<TourPendingScreen>  {
           backgroundColor: Color(0xFFCE4A6F),
           valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
         ),
-        child: BlocListener<MainBloc,MainState>(
-          listener:  (context, state){
+        child: BlocListener<MainBloc, MainState>(
+          listener: (context, state) {
             if (state is FetchappliedTourLoadingState) {
               setState(() {
                 _isLoading = true;
               });
-            }
-            else if (state is FetchappliedTourLoadedState) {
+            } else if (state is FetchappliedTourLoadedState) {
               setState(() {
                 _isLoading = false;
               });
@@ -131,117 +128,129 @@ class _TourPendingScreenState extends   State<TourPendingScreen>  {
               pendingTourlist.clear(); // ✅ Clear previous data
               pendingTourlist.addAll(state.appliedtourdetails.message ?? []);
               //pendingLeaveList.addAll(state.appliedtourdetails.message ?? []);
-            }
-            else if (state is FetchappliedTourErrorstate) {
+            } else if (state is FetchappliedTourErrorstate) {
               setState(() {
                 _isLoading = false;
               });
               Fluttertoast.showToast(
-                msg: "Currently no data available. Please apply for Tour first.",
+                msg:
+                    "Currently no data available. Please apply for Tour first.",
                 toastLength: Toast.LENGTH_SHORT,
                 timeInSecForIosWeb: 1,
               );
             }
 
-            if(state is CancelappliedtourLoadingState){
+            if (state is CancelappliedtourLoadingState) {
               setState(() {
-                _isLoading=true;
+                _isLoading = true;
               });
-            }
-            else if(state is CancelappliedtourLoadedState){
+            } else if (state is CancelappliedtourLoadedState) {
               setState(() {
-                _isLoading=false;
+                _isLoading = false;
               });
               Fluttertoast.showToast(msg: 'Record deleted Successfully');
-            }
-
-            else if(state is CancelappliedtourErrorState){
+            } else if (state is CancelappliedtourErrorState) {
               setState(() {
-                _isLoading=false;
+                _isLoading = false;
               });
               Fluttertoast.showToast(msg: 'error is deleting');
             }
           },
           child: pendingTourlist.isEmpty
               ? Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Image.asset(
-                  "assets/icons/no_data.png", // Ensure this image exists in your assets folder
-                  height: 150,
-                ),
-                SizedBox(height: 20),
-                Text(
-                  "No Data Available",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blue),
-                ),
-              ],
-            ),
-          )
-              : ListView.builder(
-            controller: vendorRecordController,
-            shrinkWrap: true,
-            itemCount: pendingTourlist.length,
-            itemBuilder: (context, index) {
-              TourDetail tourdetails = pendingTourlist[index];
-              return Card(
-                shape: RoundedRectangleBorder(
-                  side: BorderSide(width: 1, color: MyColors.textBoxBorderColorCode),
-                  borderRadius: BorderRadius.circular(10.0),
-                ),
-                child: Container(
-                  padding: EdgeInsets.all(15),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.all(Radius.circular(10)),
-                  ),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text("Status: Pending", style: TextStyle(color: MyColors.greenColorCode,fontWeight: FontWeight.bold,fontSize: 20)),
-                          Row(
-                            children: [
-                              GestureDetector(
-                                onTap: () {
-                                  _showDeleteDialog(context, tourdetails);
-                                },
-                                child: Container(
-                                  height: 32,
-                                  margin: EdgeInsets.only(left: 20),
-                                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 5),
-                                  decoration: BoxDecoration(
-                                      color: MyColors.pinkBackgroundColorCode,
-                                      borderRadius: BorderRadius.circular(20)),
-                                  child: Text(
-                                    "Cancel",
-                                    style: TextStyle(fontWeight: FontWeight.bold, color: MyColors.redColorCode, fontSize: 18),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
+                      Image.asset(
+                        "assets/icons/no_data.png",
+                        // Ensure this image exists in your assets folder
+                        height: 150,
                       ),
-                      SizedBox(height: 10),
-                      _buildRow("Staff Code",tourdetails.staffCode),
-                      _buildRow("Start Date",tourdetails.startDate),
-                      _buildRow("End Date",tourdetails.endDate),
-                      _buildRow("Purpose",tourdetails.purpose),
-                      // _buildRow("From Date", _formatDate(tourdetails.startingDate)),
-                      // _buildRow("To Date", _formatDate(tourdetails.endingDate)),
-                      // _buildRow("Reason", tourdetails.reason ?? "N/A"),
+                      SizedBox(height: 20),
+                      Text(
+                        "No Data Available",
+                        style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue),
+                      ),
                     ],
                   ),
+                )
+              : ListView.builder(
+                  controller: vendorRecordController,
+                  shrinkWrap: true,
+                  itemCount: pendingTourlist.length,
+                  itemBuilder: (context, index) {
+                    TourDetail tourdetails = pendingTourlist[index];
+                    return Card(
+                      shape: RoundedRectangleBorder(
+                        side: BorderSide(
+                            width: 1, color: MyColors.textBoxBorderColorCode),
+                        borderRadius: BorderRadius.circular(10.0),
+                      ),
+                      child: Container(
+                        padding: EdgeInsets.all(15),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.all(Radius.circular(10)),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text("Status: Pending",
+                                    style: TextStyle(
+                                        color: MyColors.greenColorCode,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 20)),
+                                Row(
+                                  children: [
+                                    GestureDetector(
+                                      onTap: () {
+                                        _showDeleteDialog(context, tourdetails);
+                                      },
+                                      child: Container(
+                                        height: 32,
+                                        margin: EdgeInsets.only(left: 20),
+                                        padding: EdgeInsets.symmetric(
+                                            horizontal: 20, vertical: 5),
+                                        decoration: BoxDecoration(
+                                            color: MyColors
+                                                .pinkBackgroundColorCode,
+                                            borderRadius:
+                                                BorderRadius.circular(20)),
+                                        child: Text(
+                                          "Cancel",
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              color: MyColors.redColorCode,
+                                              fontSize: 18),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: 10),
+                            _buildRow("Staff Code", tourdetails.staffCode),
+                            _buildRow("Start Date", tourdetails.startDate),
+                            _buildRow("End Date", tourdetails.endDate),
+                            _buildRow("Purpose", tourdetails.purpose),
+                            // _buildRow("From Date", _formatDate(tourdetails.startingDate)),
+                            // _buildRow("To Date", _formatDate(tourdetails.endingDate)),
+                            // _buildRow("Reason", tourdetails.reason ?? "N/A"),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
                 ),
-              );
-            },
-          ),
-        )
-    );
+        ));
   }
+
   void _showDeleteDialog(BuildContext context, TourDetail tourdetails) {
     showDialog(
       context: context,
@@ -254,14 +263,14 @@ class _TourPendingScreenState extends   State<TourPendingScreen>  {
               onPressed: () {
                 Navigator.of(context).pop(); // Close the dialog
               },
-              child: Text("No",style: TextStyle(color: Colors.grey)),
+              child: Text("No", style: TextStyle(color: Colors.grey)),
             ),
             ElevatedButton(
               onPressed: () async {
                 Navigator.of(context).pop(); // Close the dialog
                 await _deleteappliedtour(context, tourdetails);
               },
-              child: Text("Yes",style: TextStyle(color: Colors.red)),
+              child: Text("Yes", style: TextStyle(color: Colors.red)),
             ),
           ],
         );
@@ -269,7 +278,8 @@ class _TourPendingScreenState extends   State<TourPendingScreen>  {
     );
   }
 
-  Future<void> _deleteappliedtour(BuildContext context, TourDetail tourdetails) async {
+  Future<void> _deleteappliedtour(
+      BuildContext context, TourDetail tourdetails) async {
     setState(() {
       _isLoading = true; // Show loading indicator
     });
@@ -279,10 +289,14 @@ class _TourPendingScreenState extends   State<TourPendingScreen>  {
       print(staffCode);
       print(tourdetails.slipId.toString());
       // Dispatch the cancel leave event
-      mainBloc.add(CancelTourevents(staffCode: staffCode!, slipId: tourdetails.slipId.toString(), token: Auth_Token!));
+      mainBloc.add(CancelTourevents(
+          staffCode: staffCode!,
+          slipId: tourdetails.slipId.toString(),
+          token: Auth_Token!));
       await Future.delayed(Duration(seconds: 1));
       print(staffCode);
-      print(tourdetails.slipId.toString());// Optional: Ensure state updates correctly
+      print(tourdetails.slipId
+          .toString()); // Optional: Ensure state updates correctly
       setState(() {
         pendingTourlist.clear(); // ✅ Clear previous data
       });
@@ -311,11 +325,3 @@ class _TourPendingScreenState extends   State<TourPendingScreen>  {
     );
   }
 }
-
-
-
-
-
-
-
-

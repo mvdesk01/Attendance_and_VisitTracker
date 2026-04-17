@@ -329,7 +329,7 @@ class _AddLeavePageState extends State<AddLeavePage> {
                   ),
                   SizedBox(height: 20),
 
-/*                  // Date of joining controller
+                  // Date of joining controller
                   TextField(
                     controller: _StaffDOJController,
                     decoration: InputDecoration(
@@ -337,7 +337,7 @@ class _AddLeavePageState extends State<AddLeavePage> {
                       border: OutlineInputBorder(),
                     ),
                   ),
-                  SizedBox(height: 20),*/
+                  SizedBox(height: 20),
 
                   // Navigation button
                   Center(
@@ -431,3 +431,439 @@ class _AddLeavePageState extends State<AddLeavePage> {
     }
   }
 }
+
+///new ui
+// class _AddLeavePageState extends State<AddLeavePage> {
+//   // ... Keep all your existing variables/logic here ...
+//   bool isUpdate = true;
+//   final leaveTypes = ['Please Select', 'CL', 'PL', 'SL', 'LWP'];
+//   String selectedLeaveType = 'Please Select';
+//   bool showNextScreenContent = false;
+//   bool fromTimeSelected = false;
+//   TextEditingController _StaffcodeController = TextEditingController();
+//   TextEditingController _StaffnameController = TextEditingController();
+//   TextEditingController _StaffplantnameController = TextEditingController();
+//   TextEditingController _StaffdepartmentnameController =
+//       TextEditingController();
+//   TextEditingController _StaffDOJController = TextEditingController();
+//   final TextEditingController leaveBalanceController = TextEditingController();
+//   late Message leaveDetailss;
+//   bool showTable = false;
+//   List<Map<String, String>> leaveDetails = [];
+//   String year = "2026";
+//   String? staffCode = "";
+//   String? Auth_Token = "";
+//   late bool _isLoading = false;
+//   late MainBloc mainBloc;
+//   final storage = const FlutterSecureStorage();
+//
+//   @override
+//   void initState() {
+//     super.initState();
+//     mainBloc = BlocProvider.of<MainBloc>(context);
+//     getData();
+//   }
+//
+//   Future<void> getData() async {
+//     print("Received Flag: ${widget.flag}");
+//
+//     // Retrieve staff code and token
+//     staffCode = await storage.read(key: 'Staff_Code');
+//     print("staffCode-->" + staffCode!);
+//     Auth_Token = await storage.read(key: 'Auth_Token');
+//     print("authtoken->" + Auth_Token!);
+//
+//     // Set leave details from the widget
+//     // leaveDetailss = widget.leaveData;
+//     if (widget.leaveData != null) {
+//       leaveDetailss = widget.leaveData;
+//       print("leaveDetails --> " + leaveDetailss.transactionId.toString());
+//     } else {
+//       print("leaveData is null. Creating an empty instance.");
+//       leaveDetailss = Message(); // Create a default Message instance
+//     }
+//
+//     //transactioniD = leaveDetailss.transactionId.toString();
+//
+//     print("Auth_Token-->${Auth_Token!}");
+//     print(leaveDetailss);
+//     print("leaveDetails -->" + leaveDetailss.transactionId.toString());
+//
+//     mainBloc
+//         .add(GetLeaveStaffDetails(StaffCode: staffCode!, token: Auth_Token!));
+//   }
+//
+//   // ... [Keep your getData() and formatting logic identical] ...
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return LoadingOverlay(
+//       isLoading: _isLoading,
+//       opacity: 0.3,
+//       color: Colors.white,
+//       progressIndicator: const CircularProgressIndicator(),
+//       child: Scaffold(
+//         backgroundColor: const Color(0xFFF4F7FA), // Modern subtle background
+//         appBar: AppBar(
+//           elevation: 0,
+//           toolbarHeight: 70,
+//           leading: IconButton(
+//             icon: const Icon(Icons.arrow_back_ios_new_rounded,
+//                 color: Colors.white, size: 22),
+//             onPressed: () => _navigateToPending(),
+//           ),
+//           title: Text(
+//             "Apply Leave Request",
+//             style: GoogleFonts.poppins(
+//                 fontWeight: FontWeight.w700, fontSize: 22, color: Colors.white),
+//           ),
+//           backgroundColor: MyColors.lightBlue,
+//           centerTitle: true,
+//         ),
+//         body: BlocListener<MainBloc, MainState>(
+//           listener: _handleStateChanges,
+//           child: Column(
+//             children: [
+//               // _buildStepIndicator(),
+//               Expanded(
+//                 child: SingleChildScrollView(
+//                   padding: const EdgeInsets.all(20.0),
+//                   child: Column(
+//                     crossAxisAlignment: CrossAxisAlignment.start,
+//                     children: [
+//                       _buildYearSelectionRow(),
+//                       const SizedBox(height: 25),
+//                       _buildInfoSection(),
+//                       const SizedBox(height: 25),
+//                       if (showTable && leaveDetails.isNotEmpty)
+//                         _buildLeaveBalanceTable(),
+//                       const SizedBox(height: 40),
+//                       _buildNextButton(),
+//                     ],
+//                   ),
+//                 ),
+//               ),
+//             ],
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+//
+//   Widget _buildStepIndicator() {
+//     return Container(
+//       color: MyColors.lightBlue,
+//       padding: const EdgeInsets.only(bottom: 20, left: 20, right: 20),
+//       child: Row(
+//         children: [
+//           _stepCircle("1", "Details", true),
+//           _stepLine(false),
+//           _stepCircle("2", "Duration", false),
+//         ],
+//       ),
+//     );
+//   }
+//
+//   Widget _stepCircle(String num, String label, bool isActive) {
+//     return Row(
+//       children: [
+//         CircleAvatar(
+//           radius: 14,
+//           backgroundColor: isActive ? Colors.white : Colors.white24,
+//           child: Text(num,
+//               style: TextStyle(
+//                   color: isActive ? MyColors.lightBlue : Colors.white,
+//                   fontWeight: FontWeight.bold)),
+//         ),
+//         const SizedBox(width: 8),
+//         Text(label,
+//             style: GoogleFonts.poppins(
+//                 color: Colors.white,
+//                 fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+//                 fontSize: 16)),
+//       ],
+//     );
+//   }
+//
+//   Widget _stepLine(bool isActive) {
+//     return Expanded(
+//       child: Container(
+//         height: 2,
+//         margin: const EdgeInsets.symmetric(horizontal: 15),
+//         color: isActive ? Colors.white : Colors.white24,
+//       ),
+//     );
+//   }
+//
+//   Widget _buildYearSelectionRow() {
+//     return Container(
+//       padding: const EdgeInsets.all(16),
+//       decoration: BoxDecoration(
+//         color: Colors.white,
+//         borderRadius: BorderRadius.circular(12),
+//         boxShadow: [
+//           BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)
+//         ],
+//       ),
+//       child: Row(
+//         children: [
+//           Expanded(
+//             child: Column(
+//               crossAxisAlignment: CrossAxisAlignment.start,
+//               children: [
+//                 Text("ACADEMIC YEAR",
+//                     style: GoogleFonts.poppins(
+//                         fontSize: 12,
+//                         fontWeight: FontWeight.bold,
+//                         color: Colors.grey)),
+//                 DropdownButtonHideUnderline(
+//                   child: DropdownButton<String>(
+//                     value: year,
+//                     isExpanded: true,
+//                     style: GoogleFonts.poppins(
+//                         fontSize: 18,
+//                         fontWeight: FontWeight.bold,
+//                         color: Colors.black87),
+//                     items: ['2026']
+//                         .map((y) => DropdownMenuItem(value: y, child: Text(y)))
+//                         .toList(),
+//                     onChanged: (v) => setState(() => year = v!),
+//                   ),
+//                 ),
+//               ],
+//             ),
+//           ),
+//           const SizedBox(width: 15),
+//           ElevatedButton(
+//             style: ElevatedButton.styleFrom(
+//               backgroundColor: MyColors.lightBlue,
+//               padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 15),
+//               shape: RoundedRectangleBorder(
+//                   borderRadius: BorderRadius.circular(10)),
+//             ),
+//             onPressed: _fetchLeaveDetails,
+//             child: const Text("CHECK BALANCE",
+//                 style: TextStyle(
+//                     color: Colors.white, fontWeight: FontWeight.bold)),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+//
+//   Widget _buildInfoSection() {
+//     return Column(
+//       crossAxisAlignment: CrossAxisAlignment.start,
+//       children: [
+//         Text("STAFF INFORMATION",
+//             style: GoogleFonts.poppins(
+//                 fontSize: 14,
+//                 fontWeight: FontWeight.bold,
+//                 color: Colors.blueGrey)),
+//         const SizedBox(height: 12),
+//         _infoCard(
+//             "Staff Name", _StaffnameController.text, Icons.person_outline),
+//         const SizedBox(height: 12),
+//         Row(
+//           children: [
+//             Expanded(
+//                 child: _infoCard("Staff Code", _StaffcodeController.text,
+//                     Icons.badge_outlined)),
+//             const SizedBox(width: 12),
+//             Expanded(
+//                 child: _infoCard("Dept", _StaffdepartmentnameController.text,
+//                     Icons.account_tree_outlined)),
+//           ],
+//         ),
+//         const SizedBox(height: 12),
+//         _infoCard("Plant / Location", _StaffplantnameController.text,
+//             Icons.location_on_outlined),
+//       ],
+//     );
+//   }
+//
+//   Widget _infoCard(String label, String value, IconData icon) {
+//     return Container(
+//       padding: const EdgeInsets.all(16),
+//       decoration: BoxDecoration(
+//         color: Colors.white,
+//         borderRadius: BorderRadius.circular(12),
+//         border: Border.all(color: Colors.grey.shade200),
+//       ),
+//       child: Row(
+//         children: [
+//           Icon(icon, color: MyColors.lightBlue, size: 24),
+//           const SizedBox(width: 12),
+//           Column(
+//             crossAxisAlignment: CrossAxisAlignment.start,
+//             children: [
+//               Text(label,
+//                   style: const TextStyle(fontSize: 12, color: Colors.grey)),
+//               Text(value.isEmpty ? "---" : value,
+//                   style: GoogleFonts.poppins(
+//                       fontSize: 17,
+//                       fontWeight: FontWeight.w600,
+//                       color: Colors.black87)),
+//             ],
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+//
+//   Widget _buildLeaveBalanceTable() {
+//     return Column(
+//       crossAxisAlignment: CrossAxisAlignment.start,
+//       children: [
+//         Text("LEAVE BALANCE DETAILS",
+//             style: GoogleFonts.poppins(
+//                 fontSize: 14,
+//                 fontWeight: FontWeight.bold,
+//                 color: Colors.blueGrey)),
+//         const SizedBox(height: 12),
+//         Container(
+//           decoration: BoxDecoration(
+//             color: Colors.white,
+//             borderRadius: BorderRadius.circular(12),
+//             border: Border.all(color: Colors.grey.shade200),
+//           ),
+//           child: SingleChildScrollView(
+//             scrollDirection: Axis.horizontal,
+//             child: DataTable(
+//               headingRowColor: MaterialStateProperty.all(Colors.grey.shade100),
+//               columns: const [
+//                 DataColumn(
+//                     label: Text('Type',
+//                         style: TextStyle(fontWeight: FontWeight.bold))),
+//                 DataColumn(
+//                     label: Text('Remaining',
+//                         style: TextStyle(fontWeight: FontWeight.bold))),
+//                 DataColumn(
+//                     label: Text('Total',
+//                         style: TextStyle(fontWeight: FontWeight.bold))),
+//                 DataColumn(
+//                     label: Text('Min/Max Allowed',
+//                         style: TextStyle(fontWeight: FontWeight.bold))),
+//               ],
+//               rows: leaveDetails
+//                   .map((row) => DataRow(cells: [
+//                         DataCell(Text(row['Code'] ?? '',
+//                             style: const TextStyle(
+//                                 fontWeight: FontWeight.bold,
+//                                 color: Colors.blue))),
+//                         DataCell(Text(row['Days Remaining'] ?? '',
+//                             style: const TextStyle(
+//                                 fontSize: 16, fontWeight: FontWeight.bold))),
+//                         DataCell(Text(row['Total Days'] ?? '')),
+//                         DataCell(Text(
+//                             "${row['Min Days Allowed']}/${row['Max Days Allowed']}")),
+//                       ]))
+//                   .toList(),
+//             ),
+//           ),
+//         ),
+//       ],
+//     );
+//   }
+//
+//   Widget _buildNextButton() {
+//     return SizedBox(
+//       width: double.infinity,
+//       height: 60,
+//       child: ElevatedButton(
+//         style: ElevatedButton.styleFrom(
+//           backgroundColor: Colors.green.shade600,
+//           shape:
+//               RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+//           elevation: 3,
+//         ),
+//         onPressed: _handleNextPage,
+//         child: Row(
+//           mainAxisAlignment: MainAxisAlignment.center,
+//           children: [
+//             Text("PROCEED TO DATES",
+//                 style: GoogleFonts.poppins(
+//                     fontSize: 18,
+//                     fontWeight: FontWeight.bold,
+//                     color: Colors.white)),
+//             const SizedBox(width: 10),
+//             const Icon(Icons.arrow_forward_rounded, color: Colors.white),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+//
+//   // --- Logic Helper Methods ---
+//
+//   void _navigateToPending() {
+//     Navigator.pushReplacement(
+//         context,
+//         MaterialPageRoute(
+//             builder: (_) => BlocProvider(
+//                 create: (context) => MainBloc(webService: WebService()),
+//                 child: PendingLeave())));
+//   }
+//
+//   void _fetchLeaveDetails() {
+//     setState(() => showTable = true);
+//     if (staffCode != null && Auth_Token != null) {
+//       mainBloc.add(GetLeavetypeEvents(
+//           StaffCode: staffCode!, token: Auth_Token!, Year: year));
+//     }
+//   }
+//
+//   void _handleNextPage() async {
+//     await storage.write(key: 'selectedYear', value: year);
+//     await storage.write(key: 'stafcodeee', value: staffCode);
+//     await storage.write(key: 'authtokenn', value: Auth_Token);
+//     await storage.write(key: 'staffname', value: _StaffnameController.text);
+//     await storage.write(
+//         key: 'plantname', value: _StaffplantnameController.text);
+//     await storage.write(
+//         key: 'department', value: _StaffdepartmentnameController.text);
+//
+//     Navigator.push(
+//         context,
+//         MaterialPageRoute(
+//           builder: (context) => BlocProvider.value(
+//             value: BlocProvider.of<MainBloc>(context),
+//             child: LeaveDetailsPage(
+//                 flag: 1, tokennn: Auth_Token!, leaveData: leaveDetailss),
+//           ),
+//         )).then((result) {
+//       if (result == true) getData();
+//     });
+//   }
+//
+//   void _handleStateChanges(context, state) {
+//     if (state is GetLeaveStaffDetailsLoadingtstate) {
+//       setState(() => _isLoading = true);
+//     } else if (state is GetLeaveStaffDetailsLoadedtstate) {
+//       setState(() {
+//         _isLoading = false;
+//         _StaffcodeController.text = state.staffdetails.message!.staffCode!;
+//         _StaffnameController.text = state.staffdetails.message!.fullName!;
+//         _StaffplantnameController.text = state.staffdetails.message!.plantName!;
+//         _StaffdepartmentnameController.text =
+//             state.staffdetails.message!.department!;
+//       });
+//     } else if (state is GetLeaveStaffDetailsErrorState) {
+//       setState(() => _isLoading = false);
+//       Fluttertoast.showToast(msg: "Failed to connect to server");
+//     } else if (state is GetLeaveTypeLoadedState) {
+//       setState(() {
+//         _isLoading = false;
+//         leaveDetails = state.leavedetails.leaveTypes!
+//             .map((detail) => {
+//                   'Code': detail.leaveTypeCode.toString(),
+//                   'Days Remaining': detail.daysRemaining.toString(),
+//                   'Total Days': detail.totalDays.toString(),
+//                   'Min Days Allowed': detail.minDaysAllowed.toString(),
+//                   'Max Days Allowed': detail.maxDaysAllowed.toString(),
+//                 })
+//             .toList();
+//       });
+//     }
+//   }
+// }

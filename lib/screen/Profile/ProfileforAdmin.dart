@@ -11,6 +11,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart'; // Import permission_handler
+
 import '../../bloc/main_bloc.dart';
 import '../../bloc/main_event.dart';
 import '../../bloc/main_state.dart';
@@ -20,12 +21,12 @@ import '../../util/MyColor.dart';
 
 class ProfileforAdmin extends StatefulWidget {
   const ProfileforAdmin({super.key});
+
   @override
   State<ProfileforAdmin> createState() => _ProfileforAdminState();
 }
 
 class _ProfileforAdminState extends State<ProfileforAdmin> {
-
   String? staffCode = "";
   String? Auth_Token = "";
   late bool _isLoading = false;
@@ -33,7 +34,7 @@ class _ProfileforAdminState extends State<ProfileforAdmin> {
   final storage = FlutterSecureStorage();
   late bool isEmailEditable;
   late bool isMobileEditable;
-  String base64Image="";
+  String base64Image = "";
   late bool _showUpdateButton = false;
 
   void initState() {
@@ -44,6 +45,7 @@ class _ProfileforAdminState extends State<ProfileforAdmin> {
     isMobileEditable = false;
     getData();
   }
+
   Map<String, String?> getAllFields() {
     return {
       "displayName": nameController.text.trim(),
@@ -111,7 +113,8 @@ class _ProfileforAdminState extends State<ProfileforAdmin> {
   }
 
   Future<void> _requestGalleryPermission() async {
-    if (await Permission.photos.isGranted || await Permission.storage.isGranted) {
+    if (await Permission.photos.isGranted ||
+        await Permission.storage.isGranted) {
       _showCameraOptions();
     } else {
       final status = await Permission.photos.request();
@@ -120,7 +123,8 @@ class _ProfileforAdminState extends State<ProfileforAdmin> {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Permission to access gallery is denied. Please enable it in settings.'),
+            content: const Text(
+                'Permission to access gallery is denied. Please enable it in settings.'),
             action: SnackBarAction(
               label: 'Settings',
               onPressed: () {
@@ -132,6 +136,7 @@ class _ProfileforAdminState extends State<ProfileforAdmin> {
       }
     }
   }
+
 /*
   Future<void> _showCameraOptions() async {
     showModalBottomSheet(
@@ -178,33 +183,27 @@ class _ProfileforAdminState extends State<ProfileforAdmin> {
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            // ListTile(
-            //   leading: const Icon(Icons.delete),
-            //   title: const Text('Delete Profile Picture'),
-            //   onTap: () {
-            //     setState(() {
-            //       profileImage = null;
-            //     });
-            //     Navigator.of(context).pop();
-            //   },
-            // ),
             ListTile(
               leading: const Icon(Icons.photo),
               title: const Text('Upload Profile Picture'),
               onTap: () async {
                 Navigator.of(context).pop(); // Close the modal first
-                final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+                final XFile? image =
+                    await _picker.pickImage(source: ImageSource.gallery);
 
                 if (image != null) {
-                  File compressedFile = await _compressImage(File(image.path)); // Compress Image
-                  String base64String = await _convertImageToBase64(compressedFile); // Convert to Base64
+                  File compressedFile =
+                      await _compressImage(File(image.path)); // Compress Image
+                  String base64String = await _convertImageToBase64(
+                      compressedFile); // Convert to Base64
 
                   setState(() {
                     profileImage = base64String;
                     _showUpdateButton = true; // Store Base64 string
                   });
 
-                  print("📸 Compressed Base64 Image (first 100 chars): ${base64String.substring(0, 100)}...");
+                  print(
+                      "📸 Compressed Base64 Image (first 100 chars): ${base64String.substring(0, 100)}...");
                 }
               },
             ),
@@ -214,33 +213,10 @@ class _ProfileforAdminState extends State<ProfileforAdmin> {
     );
   }
 
-  /* Future<String> _convertImageToBase64(String imagePath) async {
-    File imageFile = File(imagePath);
-    List<int> imageBytes = await imageFile.readAsBytes();
-    String base64Image = base64Encode(imageBytes);
-    return base64Image;
-  }
-*/
-
-
-  // Future<File> _compressImage(File file) async {
-  //   final directory = await getTemporaryDirectory();
-  //   final compressedFilePath = '${directory.path}/${DateTime.now().millisecondsSinceEpoch}.jpg';
-  //
-  //   // Compress and save the image
-  //   final compressedImage = await FlutterImageCompress.compressAndGetFile(
-  //     file.absolute.path,
-  //     compressedFilePath,
-  //     quality: 50, // Adjust quality as needed
-  //     minWidth: 300, // Reduce image size
-  //     minHeight: 300,
-  //   );
-  //
-  //   return compressedImage ?? file; // Return compressed file
-  // }
   Future<File> _compressImage(File file) async {
     final directory = await getTemporaryDirectory();
-    final compressedFilePath = '${directory.path}/${DateTime.now().millisecondsSinceEpoch}.jpg';
+    final compressedFilePath =
+        '${directory.path}/${DateTime.now().millisecondsSinceEpoch}.jpg';
 
     final result = await FlutterImageCompress.compressAndGetFile(
       file.absolute.path,
@@ -261,7 +237,6 @@ class _ProfileforAdminState extends State<ProfileforAdmin> {
     List<int> imageBytes = await file.readAsBytes();
     return base64Encode(imageBytes); // Convert to Base64
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -285,8 +260,7 @@ class _ProfileforAdminState extends State<ProfileforAdmin> {
             setState(() {
               _isLoading = true;
             });
-          }
-          else if (state is GetUserinfoLoadedState) {
+          } else if (state is GetUserinfoLoadedState) {
             final user = state.profileuserinfo.message;
 
             setState(() {
@@ -298,7 +272,8 @@ class _ProfileforAdminState extends State<ProfileforAdmin> {
               emailController.text = user?.emailId ?? '';
               mobileController.text = user?.mobileNo ?? '';
               dateOfJoiningController.text = user?.createdOn != null
-                  ? DateFormat('dd/MM/yyyy').format(DateTime.parse(user!.createdOn!))
+                  ? DateFormat('dd/MM/yyyy')
+                      .format(DateTime.parse(user!.createdOn!))
                   : '';
               addressController.text = user?.currAddress ?? '';
               remoteaddressController.text = user?.newRemoteLocation ?? '';
@@ -317,13 +292,13 @@ class _ProfileforAdminState extends State<ProfileforAdmin> {
 
               // Handle profile picture
               if (user?.profilePic != null && user!.profilePic!.isNotEmpty) {
-                profileImage = _cleanBase64(user.profilePic!); // Remove any invalid characters
+                profileImage = _cleanBase64(
+                    user.profilePic!); // Remove any invalid characters
               } else {
                 profileImage = null;
               }
             });
-          }
-          else if (state is GetUserinfoErrorState) {
+          } else if (state is GetUserinfoErrorState) {
             setState(() {
               _isLoading = false;
             });
@@ -333,73 +308,53 @@ class _ProfileforAdminState extends State<ProfileforAdmin> {
               timeInSecForIosWeb: 1,
             );
           }
-          if(state is UpdateUserinfoLoadingState){
+          if (state is UpdateUserinfoLoadingState) {
             setState(() {
-              _isLoading=true;
+              _isLoading = true;
             });
-          }
-          else if(state is UpdateUserinfoLoadedState){
+          } else if (state is UpdateUserinfoLoadedState) {
             setState(() {
               _isLoading = false;
             });
-            if(state.updateuserinfo.message == "EmailId is Already Present.."){
+            if (state.updateuserinfo.message ==
+                "EmailId is Already Present..") {
               Fluttertoast.showToast(msg: "EmailId already present");
               return;
-            }else if(state.updateuserinfo.message == "MobileNo is Already Present.."){
+            } else if (state.updateuserinfo.message ==
+                "MobileNo is Already Present..") {
               Fluttertoast.showToast(msg: "Mobile Number already present");
               return;
-            }
-            else if(state.updateuserinfo.message == "Profile Updated Successfully..."){
+            } else if (state.updateuserinfo.message ==
+                "Profile Updated Successfully...") {
               Fluttertoast.showToast(msg: "Details Updated succesfully!!");
             }
-
-          }
-          else if(state is UpdateUserinfoErrorState){
+          } else if (state is UpdateUserinfoErrorState) {
             setState(() {
-              _isLoading= false;
+              _isLoading = false;
             });
             Fluttertoast.showToast(msg: "error in updating");
           }
         },
         child: SingleChildScrollView(
-          child:  Column(
+          child: Column(
             children: <Widget>[
               GestureDetector(
                 onTap: _showCameraOptions, // Call the refactored method
                 child: Stack(
                   clipBehavior: Clip.none,
                   children: [
-                    /*      CircleAvatar(
-                      radius: 70,
-                      backgroundImage: profileImage != null
-                          ? MemoryImage(base64Decode(profileImage!))
-                          : AssetImage(" ") as ImageProvider,
-                      child: profileImage == null
-                          ? const Icon(Icons.person, size: 50, color: Colors.white)
-                          : null,
-                    ),*/
                     CircleAvatar(
                       radius: 70,
                       backgroundImage: profileImage != null
-                          ? MemoryImage(base64Decode(_cleanBase64(profileImage!))) // Decode Base64
-                          : const AssetImage("assets/icons/profileicon.png"), // Default image
+                          ? MemoryImage(base64Decode(
+                              _cleanBase64(profileImage!))) // Decode Base64
+                          : const AssetImage("assets/icons/profileicon.png"),
+                      // Default image
                       child: profileImage == null
-                          ? const Icon(Icons.person, size: 50, color: Colors.white)
+                          ? const Icon(Icons.person,
+                              size: 50, color: Colors.white)
                           : null,
                     ),
-                    // CircleAvatar(
-                    //   radius: 70,
-                    //   backgroundImage: profileImage != null
-                    //       ? (profileImage!.startsWith('http') // If it's a URL
-                    //       ? NetworkImage(profileImage!)
-                    //       : (profileImage!.startsWith('data:image') // If it's Base64
-                    //       ? MemoryImage(base64Decode(profileImage!.split(',')[1]))
-                    //       : FileImage(File(profileImage!))) as ImageProvider)
-                    //       : const AssetImage('assets/icons/profileicon.png'),
-                    //   child: profileImage == null
-                    //       ? const Icon(Icons.person, size: 50, color: Colors.white)
-                    //       : null,
-                    // ),
                     Positioned(
                       bottom: 10,
                       right: 0,
@@ -407,7 +362,8 @@ class _ProfileforAdminState extends State<ProfileforAdmin> {
                         radius: 15,
                         backgroundColor: Colors.white,
                         child: GestureDetector(
-                          onTap: _showCameraOptions, // Update to call this method
+                          onTap: _showCameraOptions,
+                          // Update to call this method
                           child: Image.asset(
                             "assets/icons/camera.png",
                             width: 20,
@@ -425,35 +381,17 @@ class _ProfileforAdminState extends State<ProfileforAdmin> {
               _buildProfileField(cardIdController, 'Card ID'),
               const SizedBox(height: 10),
               _buildProfileField(emailController, 'Email Id'),
-              /*_buildEditableProfileField(
-                emailController,
-                'Email',
-                isEmailEditable,
-                    () {
-                  setState(() {
-                    isEmailEditable = !isEmailEditable; // Toggle email editable state
-                  });
-                },
-              ),*/
               const SizedBox(height: 10),
               _buildProfileField(mobileController, 'Mobile Number'),
-              /*   _buildEditableProfileField(
-                mobileController,
-                'Mobile Number',
-                isMobileEditable,
-                    () {
-                  setState(() {
-                    isMobileEditable = !isMobileEditable; // Toggle mobile editable state
-                  });
-                },
-              ),*/
               const SizedBox(height: 10),
               _buildProfileField(dateOfJoiningController, 'Date of Joining'),
               const SizedBox(height: 10),
               Padding(
-                padding: const EdgeInsets.all(10.0), // Adjust the value as needed
+                padding: const EdgeInsets.all(10.0),
+                // Adjust the value as needed
                 child: SizedBox(
-                  width: double.infinity, // Makes the TextField span the entire screen width
+                  width: double.infinity,
+                  // Makes the TextField span the entire screen width
                   child: TextField(
                     controller: addressController,
                     decoration: InputDecoration(
@@ -463,16 +401,20 @@ class _ProfileforAdminState extends State<ProfileforAdmin> {
                         borderSide: BorderSide(color: Colors.blue, width: 1),
                       ),
                     ),
-                    style: TextStyle(color: Colors.black), // Set text color to black
-                    enabled: false, // Make uneditable
-                    maxLines: null, // Allows the text to wrap and expand vertically
+                    style: TextStyle(color: Colors.black),
+                    // Set text color to black
+                    enabled: false,
+                    // Make uneditable
+                    maxLines:
+                        null, // Allows the text to wrap and expand vertically
                   ),
                 ),
               ),
               Padding(
                 padding: const EdgeInsets.all(10.0),
                 child: SizedBox(
-                  width: double.infinity, // Makes the TextField span the entire screen width
+                  width: double.infinity,
+                  // Makes the TextField span the entire screen width
                   child: TextField(
                     controller: remoteaddressController,
                     decoration: InputDecoration(
@@ -482,9 +424,12 @@ class _ProfileforAdminState extends State<ProfileforAdmin> {
                         borderSide: BorderSide(color: Colors.blue, width: 1),
                       ),
                     ),
-                    style: TextStyle(color: Colors.black), // Set text color to black
-                    enabled: false, // Make uneditable
-                    maxLines: null, // Allows the text to wrap and expand vertically
+                    style: TextStyle(color: Colors.black),
+                    // Set text color to black
+                    enabled: false,
+                    // Make uneditable
+                    maxLines:
+                        null, // Allows the text to wrap and expand vertically
                   ),
                 ),
               ),
@@ -508,13 +453,15 @@ class _ProfileforAdminState extends State<ProfileforAdmin> {
                         );
                         print(profileImage.toString());
                         mainBloc.add(UpdateProfileDetailsEvents(
-                          updateuserinfo: updateProfileResponse ,
+                          updateuserinfo: updateProfileResponse,
                           token: Auth_Token!,
                         ));
                       } catch (e) {
                         LogFileManager.writeLog('Error in catch profile: $e');
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Failed to update profile: ${e.toString()}')),
+                          SnackBar(
+                              content: Text(
+                                  'Failed to update profile: ${e.toString()}')),
                         );
                       } finally {
                         setState(() {
@@ -525,25 +472,27 @@ class _ProfileforAdminState extends State<ProfileforAdmin> {
                     child: _isLoading
                         ? const CircularProgressIndicator(color: Colors.white)
                         : const Text('Update'),
-                  )
-              ),
-
+                  )),
             ],
           ),
         ),
       ),
     );
   }
+
   String _cleanBase64(String base64String) {
     if (base64String.contains(",")) {
-      return base64String.split(",").last.trim(); // Remove 'data:image/...;base64,' prefix
+      return base64String
+          .split(",")
+          .last
+          .trim(); // Remove 'data:image/...;base64,' prefix
     }
     return base64String.trim();
   }
 
   Widget _buildProfileField(TextEditingController controller, String label) {
-
-    return Padding(padding: EdgeInsets.all(12),
+    return Padding(
+      padding: EdgeInsets.all(12),
       child: TextField(
         controller: controller,
         decoration: InputDecoration(
@@ -566,52 +515,18 @@ class _ProfileforAdminState extends State<ProfileforAdmin> {
         style: const TextStyle(color: Colors.black), // Text color
       ),
     );
-
   }
 
-/*  Widget _buildEditableProfileField(TextEditingController controller, String label, bool isEditable, Function toggleEditable) {
+  Widget _buildEditableProfileField(TextEditingController controller,
+      String label, bool isEditable, Function toggleEditable) {
     return Row(
       children: [
         Expanded(
           child: TextField(
             controller: controller,
-            decoration: InputDecoration(
-              labelText: label,
-              labelStyle: const TextStyle(color: Colors.black),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(color: Colors.black, width: 1),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(color: Colors.black, width: 1),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(color: Colors.black, width: 2),
-              ),
-            ),
-            enabled: isEditable, // Reflects the editable state
-            style: const TextStyle(color: Colors.black), // Text color
-          ),
-        ),
-        IconButton(
-          icon: Icon(isEditable ? Icons.check : Icons.edit, color: Colors.black),
-          onPressed: () {
-            toggleEditable(); // Toggles the editable state
-          },
-        ),
-      ],
-    );
-  }*/
-
-  Widget _buildEditableProfileField(TextEditingController controller, String label, bool isEditable, Function toggleEditable) {
-    return Row(
-      children: [
-        Expanded(
-          child: TextField(
-            controller: controller,
-            keyboardType: label == 'Mobile Number' ? TextInputType.number : TextInputType.emailAddress,
+            keyboardType: label == 'Mobile Number'
+                ? TextInputType.number
+                : TextInputType.emailAddress,
             decoration: InputDecoration(
               labelText: label,
               labelStyle: const TextStyle(color: Colors.black),
@@ -630,11 +545,12 @@ class _ProfileforAdminState extends State<ProfileforAdmin> {
               errorText: label == 'Mobile Number'
                   ? _validatePhoneNumber(controller.text)
                   : label == 'Email'
-                  ? _validateEmail(controller.text)
-                  : null, // Error messages
+                      ? _validateEmail(controller.text)
+                      : null, // Error messages
             ),
             enabled: isEditable,
-            maxLength: label == 'Mobile Number' ? 10 : null, // Restrict phone number to 10 digits
+            maxLength: label == 'Mobile Number' ? 10 : null,
+            // Restrict phone number to 10 digits
             style: const TextStyle(color: Colors.black),
             onChanged: (value) {
               // Validate input on change
@@ -647,10 +563,13 @@ class _ProfileforAdminState extends State<ProfileforAdmin> {
           ),
         ),
         IconButton(
-          icon: Icon(isEditable ? Icons.check : Icons.edit, color: Colors.black),
+          icon:
+              Icon(isEditable ? Icons.check : Icons.edit, color: Colors.black),
           onPressed: () {
-            if (label == 'Mobile Number' && _validatePhoneNumber(controller.text) != null) {
-              Fluttertoast.showToast(msg: "Enter a valid 10-digit mobile number");
+            if (label == 'Mobile Number' &&
+                _validatePhoneNumber(controller.text) != null) {
+              Fluttertoast.showToast(
+                  msg: "Enter a valid 10-digit mobile number");
               return;
             }
             if (label == 'Email' && _validateEmail(controller.text) != null) {
@@ -663,6 +582,7 @@ class _ProfileforAdminState extends State<ProfileforAdmin> {
       ],
     );
   }
+
   String? _validatePhoneNumber(String value) {
     if (value.isEmpty) {
       return "Phone number is required";
@@ -675,13 +595,10 @@ class _ProfileforAdminState extends State<ProfileforAdmin> {
   String? _validateEmail(String value) {
     if (value.isEmpty) {
       return "Email is required";
-    } else if (!RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{3,}$').hasMatch(value)) {
+    } else if (!RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{3,}$')
+        .hasMatch(value)) {
       return "Enter a valid email address";
     }
     return null;
   }
-
 }
-
-
-

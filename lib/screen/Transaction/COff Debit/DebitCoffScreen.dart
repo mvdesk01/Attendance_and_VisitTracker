@@ -362,13 +362,13 @@ class _DebitcoffscreenState extends State<Debitcoffscreen> {
             );
             if (widget.flag == 1) {
               if (state.cancelGatepassResponse.message ==
-                  "D-Off details saved successfully !") {
+                  "C-Off details saved successfully !") {
                 DialogForUpdate()
                     .popUp(context, "D-OFF Saved Successfully!", "1");
               }
             } else if (widget.flag == 2) {
               if (state.cancelGatepassResponse.message ==
-                  "D-Off details updated successfully !") {
+                  "C-Off details updated successfully !") {
                 DialogForUpdate()
                     .popUp(context, "D-OFF Updated Successfully!", "1");
               }

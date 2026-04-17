@@ -2,21 +2,24 @@ import 'dart:convert';
 
 import 'SearchbystaffcodeResponse.dart';
 
-GetAllusersListResponse GetAllusersListResponseFromJson(String str) => GetAllusersListResponse.fromJson(json.decode(str));
+GetAllusersListResponse GetAllusersListResponseFromJson(String str) =>
+    GetAllusersListResponse.fromJson(json.decode(str));
 
-String GetAllusersListResponseToJson(GetAllusersListResponse data) => json.encode(data.toJson());
-
-
+String GetAllusersListResponseToJson(GetAllusersListResponse data) =>
+    json.encode(data.toJson());
 
 class GetAllusersListResponse {
   bool? status;
+  int? totalcount;
   String? message;
   List<Message>? data;
 
-  GetAllusersListResponse({this.status, this.message, this.data});
+  GetAllusersListResponse(
+      {this.status, this.totalcount, this.message, this.data});
 
   GetAllusersListResponse.fromJson(Map<String, dynamic> json) {
     status = json['status'];
+    totalcount = json['totalCount'];
     message = json['message'];
 
     if (json['data'] != null) {
@@ -31,6 +34,7 @@ class GetAllusersListResponse {
     final Map<String, dynamic> dataMap = {};
 
     dataMap['status'] = status;
+    dataMap['totalCount'] = totalcount;
     dataMap['message'] = message;
 
     if (data != null) {
@@ -70,30 +74,30 @@ class Message {
 
   Message(
       {this.srno,
-        this.staffCode,
-        this.displayName,
-        this.emailId,
-        this.password,
-        this.mobileNo,
-        this.createdOn,
-        this.createdBy,
-        this.latitude,
-        this.longitude,
-        this.currAddress,
-        this.uuid,
-        this.userType,
-        this.modifiedOn,
-        this.modifiedby,
-        this.deptCode,
-        this.deptName,
-        this.uniqueNumber,
-        this.addressapproveFlag,
-        this.newRemoteLocation,
-        this.remoteLatitude,
-        this.remoteLongitude,
-        this.distanceCheckFlag,
-        this.profilePic,
-        this.isDeletedFlag});
+      this.staffCode,
+      this.displayName,
+      this.emailId,
+      this.password,
+      this.mobileNo,
+      this.createdOn,
+      this.createdBy,
+      this.latitude,
+      this.longitude,
+      this.currAddress,
+      this.uuid,
+      this.userType,
+      this.modifiedOn,
+      this.modifiedby,
+      this.deptCode,
+      this.deptName,
+      this.uniqueNumber,
+      this.addressapproveFlag,
+      this.newRemoteLocation,
+      this.remoteLatitude,
+      this.remoteLongitude,
+      this.distanceCheckFlag,
+      this.profilePic,
+      this.isDeletedFlag});
 
   Message.fromJson(Map<String, dynamic> json) {
     srno = json['srno'];
@@ -122,6 +126,7 @@ class Message {
     profilePic = json['profilePic'];
     isDeletedFlag = json['isDeletedFlag'];
   }
+
   factory Message.fromUserData(UserData e) {
     return Message(
       staffCode: e.staffCode,

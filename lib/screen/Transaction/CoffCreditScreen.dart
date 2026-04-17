@@ -168,7 +168,7 @@ class _CoffcreditscreenState extends State<Coffcreditscreen> {
               _isLoading = false;
               CoffList = []; // Clear list on error
             });
-            Fluttertoast.showToast(msg: "Failed to load data");
+            //Fluttertoast.showToast(msg: "Failed to load data");
           }
 
           //-----------Cancel COff-------------------
@@ -188,7 +188,7 @@ class _CoffcreditscreenState extends State<Coffcreditscreen> {
             );
 
             if (state.cancelGatepassResponse.message ==
-                "COff Canceled Successfully..") {
+                "Record Cancelled Successfully.") {
               // ✅ Clear and refresh the list
               setState(() {
                 CoffList.clear();

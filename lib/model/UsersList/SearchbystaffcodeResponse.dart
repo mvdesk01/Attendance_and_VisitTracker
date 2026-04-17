@@ -14,8 +14,7 @@ class UserResponse {
       status: json['status'] ?? false,
       message: json['message'] ?? '',
       data: json['data'] != null
-          ? List<UserData>.from(
-          json['data'].map((x) => UserData.fromJson(x)))
+          ? List<UserData>.from(json['data'].map((x) => UserData.fromJson(x)))
           : [], // ✅ IMPORTANT FIX
     );
   }
