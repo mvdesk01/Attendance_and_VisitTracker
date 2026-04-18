@@ -1,621 +1,463 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:ui';
 
-import 'package:attendance_system_ios/screen/Home/home.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:image_cropper/image_cropper.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:intl/intl.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart'; // Import permission_handler
+import 'package:google_fonts/google_fonts.dart';
+
 import '../../bloc/main_bloc.dart';
 import '../../bloc/main_event.dart';
 import '../../bloc/main_state.dart';
 import '../../model/Profile/UpdateUserinfo.dart';
 import '../../service/WebService.dart';
-import '../../service/log_file_manager.dart';
+import '../../screen/Home/home.dart';
 import '../../util/MyColor.dart';
 
 class Profile extends StatefulWidget {
   const Profile({super.key});
+
   @override
   State<Profile> createState() => _ProfileState();
 }
 
-class _ProfileState extends State<Profile> {
+class _ProfileState extends State<Profile>
+    with SingleTickerProviderStateMixin {
 
-  String? staffCode = "";
-  String? Auth_Token = "";
-  late bool _isLoading = false;
-  late MainBloc mainBloc;
-  final storage = FlutterSecureStorage();
-  late bool isEmailEditable;
-  late bool isMobileEditable;
-  String base64Image="";
-  late bool _showUpdateButton = false;
-
-  void initState() {
-    super.initState();
-    profileImage = ""; // Default profile picture
-    mainBloc = BlocProvider.of(context);
-    isEmailEditable = false; // Initially not editable
-    isMobileEditable = false;
-    getData();
-  }
-  Map<String, String?> getAllFields() {
-    return {
-      "displayName": nameController.text.trim(),
-      "emailId": emailController.text.trim(),
-      "mobileNo": mobileController.text.trim(),
-      "currAddress": addressController.text.trim(),
-      "profilePic": profileImage,
-    };
-  }
-
-  Future<void> getData() async {
-    staffCode = await storage.read(key: 'Staff_Code');
-    print("staffCode-->" + staffCode!);
-    Auth_Token = await storage.read(key: 'Auth_Token');
-    print("Auth_Token-->" + Auth_Token!);
-    mainBloc.add(GetUserInfoEvents(Staffcode: staffCode!, token: Auth_Token!));
-  }
-
-  Map<String, String?> originalData = {};
-
-  Map<String, String?> getUpdatedFields() {
-    Map<String, String?> updatedData = {};
-
-    if (nameController.text.trim() != originalData["displayName"]) {
-      updatedData["displayName"] = nameController.text.trim();
-    }
-    if (emailController.text.trim() != originalData["emailId"]) {
-      updatedData["emailId"] = emailController.text.trim();
-    }
-    if (mobileController.text.trim() != originalData["mobileNo"]) {
-      updatedData["mobileNo"] = mobileController.text.trim();
-    }
-    if (addressController.text.trim() != originalData["currAddress"]) {
-      updatedData["currAddress"] = addressController.text.trim();
-    }
-    if (profileImage != originalData["profilePic"]) {
-      updatedData["profilePic"] = profileImage;
-    }
-
-    // Return only updated fields
-    return updatedData;
-  }
-
-  bool _showChangeAddressButton = false;
-  final TextEditingController nameController = TextEditingController();
-  final TextEditingController cardIdController = TextEditingController();
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController mobileController = TextEditingController();
-  final TextEditingController dateOfJoiningController = TextEditingController();
-  final TextEditingController addressController = TextEditingController();
-  final TextEditingController remoteaddressController = TextEditingController();
-  String? profileImage;
+  final storage = const FlutterSecureStorage();
   final ImagePicker _picker = ImagePicker();
 
-  void setJoiningDate(String dateString) {
-    try {
-      final date = DateTime.parse(dateString);
-      final formattedDate = DateFormat('dd/MM/yyyy').format(date);
-      dateOfJoiningController.text = formattedDate; // Update the controller
-    } catch (e) {
-      LogFileManager.writeLog('Error in Store InEntry: $e');
-      print("Error parsing date: $e");
-      dateOfJoiningController.text = "Invalid date"; // Fallback text
-    }
-  }
+  late AnimationController _pageController;
+  late Animation<double> _fadeAnimation;
 
-  Future<void> _requestGalleryPermission() async {
-    if (await Permission.photos.isGranted || await Permission.storage.isGranted) {
-      _showCameraOptions();
-    } else {
-      final status = await Permission.photos.request();
-      if (status.isGranted) {
-        _showCameraOptions();
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Permission to access gallery is denied. Please enable it in settings.'),
-            action: SnackBarAction(
-              label: 'Settings',
-              onPressed: () {
-                openAppSettings();
-              },
-            ),
-          ),
-        );
-      }
-    }
-  }
-  Future<void> _showCameraOptions() async {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (context) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min, // Still use min to wrap content
-              children: <Widget>[
-                ListTile(
-                  leading: const Icon(Icons.photo),
-                  title: const Text('Upload Profile Picture'),
-                  onTap: () async {
-                    Navigator.of(context).pop(); // Close the modal first
-                    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+  late MainBloc mainBloc;
 
-                    if (image != null) {
-                      File compressedFile = await _compressImage(File(image.path)); // Compress Image
-                      String base64String = await _convertImageToBase64(compressedFile); // Convert to Base64
+  bool loading = true;
+  bool showUpdate = false;
 
-                      setState(() {
-                        profileImage = base64String;
-                        _showUpdateButton = true;
-                      });
-                      print("📸 Compressed Base64 Image (first 100 chars): ${base64String.substring(0, 100)}...");
-                    }
-                  },
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
+  String? profileImage;
 
-  }
- /* Future<File> _compressImage(File file) async {
-    final directory = await getTemporaryDirectory();
-    final compressedFilePath = '${directory.path}/${DateTime.now().millisecondsSinceEpoch}.jpg';
+  final nameController = TextEditingController();
+  final staffController = TextEditingController();
+  final emailController = TextEditingController();
+  final mobileController = TextEditingController();
+  final joinController = TextEditingController();
+  final addressController = TextEditingController();
+  final remoteController = TextEditingController();
 
-    // Compress and save the image
-    final compressedImage = await FlutterImageCompress.compressAndGetFile(
-      file.absolute.path,
-      compressedFilePath,
-      quality: 50, // Adjust quality as needed
-      minWidth: 300, // Reduce image size
-      minHeight: 300,
-    );
-
-    return compressedImage ?? file; // Return compressed file
-  }*/
-
-  Future<File> _compressImage(File file) async {
-    final directory = await getTemporaryDirectory();
-    final compressedFilePath = '${directory.path}/${DateTime.now().millisecondsSinceEpoch}.jpg';
-
-    final result = await FlutterImageCompress.compressAndGetFile(
-      file.absolute.path,
-      compressedFilePath,
-      quality: 50,
-      minWidth: 300,
-      minHeight: 300,
-    );
-
-    if (result is File) {
-      return File(result!.path);
-    } else {
-      return file; // fallback
-    }
-  }
-
-  Future<String> _convertImageToBase64(File file) async {
-    List<int> imageBytes = await file.readAsBytes();
-    return base64Encode(imageBytes); // Convert to Base64
-  }
-
+  late final token;
+  late final staffCode;
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
-          onPressed: () => Navigator.of(context).pop(),
+  void initState() {
+    super.initState();
+
+    mainBloc = BlocProvider.of<MainBloc>(context);
+
+    _pageController =
+        AnimationController(vsync: this, duration: const Duration(milliseconds: 700));
+
+    _fadeAnimation =
+        CurvedAnimation(parent: _pageController, curve: Curves.easeOut);
+
+    loadProfile();
+  }
+
+  Future<void> loadProfile() async {
+     staffCode = await storage.read(key: "Staff_Code");
+     token = await storage.read(key: "Auth_Token");
+
+    if (staffCode != null && token != null) {
+      mainBloc.add(GetUserInfoEvents(Staffcode: staffCode, token: token));
+    }
+  }
+
+  String cleanBase64(String base64String) {
+    if (base64String.contains(",")) {
+      return base64String.split(",").last;
+    }
+    return base64String;
+  }
+
+  Future<void> pickImage() async {
+    try {
+
+      final XFile? image =
+      await _picker.pickImage(source: ImageSource.gallery);
+
+      if (image == null) return;
+
+      /// Crop Image
+      final cropped = await ImageCropper().cropImage(
+        sourcePath: image.path,
+        aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
+        compressQuality: 90,
+      );
+
+      if (cropped == null) return;
+
+      File file = File(cropped.path);
+
+      /// Compress Image
+      File compressedFile = await compressImage(file);
+
+      final bytes = await compressedFile.readAsBytes();
+
+      String base64Image = base64Encode(bytes);
+
+      setState(() {
+        profileImage = base64Image;
+      });
+
+      /// Auto Update Profile
+      final updateProfileResponse = ProfileUpdateRequest(
+        staffCode: staffController.text,
+        profilePic: base64Image,
+        email: emailController.text,
+        mobileNo: mobileController.text,
+      );
+
+      mainBloc.add(
+        UpdateProfileDetailsEvents(
+          updateuserinfo: updateProfileResponse,
+          token: token,
         ),
-        title: const Text("Profile"),
-        backgroundColor: MyColors.lightBlue,
-        centerTitle: true,
-        titleTextStyle: GoogleFonts.roboto(
-          fontWeight: FontWeight.bold,
-          fontSize: 18.0,
-        ).copyWith(color: Colors.white),
-      ),
-      body: Stack(
+      );
+
+    } catch (e) {
+      debugPrint("Image error: $e");
+    }
+  }
+
+  Future<File> compressImage(File file) async {
+
+    final targetPath = "${file.path}_compressed.jpg";
+
+    final XFile? compressed = await FlutterImageCompress.compressAndGetFile(
+      file.absolute.path,
+      targetPath,
+      quality: 60,
+      minWidth: 512,
+      minHeight: 512,
+    );
+
+    if (compressed == null) {
+      return file; // fallback if compression fails
+    }
+
+    return File(compressed.path);
+  }
+
+  Widget shimmerLoader() {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey.shade300,
+      highlightColor: Colors.grey.shade100,
+      child: Column(
         children: [
-          BlocListener<MainBloc, MainState>(
-            listener: (context, state) {
-              if (state is GetUserinfoLoadingState) {
-                setState(() {
-                  _isLoading = true;
-                });
-              }
-              else if (state is GetUserinfoLoadedState) {
-                final user = state.profileuserinfo.message;
-
-                setState(() {
-                  _isLoading = false;
-
-                  // Populate the text fields
-                  nameController.text = user?.displayName ?? '';
-                  cardIdController.text = user?.staffCode ?? '';
-                  emailController.text = user?.emailId ?? '';
-                  mobileController.text = user?.mobileNo ?? '';
-                  dateOfJoiningController.text = user?.createdOn != null
-                      ? DateFormat('dd/MM/yyyy').format(DateTime.parse(user!.createdOn!))
-                      : '';
-                  addressController.text = user?.currAddress ?? '';
-                  remoteaddressController.text = user?.newRemoteLocation ?? '';
-                  _showChangeAddressButton = user?.addressapproveFlag == 'Y';
-
-                  // Store original data
-                  originalData = {
-                    "displayName": user?.displayName,
-                    "staffCode": user?.staffCode,
-                    "emailId": user?.emailId,
-                    "mobileNo": user?.mobileNo,
-                    "createdOn": user?.createdOn,
-                    "currAddress": user?.currAddress,
-                    "profilePic": user?.profilePic
-                  };
-
-                  // Handle profile picture
-                  if (user?.profilePic != null && user!.profilePic!.isNotEmpty) {
-                    profileImage = _cleanBase64(user.profilePic!); // Remove any invalid characters
-                  } else {
-                    profileImage = null;
-                  }
-                });
-              }
-              else if (state is GetUserinfoErrorState) {
-                setState(() {
-                  _isLoading = false;
-                });
-                Fluttertoast.showToast(
-                  msg: "   Failed To Connect Server...!   ",
-                  toastLength: Toast.LENGTH_SHORT,
-                  timeInSecForIosWeb: 1,
-                );
-              }
-              if(state is UpdateUserinfoLoadingState){
-                setState(() {
-                  _isLoading=true;
-                });
-              }
-              else if(state is UpdateUserinfoLoadedState){
-                setState(() {
-                  _isLoading = false;
-                });
-                if(state.updateuserinfo.message == "EmailId is Already Present.."){
-                  Fluttertoast.showToast(msg: "EmailId already present");
-                  return;
-                }else if(state.updateuserinfo.message == "MobileNo is Already Present.."){
-                  Fluttertoast.showToast(msg: "Mobile Number already present");
-                  return;
-                }
-                else if(state.updateuserinfo.message == "Profile Updated Successfully..."){
-                  Fluttertoast.showToast(msg: "Details Updated succesfully!!");
-                  Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                          builder: (_) => BlocProvider(
-                              create: (context) {
-                                return MainBloc(
-                                    webService: WebService());
-                              },
-                              child: HomeScreen())));
-                }
-
-              }
-              else if(state is UpdateUserinfoErrorState){
-                setState(() {
-                  _isLoading= false;
-                });
-                Fluttertoast.showToast(msg: "error in updating");
-              }
-            },
-            child: SingleChildScrollView(
-              child:  Column(
-                children: <Widget>[
-                  GestureDetector(
-                    onTap: _showCameraOptions, // Call the refactored method
-                    child: Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        /*      CircleAvatar(
-                      radius: 70,
-                      backgroundImage: profileImage != null
-                          ? MemoryImage(base64Decode(profileImage!))
-                          : AssetImage(" ") as ImageProvider,
-                      child: profileImage == null
-                          ? const Icon(Icons.person, size: 50, color: Colors.white)
-                          : null,
-                    ),*/
-                        CircleAvatar(
-                          radius: 70,
-                          backgroundImage: profileImage != null
-                              ? MemoryImage(base64Decode(_cleanBase64(profileImage!))) // Decode Base64
-                              : const AssetImage("assets/icons/profileicon.png"), // Default image
-                          child: profileImage == null
-                              ? const Icon(Icons.person, size: 50, color: Colors.white)
-                              : null,
-                        ),
-                        Positioned(
-                          bottom: 10,
-                          right: 0,
-                          child: CircleAvatar(
-                            radius: 15,
-                            backgroundColor: Colors.white,
-                            child: GestureDetector(
-                              onTap: _showCameraOptions, // Update to call this method
-                              child: Image.asset(
-                                "assets/icons/camera.png",
-                                width: 20,
-                                height: 20,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  _buildProfileField(nameController, 'Name'),
-                  const SizedBox(height: 10),
-                  _buildProfileField(cardIdController, 'Card ID'),
-                  const SizedBox(height: 10),
-                  _buildProfileField(emailController, 'Email Id'),
-                  /*_buildEditableProfileField(
-                emailController,
-                'Email',
-                isEmailEditable,
-                    () {
-                  setState(() {
-                    isEmailEditable = !isEmailEditable; // Toggle email editable state
-                  });
-                },
-              ),*/
-                  const SizedBox(height: 10),
-                  if(mobileController.text != "null")
-                  _buildProfileField(mobileController, 'Mobile Number'),
-                  /*   _buildEditableProfileField(
-                mobileController,
-                'Mobile Number',
-                isMobileEditable,
-                    () {
-                  setState(() {
-                    isMobileEditable = !isMobileEditable; // Toggle mobile editable state
-                  });
-                },
-              ),*/
-                  const SizedBox(height: 10),
-                  _buildProfileField(dateOfJoiningController, 'Date of Joining'),
-                  const SizedBox(height: 10),
-                  Padding(
-                    padding: const EdgeInsets.all(10.0), // Adjust the value as needed
-                    child: SizedBox(
-                      width: double.infinity, // Makes the TextField span the entire screen width
-                      child: TextField(
-                        controller: addressController,
-                        decoration: InputDecoration(
-                          labelText: 'Current Address',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: BorderSide(color: Colors.blue, width: 1),
-                          ),
-                        ),
-                        style: TextStyle(color: Colors.black), // Set text color to black
-                        enabled: false, // Make uneditable
-                        maxLines: null, // Allows the text to wrap and expand vertically
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(10.0),
-                    child: SizedBox(
-                      width: double.infinity, // Makes the TextField span the entire screen width
-                      child: TextField(
-                        controller: remoteaddressController,
-                        decoration: InputDecoration(
-                          labelText: 'Remote Address',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: BorderSide(color: Colors.blue, width: 1),
-                          ),
-                        ),
-                        style: TextStyle(color: Colors.black), // Set text color to black
-                        enabled: false, // Make uneditable
-                        maxLines: null, // Allows the text to wrap and expand vertically
-                      ),
-                    ),
-                  ),
-                  Visibility(
-                      visible: _showUpdateButton,
-                      child: ElevatedButton(
-                        onPressed: () async {
-                          setState(() {
-                            _isLoading = true;
-                          });
-
-                          try {
-                            final updatedFields = getAllFields();
-
-                            final updateProfileResponse = ProfileUpdateRequest(
-                              staffCode: cardIdController.text,
-                              profilePic: profileImage.toString(),
-                              email: emailController.text,
-                              mobileNo: mobileController.text,
-                              // profileImage: updatedFields["profilePic"], // Handle Base64 or URL
-                            );
-                            print(profileImage.toString());
-                            mainBloc.add(UpdateProfileDetailsEvents(
-                              updateuserinfo: updateProfileResponse ,
-                              token: Auth_Token!,
-                            ));
-                          } catch (e) {
-                            LogFileManager.writeLog('Error in catch profile: $e');
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Failed to update profile: ${e.toString()}')),
-                            );
-                          } finally {
-                            setState(() {
-                              _isLoading = false;
-                            });
-                          }
-                        },
-                        child: _isLoading
-                            ?  Container(
-                          color: Colors.black.withOpacity(0.3),
-                          child: const Center(
-                            child: CircularProgressIndicator(
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                            ),
-                          ),
-                        )
-                            : const Text('Update'),
-                      )
-                  ),
-
-                ],
+          Container(height: 220, color: Colors.white),
+          const SizedBox(height: 80),
+          ...List.generate(
+            5,
+                (index) => Container(
+              margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              height: 70,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
               ),
             ),
           ),
-          if(_isLoading) Container(
-                color: Colors.black.withOpacity(0.3),
-                child: const Center(
-                child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                ),
-                ),
-                ),
         ],
       ),
     );
   }
 
-  Widget _buildProfileField(TextEditingController controller, String label) {
-
-    return Padding(padding: EdgeInsets.all(12),
-      child: TextField(
-        controller: controller,
-        decoration: InputDecoration(
-          labelText: label,
-          labelStyle: const TextStyle(color: Colors.black),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide: const BorderSide(color: Colors.black, width: 1),
+  Widget infoCard(String title, TextEditingController controller, IconData icon) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide: const BorderSide(color: Colors.black, width: 1),
+        ],
+        border: Border.all(color: Colors.grey.shade100),
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        leading: Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: MyColors.lightBlue.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(12),
           ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide: const BorderSide(color: Colors.black, width: 2),
+          child: Icon(icon, color: MyColors.lightBlue, size: 22),
+        ),
+        title: Text(
+          title,
+          style: GoogleFonts.poppins(
+            fontSize: 12,
+            color: Colors.grey.shade600,
+            fontWeight: FontWeight.w500,
           ),
         ),
-        enabled: false, // Non-editable by default
-        style: const TextStyle(color: Colors.black), // Text color
+        subtitle: Text(
+          controller.text.isEmpty ? "N/A" : controller.text,
+          style: GoogleFonts.poppins(
+            fontSize: 15,
+            color: Colors.black87,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
       ),
     );
-
   }
 
-  String _cleanBase64(String base64String) {
-    if (base64String.contains(",")) {
-      return base64String.split(",").last.trim(); // Remove 'data:image/...;base64,' prefix
-    }
-    return base64String.trim();
-  }
-
-  Widget _buildEditableProfileField(TextEditingController controller, String label, bool isEditable, Function toggleEditable) {
-    return Row(
+  Widget header() {
+    return Stack(
+      clipBehavior: Clip.none,
       children: [
-        Expanded(
-          child: TextField(
-            controller: controller,
-            keyboardType: label == 'Mobile Number' ? TextInputType.number : TextInputType.emailAddress,
-            decoration: InputDecoration(
-              labelText: label,
-              labelStyle: const TextStyle(color: Colors.black),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(color: Colors.black, width: 1),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(color: Colors.black, width: 1),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(color: Colors.black, width: 2),
-              ),
-              errorText: label == 'Mobile Number'
-                  ? _validatePhoneNumber(controller.text)
-                  : label == 'Email'
-                  ? _validateEmail(controller.text)
-                  : null, // Error messages
+        /// Gradient Header Background
+        Container(
+          height: 200,
+          width: double.infinity,
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                MyColors.lightBlue,
+                MyColors.lightBlue,
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
-            enabled: isEditable,
-            maxLength: label == 'Mobile Number' ? 10 : null, // Restrict phone number to 10 digits
-            style: const TextStyle(color: Colors.black),
-            onChanged: (value) {
-              // Validate input on change
-              if (label == 'Mobile Number') {
-                _validatePhoneNumber(value);
-              } else if (label == 'Email') {
-                _validateEmail(value);
-              }
-            },
+            borderRadius: BorderRadius.only(
+              bottomLeft: Radius.circular(40),
+              bottomRight: Radius.circular(40),
+            ),
           ),
         ),
-        IconButton(
-          icon: Icon(isEditable ? Icons.check : Icons.edit, color: Colors.black),
-          onPressed: () {
-            if (label == 'Mobile Number' && _validatePhoneNumber(controller.text) != null) {
-              Fluttertoast.showToast(msg: "Enter a valid 10-digit mobile number");
-              return;
-            }
-            if (label == 'Email' && _validateEmail(controller.text) != null) {
-              Fluttertoast.showToast(msg: "Enter a valid email address");
-              return;
-            }
-            toggleEditable();
-          },
+
+        /// App Bar Elements
+        SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
+                  onPressed: () => Navigator.pop(context),
+                ),
+                Text(
+                  "User Profile",
+                  style: GoogleFonts.poppins(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(width: 48), // Balanced spacing
+              ],
+            ),
+          ),
+        ),
+
+        /// Avatar (Centered)
+        Positioned(
+          bottom: -50,
+          left: 0,
+          right: 0,
+          child: Center(
+            child: Hero(
+              tag: "profile_avatar",
+              child: GestureDetector(
+                onTap: pickImage,
+                child: Stack(
+                  alignment: Alignment.bottomRight,
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 4),
+                        boxShadow: [
+                          BoxShadow(
+                            blurRadius: 15,
+                            color: Colors.black.withOpacity(0.1),
+                            offset: const Offset(0, 8),
+                          )
+                        ],
+                      ),
+                      child: CircleAvatar(
+                        radius: 60,
+                        backgroundColor: Colors.grey.shade200,
+                        backgroundImage: profileImage != null
+                            ? MemoryImage(base64Decode(cleanBase64(profileImage!)))
+                            : const AssetImage("assets/icons/profileicon.png") as ImageProvider,
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: const BoxDecoration(
+                        color: MyColors.lightBlue,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.camera_alt_rounded,
+                        size: 18,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
         ),
       ],
     );
   }
 
-  String? _validatePhoneNumber(String value) {
-    if (value.isEmpty) {
-      return "Phone number is required";
-    } else if (!RegExp(r'^[0-9]{10}$').hasMatch(value)) {
-      return "Enter a valid 10-digit phone number";
-    }
-    return null;
+  @override
+  Widget build(BuildContext context) {
+    return BlocListener<MainBloc, MainState>(
+      listener: (context, state) {
+        if (state is GetUserinfoLoadedState) {
+          final user = state.profileuserinfo.message;
+
+          setState(() {
+            nameController.text = user?.displayName ?? "";
+            staffController.text = user?.staffCode ?? "";
+            emailController.text = user?.emailId ?? "";
+            mobileController.text = user?.mobileNo ?? "";
+            addressController.text = user?.currAddress ?? "";
+            remoteController.text = user?.newRemoteLocation ?? "";
+
+            if (user?.createdOn != null) {
+              try {
+                joinController.text = DateFormat('dd/MM/yyyy')
+                    .format(DateTime.parse(user!.createdOn!));
+              } catch (e) {
+                joinController.text = user!.createdOn!;
+              }
+            }
+
+            if (user?.profilePic != null && user!.profilePic!.isNotEmpty) {
+              profileImage = cleanBase64(user.profilePic!);
+            }
+
+            loading = false;
+          });
+          _pageController.forward();
+        }
+      },
+      child: Scaffold(
+        // backgroundColor: Colors.white,
+        body: loading
+            ? shimmerLoader()
+            : FadeTransition(
+          opacity: _fadeAnimation,
+          child: Column(
+            children: [
+              header(),
+              const SizedBox(height: 70),
+              Expanded(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.only(bottom: 30),
+                  child: Column(
+                    children: [
+                      Text(
+                        nameController.text,
+                        style: GoogleFonts.poppins(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      Text(
+                        "Staff ID: ${staffController.text}",
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          color: Colors.grey,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 25),
+                      infoCard("Email Address", emailController, Icons.email_outlined),
+                      infoCard("Mobile Number", mobileController, Icons.phone_android_rounded),
+                      infoCard("Joining Date", joinController, Icons.calendar_today_rounded),
+                      infoCard("Current Address", addressController, Icons.location_on_outlined),
+                      if (remoteController.text.isNotEmpty)
+                        infoCard("Remote Address", remoteController, Icons.home_work_outlined),
+
+                      const SizedBox(height: 30),
+
+                      if (showUpdate)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 40),
+                          child: SizedBox(
+                            width: double.infinity,
+                            height: 54,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: MyColors.lightBlue,
+                                foregroundColor: Colors.white,
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                              ),
+                              onPressed: () {
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => BlocProvider(
+                                      create: (_) => MainBloc(webService: WebService()),
+                                      child: const HomeScreen(),
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: Text(
+                                "UPDATE PROFILE",
+                                style: GoogleFonts.poppins(
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 1,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
-  String? _validateEmail(String value) {
-    if (value.isEmpty) {
-      return "Email is required";
-    } else if (!RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{3,}$').hasMatch(value)) {
-      return "Enter a valid email address";
-    }
-    return null;
+  @override
+  void dispose() {
+    nameController.dispose();
+    staffController.dispose();
+    emailController.dispose();
+    mobileController.dispose();
+    joinController.dispose();
+    addressController.dispose();
+    remoteController.dispose();
+    _pageController.dispose();
+    super.dispose();
   }
-
 }
-
-
-

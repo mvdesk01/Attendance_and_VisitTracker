@@ -18,6 +18,7 @@ import '../model/CancellationRequestData/SubmitTourCancellation.dart';
 import '../model/CancellationRequestData/TourCancellationRequest.dart';
 import '../model/Expense/Submitexpenserecords.dart';
 import '../model/SanctionModel/SanctionApprove.dart';
+import '../service/WebService.dart';
 import '../util/customExceptions.dart';
 
 
@@ -327,18 +328,7 @@ class MainBloc extends Bloc<MainEvent, MainState> {
           yield VisitlatLongListErrorState(msg: e.toString());
         }
       }
-      //GetAllUsersDataList
-      else   if (event is GetAllUsersListEvent) {
-        try {
-          yield GetAllUsersListLoadingState();
-          var getAllusersListResponse =
-          await webService.GetAllUsers(event.token);
-          yield GetAllUsersListLoadedState(getAllusersListResponse: getAllusersListResponse);
-        } catch (e) {
-          //print(e.toString());
-          yield GetAllUsersListErrorState(msg: e.toString());
-        }
-      }
+
       //GetVisitByFromDateToDate
       else   if (event is GetVisitByFromDateToDate) {
         try {
@@ -438,18 +428,6 @@ class MainBloc extends Bloc<MainEvent, MainState> {
           yield UpdateUserinfoLoadedState(updateuserinfo: updateuserinfo);
         }catch(e){
           yield UpdateUserinfoErrorState(msg: e.toString());
-        }
-      }
-
-      else   if (event is GetAllUsersListEvent) {
-        try {
-          yield GetAllUsersListLoadingState();
-          var getAllusersListResponse =
-          await webService.GetAllUsers(event.token);
-          yield GetAllUsersListLoadedState(getAllusersListResponse: getAllusersListResponse);
-        } catch (e) {
-          //print(e.toString());
-          yield GetAllUsersListErrorState(msg: e.toString());
         }
       }
 
@@ -775,7 +753,33 @@ class MainBloc extends Bloc<MainEvent, MainState> {
         }catch(e){
           yield UpdateMMDataErrorState(msg: e.toString());
         }
+      }
+      else if (event is SearchbyStaffcodeEvents) {
+        try {
+          yield SearchbyStaffcodeLoadingPage();
 
+          var userResponse = await webService.searchuserbystaffcode(event.token, event.staffcode);
+
+          yield SearchbyStaffcodeLoadedPage(userResponse: userResponse);
+
+        } catch (e) {
+          yield SearchbyStaffcodeErrorPage(
+              message: e.toString());
+        }
+      }
+
+
+      //GetAllUsersDataList
+      else   if (event is GetAllUsersListEvent) {
+        try {
+          yield GetAllUsersListLoadingState();
+          var getAllusersListResponse =
+          await webService.GetAllUsers(event.token, event.pagenumber, event.pagesize);
+          yield GetAllUsersListLoadedState(getAllusersListResponse: getAllusersListResponse);
+        } catch (e) {
+          //print(e.toString());
+          yield GetAllUsersListErrorState(msg: e.toString());
+        }
       }
 
     }

@@ -1,4 +1,4 @@
-package com.example.attendance_system_ios
+package com.mtech.attendance
 
 import android.os.Bundle
 import android.view.WindowManager

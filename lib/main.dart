@@ -9,12 +9,16 @@ import 'package:attendance_system_ios/screen/Home/home.dart';
 import 'package:attendance_system_ios/screen/Login/login_screen.dart'; // Add LoginScreen import
 import 'package:attendance_system_ios/screen/Splash%20Screen/splash_screen.dart';
 import 'package:attendance_system_ios/screen/Visit/Start%20Stop%20Visit/start_stop_visit.dart';
+import 'package:attendance_system_ios/service/background_service.dart';
 import 'package:attendance_system_ios/service/internet_service.dart';
 import 'package:attendance_system_ios/service/WebService.dart';
 import 'package:attendance_system_ios/simple_bloc_observer.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:path/path.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:timezone/data/latest.dart' as tz_data;
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:http/http.dart' as http;
@@ -64,7 +68,7 @@ void main() async {
   // );
   // Check if Firebase is already initialized
   // if (Firebase.apps.isEmpty) {
-  //    Firebase.initializeApp(
+  //   Firebase.initializeApp(
   //     options: DefaultFirebaseOptions.currentPlatform,
   //   );
   // }
@@ -101,9 +105,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     // _resetInactivityTimer();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      InternetService().startListening(MyApp.navigatorKey.currentState!.overlay!.context);
-    });
+
   }
   @override
   void dispose() {
@@ -182,10 +184,10 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
               },
               child: SplashScreen(initialPayload: widget.initialPayload)
           ),
-            '/track_visit_location': (context) => VisitStartStopScreen(visit: null),
-            '/Login': (context) => const LoginScreen(),
-            '/Home': (context) => HomeScreen(initialPayload: widget.initialPayload),
-            "/AdminHome": (context)=> const AdminHomeScreen(),
+          '/track_visit_location': (context) => VisitStartStopScreen(visit: null),
+          '/Login': (context) => const LoginScreen(),
+          '/Home': (context) => HomeScreen(initialPayload: widget.initialPayload),
+          "/AdminHome": (context)=> const AdminHomeScreen(),
         },
         // routes: {
         //   '/track_visit_location': (context) => VisitStartStopScreen(),
@@ -226,7 +228,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       print("📤 Sending offline data to server: $data");
 
       final response = await http.post(
-        Uri.parse('http://114.143.140.28:8020/api/Visit/InsertUpdateTrackingRecords'),
+        Uri.parse('https://attendanceappapi.m-techinnovations.com/api/Visit/InsertUpdateTrackingRecords'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
           "transactionId":"string",

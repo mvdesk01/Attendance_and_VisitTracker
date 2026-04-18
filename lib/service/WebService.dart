@@ -61,6 +61,7 @@ import '../model/RemoteLocation/RemoteLocation.dart';
 import '../model/Tour/AppliedTour.dart';
 import '../model/Tour/Getstaffdetails.dart';
 import '../model/Tour/Submittourdetails.dart';
+import '../model/UsersList/SearchbystaffcodeResponse.dart';
 import '../model/UsersList/UpdateUUID.dart';
 import '../screen/Login/login_screen.dart';
 import '../util/customExceptions.dart';
@@ -485,15 +486,49 @@ catch(e){
   }
   }
 
-  //getAllUsersData
-  Future<GetAllusersListResponse?> GetAllUsers(String token) async {
-    try{
-      print("GetAllUsers : "+Constant.getAllUsers);
-
-      print("getAllUser Token: $token");
+  ///searchbystaffcode
+  Future<UserResponse> searchuserbystaffcode(String token, String staffcode,) async {
+    print("${Constant.searchbystaffcode}${staffcode.toUpperCase()}");
+    try {
+      final uri = Uri.parse(
+          "${Constant.searchbystaffcode}${staffcode.toUpperCase()}"
+      );
 
       final response = await http.get(
-        Uri.parse(Constant.getAllUsers ),
+        uri,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token", // ✅ fixed
+        },
+      );
+
+      print("searchbystaffcode: ${response.body}");
+
+      if (response.statusCode == 200) {
+        final jsonData = jsonDecode(response.body);
+
+        return UserResponse.fromJson(jsonData); // ✅ IMPORTANT
+      } else {
+        throw Exception("Server Error: ${response.statusCode}");
+      }
+
+    } catch (e) {
+      LogFileManager.writeLog("searchbystaffcode $e");
+      throw Exception(e.toString()); // ✅ important
+    }
+  }
+
+  //getAllUsersData
+  Future<GetAllusersListResponse?> GetAllUsers(String token, String pagenumber, String pagesize) async {
+    try{
+      print("GetAllUsers : "+ "${Constant.pageinitiationalluserlist}$pagenumber/$pagesize");
+
+      print("getAllUser Token: $token");
+      final uri = Uri.parse(
+          "${Constant.pageinitiationalluserlist}$pagenumber/$pagesize"
+      );
+      final response = await http.get(
+        uri,
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
           'Authorization': 'Bearer $token',
@@ -501,19 +536,13 @@ catch(e){
       );
       print("GetAllUsers ---->" + response.body);
       print("GetAllUsers --->" + response.statusCode.toString());
-      if(response.statusCode==200)
-      {
+      print("FULL RESPONSE: ${response.body}");
+      if (response.statusCode == 200) {
         return GetAllusersListResponse.fromJson(jsonDecode(response.body));
       }
-      else if(response.statusCode==400)
-      {
-        Fluttertoast.showToast(
-          msg: "Visit Records Not Found",
-          toastLength: Toast.LENGTH_LONG,
-          timeInSecForIosWeb: 1,
-          // Set the text color
-        );
-        // return VisitDataResponse.fromJson(jsonDecode(response.body));
+      else if (response.statusCode == 400) {
+        Fluttertoast.showToast(msg: "No Records Found");
+        return null; // ✅ IMPORTANT
       }
       else if(response.statusCode==401)
       {
@@ -804,12 +833,11 @@ catch(e){
 
     }
     else if (response.statusCode == 404) {
-      // Fluttertoast.showToast(
-      //   msg: "  No Pending Leaves To Show!",
-      //   toastLength: Toast.LENGTH_LONG,
-      //   timeInSecForIosWeb: 1,
-      // );
-      return LeavePendingResponse.fromJson(jsonDecode(response.body));
+      Fluttertoast.showToast(
+        msg: "  No Pending Leaves To Show!",
+        toastLength: Toast.LENGTH_LONG,
+        timeInSecForIosWeb: 1,
+      );
     }
     return LeavePendingResponse.fromJson(jsonDecode(response.body));
   }
@@ -1443,7 +1471,8 @@ catch(e){
 
   Future<CancelGatepassResponse> SubmitCOffEntry(
       CreditCOffEntryRequest creditCOffEntryRequest, String token) async {
-    print("creditCOffEntry==========>"+Constant.SubmitCoff
+    print("creditCOffEntry==========>"+Constant.SubmitCoff);
+    print("creditCOffEntry==========>"
         +"otid :"+ creditCOffEntryRequest.otid.toString()
         +"staffCode :"+ creditCOffEntryRequest.type.toString()+
         "name :"+ creditCOffEntryRequest.name.toString()+
@@ -1467,9 +1496,53 @@ catch(e){
     );
     print("SubmitCoff response :" +response.body);
     print("SubmitCoff response :" +response.statusCode.toString());
+    if (response.statusCode == 200) {
+      try {
+        return CancelGatepassResponse.fromJson(jsonDecode(response.body));
+      }catch(e)
+      {
+        print("FetchCoffTransactions  Error catch Block: " + e.toString());
 
+
+        Fluttertoast.showToast(
+          msg: "No records Found...!",
+          toastLength: Toast.LENGTH_LONG,
+          timeInSecForIosWeb: 1,
+        );
+
+      }
+    }
+    else if (response.statusCode == 400) {
+      // Handle error if the response status is 400
+      Fluttertoast.showToast(
+        msg: response.body ,
+        toastLength: Toast.LENGTH_LONG,
+        timeInSecForIosWeb: 1,
+      );
+      return CancelGatepassResponse.fromJson(jsonDecode(response.body));
+    }
+    else if (response.statusCode == 401) {
+      scaffoldMessengerKey.currentState?.showSnackBar(
+        SnackBar(
+          content: Text('Unauthorized. Kindly Login Again!!'),
+          action: SnackBarAction(
+            label: 'Login Again',
+            onPressed: () {
+              isloggedIn= true;
+              // Navigate using the global navigator key
+              MyApp.navigatorKey.currentState?.pushReplacement(
+                MaterialPageRoute(builder: (context) =>SplashScreen()),
+              );
+            },
+          ),
+          duration: Duration(minutes: 2), // Make it sticky
+        ),
+      );
+      return CancelGatepassResponse.fromJson(jsonDecode(response.body));
+    }
     return CancelGatepassResponse.fromJson(jsonDecode(response.body));
   }
+
 
 //FetchCoffTransactions
 
@@ -3258,7 +3331,7 @@ print(url);
   }
 
   Future<CancelGatepassResponse> nondistancecheck(String staffcode, String approvedflag, String token) async {
-    print("deleteStaffEntry==========>" + Constant.nondistancecheckrequest + "/" + approvedflag + "/" + staffcode);
+    print("nondistancecheck==========>" + Constant.nondistancecheckrequest + "/" + approvedflag + "/" + staffcode);
 
     final response = await http.post(
       Uri.parse(
@@ -3269,8 +3342,8 @@ print(url);
       },
 
     );
-    print("deleteStaffEntry response :" + response.body);
-    print("deleteStaffEntry response :" + response.statusCode.toString());
+    print("nondistancecheck response :" + response.body);
+    print("nondistancecheck responseCode :" + response.statusCode.toString());
 
     if (response.statusCode == 200) {
       return CancelGatepassResponse.fromJson(jsonDecode(response.body));

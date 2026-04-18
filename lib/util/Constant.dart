@@ -80,6 +80,8 @@ class Constant {
   static String nondistancecheckrequest = baseUrl + 'Users/DistanceCheck';
   static String updateuuid = baseUrl+'Users/UpdateUUID/';
   static String updateatsflag = baseUrl+'Users/UpdateATSCheckFlag/';
+  static String pageinitiationalluserlist = baseUrl+'Users/GetAllUsersByPagination/';
+  static String searchbystaffcode = baseUrl+'Users/GetUserDataByDetails/';
 
 }
 

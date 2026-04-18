@@ -6,7 +6,7 @@ class UpdateMMData {
   String responsibility;
   String targetDate;
   String statusOrRemark;
-  String nextDate;
+  String? nextDate;
   String visitSrNo;
 
   UpdateMMData({

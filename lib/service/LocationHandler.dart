@@ -144,34 +144,6 @@ class LocationHandler {
     return distance <= radiusInMeters; // Distance in meters
   }
 
-
-  /*static Future<bool> checkIfInZone() async {
-     Position? currentPosition = await getCurrentPosition();
-    if(currentPosition == null) return false;
-    String? currentAdd = await getAddressFromLatLng(currentPosition!);
-    print("lat ${currentPosition?.latitude}");
-    print("long ${currentPosition?.longitude}");
-    print("address " + currentAdd!);
-    currentLat = currentPosition!.latitude;
-    currentLon = currentPosition!.longitude;
-    currentAddress = currentAdd;
-
-    // Define the zone's center coordinates (latitude, longitude) and radius (in meters)
-    // double zoneLat = 18.5832501;  // Example zone center latitude
-    // double zoneLon = 73.7356977; // Example zone center longitude
-    double zoneLat = 18.5834357;  // Example zone center latitude
-    double zoneLon = 73.7358497;
-    double radiusInMeters = 200; // 500 meters radius
-
-    bool inZone = await isUserInZone(currentPosition!, zoneLat, zoneLon, radiusInMeters);
-
-    if (inZone) {
-      return true;
-    } else {
-     return false;
-    }
-  }*/
-
   static Future<bool> checkIfInZone() async {
     Position? accuratePosition = await getCurrentPosition();
     if (accuratePosition == null) return false;

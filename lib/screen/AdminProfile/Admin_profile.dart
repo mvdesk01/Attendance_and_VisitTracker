@@ -19,6 +19,9 @@ import '../../service/log_file_manager.dart';
 import '../../util/MyColor.dart';
 import '../../model/UsersList/GetAllusersListResponse.dart';
 
+
+/// distanceCheckFlag = Y (allow mark from anywhere), N (not allowed by admin), by default null (not allowed)
+/// addressApprovedFlag = Y ( allow mark attendance from admin), P ( requested form user and pending from admin approve), N (not allowed by admin), by default null ( no action form user)
 class AdminUserProfile extends StatefulWidget {
   Message datum;
 
@@ -50,7 +53,7 @@ class _AdminUserProfile extends State<AdminUserProfile> {
   String? Auth_Token = "";
   final storage = FlutterSecureStorage();
   String? officeapprovedflag = "O";
-  String? approvedflag = "Y";
+  String? addressApprovedFlag;
   String? nondistancecheck = 'N';
   bool _showOfficeAddressButton = false;
   late bool isEmailEditable;
@@ -58,6 +61,9 @@ class _AdminUserProfile extends State<AdminUserProfile> {
   late bool _showUpdateButton = false;
   bool _showChangeAddressButton = false;
   bool _isChecked = false;
+
+  /// check or allow user to mark location form anywhere
+  String? distanceCheckFlag;
 
 
   @override
@@ -93,7 +99,7 @@ class _AdminUserProfile extends State<AdminUserProfile> {
           centerTitle: true,
           titleTextStyle: GoogleFonts.roboto(
             fontWeight: FontWeight.bold,
-            fontSize: 18.0,
+            fontSize: 20.0,
           ).copyWith(color: Colors.white),
           actions: [
 
@@ -108,7 +114,7 @@ class _AdminUserProfile extends State<AdminUserProfile> {
                   showDialog(
                       context: context,
                       builder: (BuildContext context) =>
-                          _buildPopupDialogforLogout(
+                          _buildPopupDialogforRemoveStaffcode(
                               context));
                 },
                 child: Image.asset(
@@ -158,12 +164,13 @@ class _AdminUserProfile extends State<AdminUserProfile> {
                     //  _changeaddress();
                     // }
                     if (user?.addressapproveFlag == 'P') {
+                      addressApprovedFlag = 'Y';
                       _showChangeAddressButton = true;
                       _showOfficeAddressButton = false; // Hide Office Address Button
-                    } else if (user?.addressapproveFlag == 'PO') {
+                    } /*else if (user?.addressapproveFlag == 'PO') {
                       _showChangeAddressButton = false;
                       _showOfficeAddressButton = true; // Show Office Address Button
-                    }
+                    }*/
 
                     if(user?.atsCheckflag== 'Y'){
                       setState(() {
@@ -180,6 +187,7 @@ class _AdminUserProfile extends State<AdminUserProfile> {
                     } else {
                       profileImage = null;
                     }
+                    distanceCheckFlag = user!.distanceCheckFlag;
                   });
                 }
                 else if (state is GetUserinfoErrorState) {
@@ -224,6 +232,7 @@ class _AdminUserProfile extends State<AdminUserProfile> {
                     _isLoading = false;
                   });
                 }
+
                 if(state is acceptrequestLoadingState){
                   setState(() {
                     _isLoading=true;
@@ -252,6 +261,7 @@ class _AdminUserProfile extends State<AdminUserProfile> {
                     timeInSecForIosWeb: 1,
                   );
                 }
+
                 if(state is nondistancecheckLoadingState){
                   setState(() {
                     _isLoading=true;
@@ -260,11 +270,19 @@ class _AdminUserProfile extends State<AdminUserProfile> {
                 else if(state is nondistancecheckLoadedState){
                   setState(() {
                     _isLoading = false;
+
+                    if(distanceCheckFlag == 'Y'){
+                      distanceCheckFlag = 'N';
+                    }else{
+                      distanceCheckFlag = 'Y';
+                    }
                   });
+
                   Fluttertoast.showToast(
-                    msg: "  Request Accepted   ",
+                    msg: distanceCheckFlag == 'Y'
+                        ? "User can mark attendance from anywhere"
+                        : "Distance check enabled",
                     toastLength: Toast.LENGTH_SHORT,
-                    timeInSecForIosWeb: 1,
                   );
                 }
                 else if(state is nondistancecheckErrorState){
@@ -277,6 +295,7 @@ class _AdminUserProfile extends State<AdminUserProfile> {
                     timeInSecForIosWeb: 1,
                   );
                 }
+
                 if(state is UpdateUserinfoLoadingState){
                   setState(() {
                     _isLoading=true;
@@ -304,6 +323,7 @@ class _AdminUserProfile extends State<AdminUserProfile> {
                   });
                   Fluttertoast.showToast(msg: "error in updating");
                 }
+
                 if(state is updateUserAtsFlagLoadingState){
                   _isLoading=  true;
                 }
@@ -460,6 +480,29 @@ class _AdminUserProfile extends State<AdminUserProfile> {
                       ),
 
                       const SizedBox(height: 10),
+
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: distanceCheckFlag == 'Y'
+                                  ? Colors.red
+                                  : Colors.green,
+                            ),
+                            onPressed: () {
+                              _toggleDistanceCheck();
+                            },
+                            child: Text(
+                              distanceCheckFlag == 'Y'
+                                  ? "Disable Anywhere Attendance"
+                                  : "Allow Attendance From Anywhere",
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 10),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -472,7 +515,7 @@ class _AdminUserProfile extends State<AdminUserProfile> {
                                 padding: const EdgeInsets.all(16.0),
                                 child: ElevatedButton(
                                   onPressed: _changeaddress,
-                                  child: Text('Change Address'),
+                                  child: Text('Remote/Office Address Requested'),
                                 ),
                               ),
                             ),
@@ -605,7 +648,7 @@ class _AdminUserProfile extends State<AdminUserProfile> {
     return null;
   }
 
-  Widget _buildPopupDialogforLogout(BuildContext context) {
+  Widget _buildPopupDialogforRemoveStaffcode(BuildContext context) {
     return new AlertDialog(
       // title: const Text('Popup example'),
       content: new Column(
@@ -667,8 +710,8 @@ class _AdminUserProfile extends State<AdminUserProfile> {
       _isLoading = true;
     });
     //here call Api
-    mainBloc.add(AcceptlocationRequest(staffcode: widget.datum.staffCode!, approvedflag: approvedflag!, token: Auth_Token!));
-    print(approvedflag);
+    mainBloc.add(AcceptlocationRequest(staffcode: widget.datum.staffCode!, approvedflag: addressApprovedFlag!, token: Auth_Token!));
+    print(addressApprovedFlag);
     Fluttertoast.showToast(
       msg: "Remote location request approved successfully!",
       toastLength: Toast.LENGTH_SHORT,
@@ -699,6 +742,26 @@ class _AdminUserProfile extends State<AdminUserProfile> {
     ));
 
   }
+
+  void _toggleDistanceCheck() {
+
+    String newFlag;
+
+    if (distanceCheckFlag == 'Y') {
+      newFlag = 'N';
+    } else {
+      newFlag = 'Y';
+    }
+
+    mainBloc.add(
+      NonDistancecheckRequest(
+        approvedflag: newFlag,
+        staffcode: widget.datum.staffCode!,
+        token: Auth_Token!,
+      ),
+    );
+  }
+
 }
 
 

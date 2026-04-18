@@ -13,10 +13,11 @@ import 'package:attendance_system_ios/screen/Login/login_screen.dart';
 import 'package:attendance_system_ios/screen/MinutesOfTheMeetingForm.dart';
 import 'package:attendance_system_ios/screen/Profile/profile.dart';
 import 'package:attendance_system_ios/screen/Remote%20Location/remote_location.dart';
+import 'package:attendance_system_ios/screen/Settings/Timer.dart';
 import 'package:attendance_system_ios/screen/Transaction/COff%20Debit/CoffDebitScreen.dart';
+import 'package:attendance_system_ios/screen/Transaction/COff%20Debit/DebitCoffScreen.dart';
 import 'package:attendance_system_ios/screen/Transaction/CoffCreditScreen.dart';
 import 'package:attendance_system_ios/screen/Visit%20History/Visit_History_Screen.dart';
-import 'package:attendance_system_ios/screen/Visit/track_visit_location.dart';
 import 'package:attendance_system_ios/service/LocationHandler.dart';
 import 'package:attendance_system_ios/service/WebService.dart';
 import 'package:attendance_system_ios/service/log_file_manager.dart';
@@ -35,12 +36,11 @@ import 'package:loading_overlay/loading_overlay.dart';
 import 'package:local_auth/local_auth.dart';
 
 import '../../model/in_out_details.dart';
-// import '../CancellationRequest/CancellationRequestScreen.dart';
 import '../../service/background_service.dart';
+import '../../service/internet_service.dart';
 import '../AdminProfile/Databasepunchout.dart';
 import '../AdminProfile/Databsepunchin.dart';
 import '../Expense/ExpenseScreen.dart';
-import '../Settings/Timer.dart';
 import '../Tour/TourmainScreen.dart';
 import '../Visit/Start Stop Visit/start_stop_visit.dart';
 import '../Visit/visit_outside/visit_outside.dart';
@@ -54,50 +54,43 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-
-  String todayDate = DateFormat('dd-MM-yyyy HH:mm:ss').format(DateTime.now()).substring(0, 10);
-  String currentTime = DateFormat('dd-MM-yyyy HH:mm:ss').format(DateTime.now()).substring(10, 19);
-
-  static bool isLoading = false;
+  String todayDate = DateFormat('dd-MM-yyyy').format(DateTime.now());
+  bool isLoadingStatus = false;
   String? _currentLat;
   String? _currentLon;
-  Position? _currentPosition;
   String? _currentAddress;
-  // String formattedDate = DateFormat('dd-MM-yyyy HH:mm:ss').format(DateTime.now());
-  // String currentDate = formattedDate.substring(0,10);
   bool isButtonDisabledIn = false;
   bool isButtonDisabledOut = false;
 
-  late String lastInOutTime;
-  late String lastInOutTime1;
   String? lastInTime;
   String? lastOutTime;
   LocalAuthentication auth = LocalAuthentication();
 
-  static bool lastPunchIn = true;
-  static bool lastPunchOut = true;
-  late bool _isLoading = false;
+  bool lastPunchIn = true;
+  bool lastPunchOut = true;
+  bool _isOverlayLoading = false;
   late MainBloc mainBloc;
-  final storage = FlutterSecureStorage();
+  final storage = const FlutterSecureStorage();
 
-  String? staffCode="";
+  String? staffCode = "";
+  String? Auth_Token = "";
+  String? staffName = "";
+  String? remotelocation = "";
+  String? distancecheckglag = "";
+  String? remotelat = "";
+  String? remotelong = "";
+  String? addressflag = "";
+  String REMOTELOCATION = "";
+  String REMOTELAT = "";
+  String REMOTELONG = "";
+  String ADDRESSFLAG = "";
+  String DISTANCEFLAG = "";
+  String? atsflag = "";
+  String? plantcode = "";
 
-  String? Auth_Token="";
-  String? staffName="";
-  String? remotelocation="";
-  String? distancecheckglag="";
-  String? remotelat="";
-  String? remotelong="";
-  String? addressflag="";
-  String REMOTELOCATION="";
-  String REMOTELAT="";
-  String REMOTELONG="";
-  String ADDRESSFLAG="";
-  String DISTANCEFLAG="";
-  String STAFFCODE="";
-  String? atsflag="";
-  String? plantcode="";
-
+  final PageController _pageController = PageController(viewportFraction: 0.9);
+  int _currentPage = 0;
+  Timer? _bannerTimer;
   bool isTablet = false;
 
   final List<_BannerItem> attendanceBanners = [
@@ -115,10 +108,12 @@ class _HomeScreenState extends State<HomeScreen> {
     ),
   ];
 
+  int _selectedIndex = 0;
+
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
+    startBannerAutoScroll();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (widget.initialPayload != null) {
         Navigator.of(context).pushReplacementNamed(
@@ -126,8 +121,16 @@ class _HomeScreenState extends State<HomeScreen> {
           arguments: widget.initialPayload,
         );
       }
+      InternetService().startListening(MyApp.navigatorKey.currentState!.overlay!.context);
     });
     initialize();
+  }
+
+  @override
+  void dispose() {
+    _bannerTimer?.cancel();
+    _pageController.dispose();
+    super.dispose();
   }
 
   Future<void> initialize() async {
@@ -136,749 +139,257 @@ class _HomeScreenState extends State<HomeScreen> {
     await _checkAndRequestLocationPermission();
     await _updateButtonInitialState();
   }
+
   Future<void> _checkauthorisation() async {
     staffCode = await storage.read(key: 'Staff_Code');
-
-    print("staffCode-->$staffCode");
     Auth_Token = await storage.read(key: 'Auth_Token');
-
-    print("Auth_Token-->${Auth_Token}")  ;
     staffName = await storage.read(key: 'Staff_Name');
-
-    mainBloc.add(GetStaffDetailsEvents(StaffCode: staffCode!, token: Auth_Token!));
-    //mainBloc.add(GetStaffDetailsEvents(StaffCode: staffCode, token: Auth_Token));
+    if (staffCode != null && Auth_Token != null) {
+      mainBloc.add(GetStaffDetailsEvents(StaffCode: staffCode!, token: Auth_Token!));
+    }
   }
+
   Future<void> getData() async {
     staffCode = await storage.read(key: 'Staff_Code');
-
-    print("staffCode-->$staffCode");
     Auth_Token = await storage.read(key: 'Auth_Token');
-
-    print("Auth_Token-->"+Auth_Token!);
     staffName = await storage.read(key: 'Staff_Name');
-
-    mainBloc.add(GetUserInfoEvents(Staffcode: staffCode!, token: Auth_Token!));
-    //mainBloc.add(GetStaffDetailsEvents(StaffCode: staffCode, token: Auth_Token));
-  }
-  Future<void> _checkAndRequestLocationPermission() async {
-    // while (true) {
-      bool hasPermission = await handleLocationPermission();
-      if (!hasPermission) {
-        _showSnackbar("Location permission is required! Please allow from settings.");
-      }
-    // }
-    return;
-  }
-  Future<bool> handleLocationPermission() async {
-    bool serviceEnabled;
-    LocationPermission permission;
-
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      // _showSnackbar("Location services are disabled. Please enable them.");
-      return false;
+    if (staffCode != null && Auth_Token != null) {
+      mainBloc.add(GetUserInfoEvents(Staffcode: staffCode!, token: Auth_Token!));
     }
+  }
 
-    permission = await Geolocator.checkPermission();
+  Future<void> _checkAndRequestLocationPermission() async {
+    await handleLocationPermission();
+  }
+
+  Future<bool> handleLocationPermission() async {
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) return false;
+    LocationPermission permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        // _showSnackbar("Location permission denied! Please allow to proceed.");
-        return false;
-      }
+      if (permission == LocationPermission.denied) return false;
     }
-
-    if (permission == LocationPermission.deniedForever) {
-      // _showSnackbar("Location permission is permanently denied! Allow manually.");
-      return false;
-    }
-
-    return true;
+    return permission != LocationPermission.deniedForever;
   }
+
   Future<void> _updateButtonInitialState() async {
-    // print("inout statuscode inside update");
-    final hasPermission = await handleLocationPermission();
-    if (!hasPermission){
-      Fluttertoast.showToast(
-        msg: "Allow location permission from settings to use Punch-In Punch-Out feature!",
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.BOTTOM,
-        fontSize: 14.0,
-      );
-    }
-
-    setState(() {
-      isLoading = true;
-    });
-    try{
-      print("inout statuscode try");
-
-      // Format the date to 'dd/MM/yyyy' format as required by the API
-      String formattedFromDate = DateFormat('dd/MM/yyyy').format(DateTime.now());
-      String formattedToDate = DateFormat('dd/MM/yyyy').format(DateTime.now());
-
+    setState(() => isLoadingStatus = true);
+    try {
+      String formattedDate = DateFormat('dd/MM/yyyy').format(DateTime.now());
       final response = await http.post(
-        Uri.parse('https://m-techinnovations.co.in/PersonTrackingAPI/API/InOutDetails'),
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode({
-          "FromDate": formattedFromDate,
-          "ToDate": formattedToDate,
-          "StaffCode": staffCode
-        }),
+        Uri.parse('http://114.143.140.28:8020/api/InOut/InOutDetails'),
+        headers: {"Content-Type": "application/json", 'Authorization': 'Bearer $Auth_Token'},
+        body: jsonEncode({"staffCode": staffCode, "fromDate": formattedDate, "toDate": formattedDate}),
       ).timeout(const Duration(seconds: 15));
 
-    print("inout statuscode${response.statusCode}");
-      if (response.statusCode == 201) {
-        List<dynamic> data = jsonDecode(response.body);
-        List<InOutDetail> details = data.map((item) => InOutDetail.fromJson(item))
-            .toList();
+      final Map<String, dynamic> decoded = jsonDecode(response.body);
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        List<dynamic> data = decoded['data'] ?? [];
+        List<InOutDetail> details = data.map((item) => InOutDetail.fromJson(item)).toList();
 
-        setState(() {
-          isLoading = false;
-        });
-        /// In-Out Button UI update Logic using booleans
         if (details.isNotEmpty) {
-          lastInOutTime = details[0].transactionTime!.substring(11, 19);
-          if(details.length > 1) {lastInOutTime1 = details[1].transactionTime!.substring(11, 19);}
-
+          String lastTime = details[0].transactionTime!.substring(11, 19);
           if (details[0].inOut == "IN") {
             setState(() {
               isButtonDisabledIn = true;
               isButtonDisabledOut = false;
-
               lastPunchIn = false;
               lastPunchOut = true;
-
-              lastInTime = lastInOutTime;
-              if (details.length > 1) {
-                lastOutTime = lastInOutTime1;
-              }
+              lastInTime = lastTime;
+              if (details.length > 1) lastOutTime = details[1].transactionTime!.substring(11, 19);
             });
-          } else if (details[0].inOut == "OUT") {
+          } else {
             setState(() {
               isButtonDisabledIn = false;
               isButtonDisabledOut = true;
-
               lastPunchIn = true;
               lastPunchOut = false;
-
-              lastOutTime = lastInOutTime;
-              if (details.length > 1) {
-                lastInTime = lastInOutTime1;
-              }
+              lastOutTime = lastTime;
+              if (details.length > 1) lastInTime = details[1].transactionTime!.substring(11, 19);
             });
           }
-        }else {
-          setState(() {
-            isButtonDisabledIn = false;
-            isButtonDisabledOut = true;
-
-            lastInTime = "-";
-            lastOutTime = "-";
-
-            showGradientSnackBar(context);
-          });
         }
-      } else {
+      } else if (response.statusCode == 400 && decoded['message'] == "No Records Found.") {
         setState(() {
-          isLoading = false;
-        });
-        ScaffoldMessenger.of(context).showMaterialBanner(
-          MaterialBanner(
-            content: const Text('Error loading page!! Try again'),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).hideCurrentMaterialBanner();
-                  _reloadPage();
-                },
-                child: const Text('TRY AGAIN'),
-              ),
-            ],
-            backgroundColor: Colors.red.shade700,
-          ),
-        );
-
-        setState(() {
-          isButtonDisabledIn = true;
+          isButtonDisabledIn = false;
           isButtonDisabledOut = true;
+          lastInTime = "-";
+          lastOutTime = "-";
         });
       }
-
-    } on TimeoutException catch (_) {
-      setState(() {
-        isLoading = false;
-        isButtonDisabledIn = true;
-        isButtonDisabledOut = true;
-      });
-
-      _showRetryBanner();
-    }
-    catch (e) {
-      setState(() {
-        isLoading = false;
-      });
-      print("Error while fetching initial data from api $e");
-
-      ScaffoldMessenger.of(context).showMaterialBanner(
-        MaterialBanner(
-          content: const Text('Error loading page!! Try again'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                ScaffoldMessenger.of(context).hideCurrentMaterialBanner();
-                _reloadPage();
-              },
-              child: const Text('TRY AGAIN'),
-            ),
-          ],
-          backgroundColor: Colors.red.shade700,
-        ),
-      );
-
-      setState(() {
-        isButtonDisabledIn = true;
-        isButtonDisabledOut = true;
-      });
+    } catch (e) {
+      print("Error fetching initial state: $e");
+    } finally {
+      setState(() => isLoadingStatus = false);
     }
   }
 
-  Future<Position> getCurrentLocaiton() async {
-    Position? lastKnownPosition = await Geolocator.getLastKnownPosition();
-    if(lastKnownPosition != null){
-      _currentPosition = lastKnownPosition;
-      print("start location lat long : ${_currentPosition!.latitude}, ${_currentPosition!.longitude}");
-      return _currentPosition!;
-    } else {
-      _currentPosition = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.medium);
-      print("start location lat long : ${_currentPosition!.latitude}, ${_currentPosition!.longitude}");
-      return _currentPosition!;
-    }
-
+  void startBannerAutoScroll() {
+    _bannerTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
+      if (_pageController.hasClients) {
+        _currentPage = (_currentPage + 1) % attendanceBanners.length;
+        _pageController.animateToPage(_currentPage, duration: const Duration(milliseconds: 600), curve: Curves.easeInOut);
+      }
+    });
   }
-
-  void showGradientSnackBar(BuildContext context) {
-    // if (!context.mounted) return; // ✅ prevents crash if widget is disposed
-
-    final snackBar = SnackBar(
-      content: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Colors.blueAccent, Colors.lightBlue],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(8), // ✅ rounded gradient background
-        ),
-        padding: EdgeInsets.all(16),
-        child: Text(
-          'Welcome to Mtech! Start Your Day',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
-        ),
-      ),
-      action: SnackBarAction(
-        label: 'OK',
-        textColor: Colors.lightGreenAccent,
-        onPressed: () {
-          ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        },
-      ),
-      backgroundColor: Colors.transparent, // Use transparent background
-      behavior: SnackBarBehavior.floating,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-      ),
-    );
-
-    // ScaffoldMessenger.of(context).showSnackBar(snackBar);
-    // ✅ Always hide previous snackbar before showing new one
-  /*  ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(snackBar);*/
-  }
-
-  void _showRetryBanner() {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentMaterialBanner()
-      ..showMaterialBanner(
-        MaterialBanner(
-          content: const Text(
-            'Unable to connect to server. Please try again.',
-            style: TextStyle(color: Colors.white),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                ScaffoldMessenger.of(context).hideCurrentMaterialBanner();
-                _reloadPage();
-              },
-              child: const Text(
-                'RETRY',
-                style: TextStyle(color: Colors.white),
-              ),
-            ),
-          ],
-          backgroundColor: Colors.red.shade700,
-        ),
-      );
-  }
-
-  final ButtonStyle raisedButtonStyle = ElevatedButton.styleFrom(
-    foregroundColor: Colors.white, backgroundColor: MyColors.darkBlue,
-    minimumSize: const Size(32, 35),
-    // padding: EdgeInsets.symmetric(horizontal: 0),
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.all(Radius.circular(8)),
-    ),
-  );
-
-  int _selectedIndex = 0;
 
   void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
+    setState(() => _selectedIndex = index);
+  }
+
+  void onLogout() async {
+    if (VisitState.isVisitRunning.value) {
+      bool? result = await showStopVisitDialogBox(context);
+      if (result != true) return;
+    }
+    await storage.deleteAll();
+    if (!mounted) return;
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => BlocProvider(create: (context) => MainBloc(webService: WebService()), child: const LoginScreen())),
+      (route) => false,
+    );
+  }
+
+  Future<bool?> showStopVisitDialogBox(BuildContext context) {
+    return showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Stop Visit Tracking"),
+        content: const Text("Are you sure you want to stop tracking the visit?"),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text("Cancel")),
+          ElevatedButton(onPressed: () { stopVisit(); Navigator.of(context).pop(true); }, child: const Text("Ok")),
+        ],
+      ),
+    );
+  }
+
+  Future<void> stopVisit() async {
+    try {
+      await storage.delete(key: 'SelectedVisit');
+      VisitState.isVisitRunning.value = false;
+      BackgroundService().stopService();
+      await FlutterLocalNotificationsPlugin().cancel(foregroundServiceNotificationId);
+      if (Platform.isIOS) await NativeLocationBridge.stopNativeTracking();
+    } catch (e) {
+      LogFileManager.writeLog("stop visit error: $e");
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    mainBloc=BlocProvider.of(context);
+    mainBloc = BlocProvider.of<MainBloc>(context);
     isTablet = MediaQuery.of(context).size.width >= 600;
     return Scaffold(
-      appBar: AppBar(
-        actions:  <Widget>[
-          Padding(padding: EdgeInsets.symmetric(horizontal: 12),
-            child: GestureDetector(
-              onTap: () {
-                Fluttertoast.showToast(
-                  msg: "No Notification Found",
-                  toastLength: Toast.LENGTH_SHORT,
-                  gravity: ToastGravity.BOTTOM,
-                );
-              },
-              child: Icon(Icons.notifications),
-            )
-          ),
-        ],
-        iconTheme: const IconThemeData(
-          color: Colors.white,
-          size: 28,
-        ),
-        title: const Text("Attendance"),
-        backgroundColor: MyColors.lightBlue,
-        centerTitle: true,
-        titleTextStyle: GoogleFonts.roboto(
-          fontWeight: FontWeight.bold,
-          fontSize: 20.0,
-        ).copyWith(
-          color: Colors.white,
-        ),
-      ),
-
-      drawer: Drawer(
-        child:
-        ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            Container(
-                color: MyColors.lightBlue,
-                child: Column(
-                    children: [
-                      const Padding(padding: EdgeInsets.symmetric(vertical: 8)),
-                      const Text("Attendance", style: TextStyle(color: Colors.white, fontSize: 20.0, fontWeight: FontWeight.bold),),
-                      const Padding(padding: EdgeInsets.symmetric(vertical: 3)),
-
-                      GestureDetector(
-                        onTap: () async{
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => BlocProvider(
-                                create: (context) => MainBloc(webService: WebService()),
-                                child: Profile(),
-                              ),
-                            ),
-                          );
-                        },
-                        child:  Column(
-                          children: [
-                            CircleAvatar(
-                              radius: 52,
-                              backgroundImage: AssetImage("assets/icons/profile.png"),
-                            ),
-                            Text(
-                              "${staffName!}",
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.white,
-                              ),
-                            ),
-                            Text(
-                              " ${staffCode!}",
-                              style: TextStyle(fontSize: 16, color: Colors.white),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ]
-                )
-            ),
-
-            ListTile(
-              leading: const Icon(Icons.home_outlined),
-              title: const Text('Home'),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => BlocProvider(
-                      create: (context) => MainBloc(webService: WebService()),
-                      child: HomeScreen(),
-                    ),
-                  ),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.backpack_outlined),
-              title: const Text('Leave'),
-              onTap: (){
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => BlocProvider(
-                      create: (context) => MainBloc(webService: WebService()),
-                      child: PendingLeave(),
-                    ),
-                  ),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.book_outlined),
-              title: const Text('Gate Pass'),
-              onTap: (){
-                Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                        builder: (_) => BlocProvider(
-                            create: (context) {
-                              return MainBloc(
-                                  webService: WebService());
-                            },
-                            child: GatePass())));
-                //    Navigator.push(context, MaterialPageRoute(builder: (context) => const GatePass()));
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.book_outlined),
-              title: const Text('COff Credit'),
-              onTap: (){
-                Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                        builder: (_) => BlocProvider(
-                            create: (context) {
-                              return MainBloc(
-                                  webService: WebService());
-                            },
-                            child: Coffcreditscreen())));
-                //    Navigator.push(context, MaterialPageRoute(builder: (context) => const GatePass()));
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.book_outlined),
-              title: const Text('COff Debit'),
-              onTap: (){
-                Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                        builder: (_) => BlocProvider(
-                            create: (context) {
-                              return MainBloc(
-                                  webService: WebService());
-                            },
-                            child: CoffDebitscreen())));
-                //    Navigator.push(context, MaterialPageRoute(builder: (context) => const GatePass()));
-              },
-            ),
-            // ListTile(
-            //   leading: const Icon(Icons.book_outlined),
-            //   title: const Text('Cancellation Request'),
-            //   onTap: (){
-            //     Navigator.pushReplacement(
-            //         context,
-            //         MaterialPageRoute(
-            //             builder: (_) => BlocProvider(
-            //                 create: (context) {
-            //                   return MainBloc(
-            //                       webService: WebService());
-            //                 },
-            //                 child: CancellationRequestScreen())));
-            //     //    Navigator.push(context, MaterialPageRoute(builder: (context) => const GatePass()));
-            //   },
-            // ),
-            ListTile(
-              leading: const Icon(Icons.money_off_outlined),
-              title: const Text('Expense Management'),
-              onTap: (){
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => BlocProvider(
-                      create: (context) => MainBloc(webService: WebService()),
-                      child: Expensemanagmentscreen(),
-                    ),
-                  ),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.tour_outlined),
-              title: const Text('Tour Details'),
-              onTap: (){
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => BlocProvider(
-                      create: (context) => MainBloc(webService: WebService()),
-                      child: TourPendingScreen(),
-                    ),
-                  ),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.location_city_outlined),
-              title: const Text('Change to Remote Location'),
-              onTap: (){
-               // Navigator.push(context, MaterialPageRoute(builder: (context) => const RemoteLocation()));
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => BlocProvider(
-                      create: (context) => MainBloc(webService: WebService()),
-                      child: RemoteLocation(),
-                    ),
-                  ),
-                );
-              },
-            ),
-            const Divider(color: Colors.black45,),
-            ListTile(
-              leading: const Icon(Icons.add_location_alt_outlined),
-              title: const Text('Visit Outside'),
-              onTap: (){
-                Navigator.push(context, MaterialPageRoute(builder: (context) =>  VisitOutside()));
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.location_on_outlined),
-              title: const Text('Start/Stop Visit'),
-              onTap: (){
-                Navigator.push(context, MaterialPageRoute(builder: (context) =>  VisitStartStopScreen(visit: null,)));
-              //  mainBloc.add(GetMinutesOfMeetingFormNoEvents(UserId: "cd03080",SrNo: "844",token: Auth_Token!));
-
-
-              },
-            ),
-           /* ListTile(
-              leading: const Icon(Icons.location_searching_outlined),
-              title: const Text('Track Visit Location'),
-              onTap: (){
-                Navigator.push(context, MaterialPageRoute(builder: (context) =>  *//*TrackVisitLocation()*//*TrackVisitScreen()));
-              },
-            ),*/
-            ListTile(
-              leading: const Icon(Icons.location_history_outlined),
-              title: const Text('Visit History'),
-              onTap: (){
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (_) => BlocProvider(
-                            create: (context) {
-                              return MainBloc(
-                                  webService: WebService());
-                            },
-                            child: VisitHistoryScreen())));
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.settings),
-              title: const Text('Settings'),
-              onTap: (){
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => BlocProvider(
-                      create: (context) => MainBloc(webService: WebService()),
-                      child: SettingsPage(),
-                    ),
-                  ),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.logout_sharp, color: MyColors.darkBlue,),
-              title: const Text('Logout', style: TextStyle(color: MyColors.darkBlue),),
-              onTap: (){
-                print("Logout Clicked...");
-                showDialog(
-                    context: context,
-                    builder: (BuildContext context) =>
-                        _buildPopupDialogforLogout(context));
-              },
-            ),
-
-          ],
-        ),
-      ),
-
-      //Bottom Navigation bar
-      bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.library_books_sharp),
-            label: 'Report',
-          ),
-        ],
-        currentIndex: _selectedIndex,
-        selectedItemColor: MyColors.lightBlue,
-        onTap: _onItemTapped,
-      ),
-      // backgroundColor: Theme.of(context).primaryColor,
-
-
-      // Implement Screens of Bottom Navigation bar Home and Report
-      body: _homescreen(),
-
-
+      // backgroundColor: Colors.white,
+      appBar: _buildAppBar(),
+      drawer: _buildDrawer(),
+      bottomNavigationBar: _buildBottomNav(),
+      body: _selectedIndex == 0 ? _buildHomeContent() : const AttendanceReport(),
     );
   }
 
-  Widget _buildPopupDialogforLogout(BuildContext context) {
-    return new AlertDialog(
-      // title: const Text('Popup example'),
-      content: new Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Text(
-            "Logout",
-            style: TextStyle(
-                fontSize: 20,
-                color: MyColors.appDefaultColorCode,
-                fontWeight: FontWeight.bold),
-          ),
-          SizedBox(
-            height: 20,
-          ),
-          Text(
-            "Are you sure you want to Logout Attendance App?",
-            style: TextStyle(fontSize: 18),
-          ),
-        ],
-      ),
-      actions: <Widget>[
-        new TextButton(
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-          // textColor: Theme.of(context).primaryColor,
-          child: const Text(
-            'CANCEL',
-            style: TextStyle(
-              fontSize: 14.0,
-              fontWeight: FontWeight.normal,
-            ),
-          ),
-        ),
-        new TextButton(
-          onPressed: () {
-            onLogout();
-
-          },
-          // textColor: Theme.of(context).primaryColor,
-          child: const Text(
-            'CONFIRM',
-            style: TextStyle(
-              fontSize: 14.0,
-              color: MyColors.orangeColorCode,
-              fontWeight: FontWeight.normal,
-            ),
-          ),
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      elevation: 0,
+      backgroundColor: MyColors.lightBlue,
+      iconTheme: const IconThemeData(color: Colors.white),
+      title: Text("Attendance", style: GoogleFonts.poppins(fontWeight: FontWeight.w600, color: Colors.white)),
+      centerTitle: true,
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.notifications_none_rounded),
+          onPressed: () => Fluttertoast.showToast(msg: "No new notifications"),
         ),
       ],
     );
   }
 
-  _homescreen() {
-    return LoadingOverlay(
-      isLoading: _isLoading,
-      opacity: 0.5,
-      color: Colors.white,
-      progressIndicator: CircularProgressIndicator(
-        backgroundColor: Color(0xFFCE4A6F),
-        valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
+  Widget _buildDrawer() {
+    return Drawer(
+      child: Column(
+        children: [
+          UserAccountsDrawerHeader(
+            decoration: const BoxDecoration(color: MyColors.lightBlue),
+            currentAccountPicture: const CircleAvatar(
+              backgroundColor: Colors.white,
+              child: Icon(Icons.person, size: 40, color: MyColors.lightBlue),
+            ),
+            accountName: Text(staffName ?? "", style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
+            accountEmail: Text("Staff Code: $staffCode", style: GoogleFonts.poppins(fontSize: 12)),
+            onDetailsPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const Profile())),
+          ),
+          Expanded(
+            child: ListView(
+              padding: EdgeInsets.zero,
+              children: [
+                _buildDrawerItem(Icons.home_outlined, "Home", () => Navigator.pop(context)),
+                _buildDrawerItem(Icons.backpack_outlined, "Leave", () => Navigator.push(context, MaterialPageRoute(builder: (_) => BlocProvider(create: (_) => MainBloc(webService: WebService()), child: const PendingLeave())))),
+                _buildDrawerItem(Icons.badge_outlined, "Gate Pass", () => Navigator.push(context, MaterialPageRoute(builder: (_) => BlocProvider(create: (_) => MainBloc(webService: WebService()), child: const GatePass())))),
+                _buildDrawerItem(Icons.currency_exchange_outlined, "COff Credit", () => Navigator.push(context, MaterialPageRoute(builder: (_) => BlocProvider(create: (_) => MainBloc(webService: WebService()), child: const Coffcreditscreen())))),
+                _buildDrawerItem(Icons.book_outlined, "COff Debit", () => Navigator.push(context, MaterialPageRoute(builder: (_) => BlocProvider(create: (_) => MainBloc(webService: WebService()), child: const CoffDebitscreen())))),
+
+                _buildDrawerItem(Icons.receipt_long_outlined, "Expense Management", () => Navigator.push(context, MaterialPageRoute(builder: (_) => BlocProvider(create: (_) => MainBloc(webService: WebService()), child: const Expensemanagmentscreen())))),
+                _buildDrawerItem(Icons.explore_outlined, "Tour Details", () => Navigator.push(context, MaterialPageRoute(builder: (_) => BlocProvider(create: (_) => MainBloc(webService: WebService()), child: const TourPendingScreen())))),
+                _buildDrawerItem(Icons.location_on_outlined, "Remote Location", () => Navigator.push(context, MaterialPageRoute(builder: (_) => BlocProvider(create: (_) => MainBloc(webService: WebService()), child: const RemoteLocation())))),
+                const Divider(),
+                _buildDrawerItem(Icons.add_location_alt_outlined, "Plan Visit", () => Navigator.push(context, MaterialPageRoute(builder: (_) => const VisitOutside()))),
+                _buildDrawerItem(Icons.history_rounded, "Visit History", () => Navigator.push(context, MaterialPageRoute(builder: (_) => BlocProvider(create: (_) => MainBloc(webService: WebService()), child: const VisitHistoryScreen())))),
+                _buildDrawerItem(Icons.settings_outlined, "Settings", () => Navigator.push(context, MaterialPageRoute(builder: (_) => BlocProvider(create: (_) => MainBloc(webService: WebService()), child:  SettingsPage())))),
+                _buildDrawerItem(Icons.logout_rounded, "Logout", onLogout, isDestructive: true),
+              ],
+            ),
+          ),
+        ],
       ),
+    );
+  }
+
+  Widget _buildDrawerItem(IconData icon, String title, VoidCallback onTap, {bool isDestructive = false}) {
+    return ListTile(
+      leading: Icon(icon, color: isDestructive ? Colors.red : Colors.grey[700]),
+      title: Text(title, style: GoogleFonts.poppins(fontSize: 14, color: isDestructive ? Colors.red : Colors.black87)),
+      onTap: onTap,
+    );
+  }
+
+  Widget _buildBottomNav() {
+    return Container(
+      decoration: BoxDecoration(boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10)]),
+      child: BottomNavigationBar(
+        elevation: 0,
+        backgroundColor: Colors.white,
+        currentIndex: _selectedIndex,
+        selectedItemColor: MyColors.lightBlue,
+        unselectedItemColor: Colors.grey,
+        selectedLabelStyle: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 12),
+        unselectedLabelStyle: GoogleFonts.poppins(fontSize: 12),
+        onTap: _onItemTapped,
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.grid_view_rounded), label: 'Dashboard'),
+          BottomNavigationBarItem(icon: Icon(Icons.description_outlined), label: 'Reports'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHomeContent() {
+    return LoadingOverlay(
+      isLoading: _isOverlayLoading,
+      opacity: 0.3,
+      progressIndicator: const CircularProgressIndicator(color: MyColors.lightBlue),
       child: BlocListener<MainBloc, MainState>(
-        listener: (context, state) async {
-
-          if (state is GetStaffDetailsLoadingState) {
-            setState(() {
-              _isLoading = true;
-            });
-          }
-          else if (state is GetStaffDetailsLoadedState)
-          {
-            setState(() {
-              _isLoading = false;
-            });
-
-            // if(state.staffDetailsResponse?.message?.errorMessage == "StaffCode is Not Valid.."){
-            //     scaffoldMessengerKey.currentState!.showSnackBar(
-            //       SnackBar(content: Text("Session Expire. Kindly Login Again"),
-            //         action: SnackBarAction(
-            //             label: 'Login Again',
-            //             onPressed: (){
-            //           onLogout();
-            //         }),
-            //         duration: Duration(days: 2),
-            //       ),
-            //     );
-            // }
-          }
-          else if (state is GetStaffDetailsErrorState)
-          {
-            setState(() {
-              _isLoading = false;
-            });
-            Fluttertoast.showToast(
-              msg: "   Failed To Connect Server...!   ",
-              toastLength: Toast.LENGTH_SHORT,
-              timeInSecForIosWeb: 1,
-            );
-          }
-
-          if (state is GetUserinfoLoadingState) {
-            setState(() {
-              _isLoading = true;
-            });
-          }
-          if (state is GetUserinfoLoadedState) {
+        listener: (context, state) {
+          if (state is GetStaffDetailsLoadingState || state is GetUserinfoLoadingState) {
+            setState(() => _isOverlayLoading = true);
+          } else if (state is GetStaffDetailsLoadedState) {
+            setState(() => _isOverlayLoading = false);
+          } else if (state is GetUserinfoLoadedState) {
             final user = state.profileuserinfo.message;
-
             setState(() {
-              _isLoading = false;
+              _isOverlayLoading = false;
               remotelocation = user!.newRemoteLocation;
               distancecheckglag = user.distanceCheckFlag;
               remotelat = user.remoteLatitude;
@@ -886,2361 +397,574 @@ class _HomeScreenState extends State<HomeScreen> {
               addressflag = user.addressapproveFlag;
               atsflag = user.atsCheckflag;
               plantcode = user.plantCode;
-
             });
-
-            REMOTELOCATION = remotelocation.toString();
-            REMOTELAT = remotelat.toString();
-            REMOTELONG = remotelong.toString();
-            DISTANCEFLAG = distancecheckglag.toString();
-            ADDRESSFLAG = addressflag.toString();
-
-            print("hellooo"+REMOTELOCATION);
-            print("plantcodee"+plantcode.toString());
+            REMOTELOCATION = remotelocation ?? "";
+            REMOTELAT = remotelat ?? "";
+            REMOTELONG = remotelong ?? "";
+            DISTANCEFLAG = distancecheckglag ?? "";
+            ADDRESSFLAG = addressflag ?? "";
+          } else if (state is GetUserinfoErrorState || state is GetStaffDetailsErrorState) {
+            setState(() => _isOverlayLoading = false);
           }
-
-          else if (state is GetUserinfoErrorState) {
-            setState(() {
-              _isLoading = false;
-            });
-
-            Fluttertoast.showToast(
-              msg: state.msg,
-              toastLength: Toast.LENGTH_SHORT,
-            );
-
-            if (state.msg == "User Not Found...") {
-              scaffoldMessengerKey.currentState?.showSnackBar(
-                SnackBar(
-                  content: const Text('Restore Session. Kindly Login Again!!'),
-                  action: SnackBarAction(
-                    label: 'Login Again',
-                    onPressed: onLogout,
-                  ),
-                  duration: const Duration(days: 1),
-                ),
-              );
-            }
-          }
-
         },
-        child:  <Widget>[
-          //Home Screen
-          SingleChildScrollView(
-            child: Stack(
-              children: [
-                if (isLoading)
-                  Container(
-                    color: Colors.black54, // Add a semi-transparent background
-                    child: const Center(
-                      child: CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white), // Customize the color
-                      ),
-                    ),
-                  ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  staffName!,
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.black87,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  "Staff Code: $staffCode",
-                                  style: const TextStyle(
-                                    fontSize: 13,
-                                    color: Colors.black54,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          GestureDetector(
-                            onTap: (){
-                              Navigator.of(context).push(MaterialPageRoute(builder: (context) => const Profile()));
-                            },
-                            child:   CircleAvatar(
-                              radius: 22,
-                              backgroundColor: Colors.blue.shade100,
-                              child: const Icon(
-                                Icons.person_outline,
-                                color: Colors.blue,
-                                size: 26,
-                              ),
-                            ),
-                          ),
-
-                        ],
-                      ),
-                    ),
-///old
-/*
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      // mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            const SizedBox(height: 16, width: 0,),
-                            Padding(padding: const EdgeInsets.symmetric(horizontal: 18),
-                              child:  Text(staffName!, style: const TextStyle(
-                                fontSize: 14,
-                                fontFamily: 'Dubai',
-                                color: Colors.black87,
-                              ),),
-                            ),
-                            Row(
-                              children: [
-                                const SizedBox(width: 18,),
-                                const Padding(padding: EdgeInsets.zero,
-                                  child: Text("Staff Code: ", style: TextStyle(fontSize: 14, fontFamily: 'Dubai', color: Colors.black54),),
-                                ),
-                                Padding(padding: EdgeInsets.zero,
-                                  child: Text(staffCode!, style: TextStyle(fontSize: 14, fontFamily: 'Dubai', color: Colors.black87),),
-                                ),
-                              ],
-                            ),
-
-                          ],
-                        ),
-
-                        // const SizedBox(width: 100,),
-                        Padding(padding: const EdgeInsets.symmetric(horizontal: 10),),
-                        Flexible(
-                          child:  Image.asset("assets/icons/mtechlogo2.png",
-                            // width: double.nan,
-                            height: 70,
-                          ),
-                        ),
-                        // ),
-
-                      ],
-                    ),
-*/
-
-                    SizedBox(
-                      height: isTablet ? 300 : 220,
-                      child: PageView.builder(
-                        itemCount: attendanceBanners.length,
-                        controller: PageController(viewportFraction: 0.9),
-                        itemBuilder: (context, index) {
-                          final banner = attendanceBanners[index];
-
-                          return Card(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                            clipBehavior: Clip.antiAlias,
-                            margin: const EdgeInsets.symmetric(horizontal: 8),
-                            child: Stack(
-                              children: [
-                                Image.asset(
-                                  banner.image,
-                                  height: isTablet ? 300 : 220,
-                                  width: double.infinity,
-                                  fit: BoxFit.fill,
-                                ),
-                                // Container(
-                                //   height: 180,
-                                //   color: Colors.black.withOpacity(0.35),
-                                // ),
-                                // Positioned(
-                                //   bottom: 16,
-                                //   left: 16,
-                                //   right: 16,
-                                //   child: Text(
-                                //     banner.text,
-                                //     style: const TextStyle(
-                                //       color: Colors.white,
-                                //       fontSize: 13,
-                                //       fontWeight: FontWeight.w500,
-                                //     ),
-                                //   ),
-                                // ),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                    ///old
-                    /*Card(
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                      clipBehavior: Clip.antiAlias,
-                      margin: const EdgeInsets.symmetric(horizontal: 12),
-                      child: Stack(
-                        children: [
-                          Image.asset(
-                            "assets/icons/MtechBanner2.jpg",
-                            height: 180,
-                            width: double.infinity,
-                            fit: BoxFit.cover,
-                          ),
-                          Container(
-                            height: 180,
-                            color: Colors.black.withOpacity(0.35),
-                          ),
-                          const Positioned(
-                            bottom: 16,
-                            left: 16,
-                            right: 16,
-                            child: Text(
-                              "M-Tech Innovation Ltd\nFirst Indian owned company to achieve VISA certification",
-                              style: TextStyle(color: Colors.white, fontSize: 12),
-                            ),
-                          )
-                        ],
-                      ),
-                    ),*/
-
-                    ///old
-                    /*Card(
-                      clipBehavior: Clip.antiAliasWithSaveLayer,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(5.0),
-                      ),
-                      margin: const EdgeInsets.all(3),
-                      child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            Image.asset("assets/icons/MtechBanner2.jpg",
-                              height: 200,
-                              width: double.infinity,
-                              fit: BoxFit.cover,
-                            ),
-                            Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text("  M-tech Innovation Ltd  ",style: TextStyle(color: Colors.lime[100]),),
-                                const Padding(padding: EdgeInsets.symmetric(horizontal: 68),
-                                  child:  Text("Is the First Indian Owned Company To Achieve Visa Certification For Manufacturing of Security Cards",
-                                    style: TextStyle(color: Colors.white, fontSize: 8),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ]
-                      ),
-                    ),*/
-                    // ),
-
-                    const SizedBox(height: 10,),
-
-                    /// Mark your attendance
-                    markYourAttendance(),
-
-                    const SizedBox(height: 10,),
-
-                    /// visit management
-                    visitManagementUI(),
-
-                    /// Other
-                    Card.outlined(
-                      color: Colors.blue[50],
-                      // elevation: 5,
-                      margin: const EdgeInsets.all(15),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Padding(padding: EdgeInsets.symmetric(horizontal: 15, vertical: 8),
-                            child: Text("Other ", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.black87 /*fontFamily:'Dubai'*/),),
-                          ),
-
-                          GestureDetector(
-                            onTap: (){
-                              Navigator.pushReplacement(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (_) => BlocProvider(
-                                          create: (context) {
-                                            return MainBloc(
-                                                webService: WebService());
-                                          },
-                                          child: const PendingLeave())));
-                            },
-                            child: Card.filled(
-                              color: Colors.white,
-                              elevation: 2,
-                              margin: const EdgeInsets.all(14),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(16.0),
-                                child: Row(
-                                  children: [
-                                    Container(
-                                        padding: const EdgeInsets.all(12),
-                                        decoration: BoxDecoration(
-                                          color: Colors.blueAccent.withOpacity(0.1),
-                                          borderRadius: BorderRadius.circular(8),
-                                        ),
-                                        child: const Icon(
-                                          Icons.backpack_outlined,
-                                          size: 28,
-                                          color: Colors.blueAccent,
-                                        )
-                                    ),
-                                    const SizedBox(width: 16,),
-                                    const Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text("Leave", style: TextStyle(fontSize: 16, color: Colors.black87, fontWeight: FontWeight.w600),),
-                                          SizedBox(height: 4),
-                                          Text('Check status and apply for leave', style: TextStyle(fontSize: 14, color: Colors.black54),),
-                                        ],),
-                                    ),
-                                    const Icon(Icons.arrow_forward_ios_rounded, color: MyColors.lighterBlue),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-
-                          GestureDetector(
-                            onTap: (){
-
-                    Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                    builder: (_) => BlocProvider(
-                    create: (context) {
-                    return MainBloc(
-                    webService: WebService());
-                    },
-                    child: const GatePass())));
-                            },
-                            child: Card.filled(
-                              color: Colors.white,
-                              elevation: 2,
-                              margin: const EdgeInsets.all(14),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(16.0),
-                                child: Row(
-                                  children: [
-                                    Container(
-                                        padding: const EdgeInsets.all(12),
-                                        decoration: BoxDecoration(
-                                          color: Colors.blueAccent.withOpacity(0.1),
-                                          borderRadius: BorderRadius.circular(8),
-                                        ),
-                                        child: const Icon(
-                                          Icons.book_outlined,
-                                          size: 28,
-                                          color: Colors.blueAccent,
-                                        )
-                                    ),
-                                    const SizedBox(width: 16,),
-                                    const Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text("Gate Pass", style: TextStyle(fontSize: 16, color: Colors.black87, fontWeight: FontWeight.w600),),
-                                          SizedBox(height: 4),
-                                          Text('Check status and apply for gate pass', style: TextStyle(fontSize: 14, color: Colors.black54),),
-                                        ],),
-                                    ),
-                                    const Icon(Icons.arrow_forward_ios_rounded, color: MyColors.lighterBlue),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-
-                        ],
-                      ),
-                    ),
-
-                  ],
-                ),
-
-              ],
-            ),
-          ),
-
-
-          /// Report Screen..   Report Screen..   Report Screen..
-          const Center(
-              child: AttendanceReport()
-          )
-
-        ][_selectedIndex],
-
-      ),
-    );
-  }
-
-  Widget markYourAttendance(){
-    return Card.outlined(
-      color: Colors.blue[50] ,
-      margin: const EdgeInsets.all(15),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Padding(padding: EdgeInsets.symmetric(horizontal: 15,vertical: 8),
-            child: Text("Mark Your Attendance", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),),
-          ),
-
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Column(
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      Dialog errorDialog = Dialog(
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.0)), //this right here
-                        child: Container(
-                          height: 230.0,
-                          width: 230.0,
-
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: <Widget>[
-                              const Padding(
-                                padding:  EdgeInsets.all(5.0),
-                                child: Text('Marking Your Attendance', style: TextStyle(color: Colors.black, fontSize: 18,fontWeight: FontWeight.bold),),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.all(0.0),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    Image.asset("assets/icons/In01.png",
-                                      // height: 240,
-                                      width: 80,
-                                    ),
-                                    const Text("Punch IN", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),),
-                                  ],
-                                ),
-                              ),
-                              const Padding(padding: EdgeInsets.only(top: 10.0)),
-
-                              ElevatedButton(
-                                style: raisedButtonStyle,
-                                onPressed: isButtonDisabledIn ? null
-                                    : () async {
-                                  Navigator.of(context).pop();
-                                  setState(() {
-                                    isLoading = true; // Show progress indicator
-                                  });
-                                  await  checkBiometrics();
-                                  //await punchIn();
-                                  setState(() {
-                                    isLoading = false; // Show progress indicator
-                                  });
-                                },
-                                child: const Text("OK"),
-                                /* isLoading
-                                          ? CircularProgressIndicator()
-                                          : Text("OK"),*/
-
-                              ),
-                              /*  if (isLoading)
-                                           Container(
-                                             color: Colors.black54, // Add a semi-transparent background
-                                             child: Center(
-                                               child: CircularProgressIndicator(
-                                                 valueColor: AlwaysStoppedAnimation<Color>(Colors.white), // Customize the color
-                                               ),
-                                             ),
-                                           ),*/
-                              /*   TextButton(onPressed: () {
-                                  Navigator.of(context).pop();
-                                  },
-                                  child: const Text('OK', style: TextStyle(color: MyColors.darkBlue, fontSize: 16.0),),),*/
-
-                            ],
-                          ),
-                        ),
-                      );
-                      showDialog(context: context, builder: (BuildContext context) => errorDialog);
-
-                    }, //onTap
-                    child: Container(
-                      width: 130,
-                      height: 144,
-                      child: Card.filled(
-                        color: Colors.white,
-                        clipBehavior: Clip.antiAliasWithSaveLayer,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30.0),
-                        ),
-                        elevation: 8,
-                        margin: const EdgeInsets.all(10),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Image.asset("assets/icons/In01.png",
-                              // height: 240,
-                              width: 80,
-                            ),
-                            const Text("IN", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  Padding(padding: EdgeInsets.symmetric(horizontal: 10),
-                    child: Row(children: [
-                      Text("Last IN: ", style: TextStyle(color: Colors.blueGrey, fontSize: 14, fontWeight: FontWeight.bold),),
-                      Text("${lastInTime??'-'}", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: lastPunchIn ? Colors.blueGrey : Colors.greenAccent[400]),)
-                    ], ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(width: 25),
-
-              Column(
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      Dialog errorDialog = Dialog(
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.0)), //this right here
-                        child: Container(
-                          height: 230.0,
-                          width: 230.0,
-
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: <Widget>[
-                              const Padding(
-                                padding:  EdgeInsets.all(5.0),
-                                child: Text('Marking Your Attendance', style: TextStyle(color: Colors.black, fontSize: 18,fontWeight: FontWeight.bold),),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.all(0.0),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    Image.asset("assets/icons/out01.png",
-                                      // height: 240,
-                                      width: 80,
-                                    ),
-                                    const Text("Punch OUT", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),),
-                                  ],
-                                ),
-                              ),
-                              const Padding(padding: EdgeInsets.only(top: 10.0)),
-                              ElevatedButton(
-                                style: raisedButtonStyle,
-                                onPressed: isButtonDisabledOut? null : () async{
-                                  Navigator.of(context).pop();
-                                  setState(() {
-                                    isLoading = true; // Show progress indicator
-                                  });
-                                  await checkbiometricspunchout();
-                                  //await punchOut();
-                                  setState(() {
-                                    isLoading = false; // Show progress indicator
-                                  });
-                                },
-                                child: const Text("OK"),
-                              ),
-                              /*   TextButton(onPressed: () {
-                                  Navigator.of(context).pop();
-                                  },
-                                  child: const Text('OK', style: TextStyle(color: MyColors.darkBlue, fontSize: 16.0),),),*/
-
-                            ],
-                          ),
-                        ),
-                      );
-                      showDialog(context: context, builder: (BuildContext context) => errorDialog);
-
-                    },
-                    child: Container(
-                      width: 130,
-                      height: 144,
-                      child: Card.filled(
-                        color: Colors.white,
-                        clipBehavior: Clip.antiAliasWithSaveLayer,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30.0),
-                        ),
-                        elevation: 8,
-                        margin: const EdgeInsets.all(10),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Image.asset("assets/icons/out01.png",
-                              // height: 240,
-                              width: 80,
-                            ),
-                            const Text("OUT", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  Padding(padding: EdgeInsets.symmetric(horizontal: 10),
-                      child: Row(children: [
-                        Text("Last OUT: ", style: TextStyle(color: Colors.blueGrey, fontSize: 14, fontWeight: FontWeight.bold),),
-                        Text("${lastOutTime??'-'}", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: lastPunchOut ? Colors.blueGrey : Colors.greenAccent[400]),)
-
-
-                      ],)
-                  ),
-                ],
-              ),
-
-
+              _buildHeader(),
+              _buildBannerSection(),
+              if (addressflag == 'Y') _buildAttendanceSection(),
+              _buildVisitSection(),
+              _buildOtherFeaturesSection(),
+              const SizedBox(height: 30),
             ],
           ),
-
-          Expanded(
-            flex: 0,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              // mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text("Check attendance report here  ", style: TextStyle(color: MyColors.fontBlue, fontFamily: 'Dubai', fontWeight: FontWeight.bold, fontSize: 13),),
-                Padding(padding: EdgeInsets.all(0.1),
-
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                        backgroundColor: MyColors.fontBlue
-                    ),
-                    onPressed: (){
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => const AttendanceReport()));
-                    },
-                    child: const Text("Report", style: TextStyle(fontSize: 13, color: Colors.white),),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const Padding(padding: EdgeInsets.symmetric(vertical: 5))
-        ],
-      ),
-    );
-  }
-
-  Widget visitManagementUI(){
-    return   Card.outlined(
-      color: Colors.blue[50],
-      // elevation: 5,
-      margin: const EdgeInsets.all(15),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Padding(padding: EdgeInsets.symmetric(horizontal: 15, vertical: 8),
-            child: Text("Visit Management",
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: Colors.black87,
-              ),
-            ),
-          ),
-
-          GestureDetector(
-            onTap: (){
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const VisitOutside()));
-            },
-            child: Card.filled(
-              color: Colors.white,
-              elevation: 2,
-              margin: const EdgeInsets.all(14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Row(
-                  children: [
-                    Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.blueAccent.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Icon(
-                          Icons.add_location_alt_outlined,
-                          size: 28,
-                          color: Colors.blueAccent,
-                        )
-                    ),
-                    // const SizedBox(width: 8,),
-
-                    const SizedBox(width: 16,),
-                    const Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text("Visit Outside", style: TextStyle(fontSize: 16, color: Colors.black87, fontWeight: FontWeight.w600),),
-                          SizedBox(height: 4),
-                          Text('Schedule your visit', style: TextStyle(fontSize: 14, color: Colors.black54),),
-                        ],),
-                    ),
-
-                    // const Spacer(),
-                    // const Padding(padding: EdgeInsets.symmetric(horizontal: 10),
-                    /*child:*/ Icon(Icons.arrow_forward_ios_rounded, color: MyColors.lighterBlue),
-                    // ),
-                  ],
-                ),
-              ),
-
-            ),
-          ),
-
-          GestureDetector(
-            onTap: (){
-              Navigator.push(context, MaterialPageRoute(builder: (context) => VisitStartStopScreen(visit: null)));
-            },
-            child: Card.filled(
-              color: Colors.white,
-              elevation: 2,
-              margin: const EdgeInsets.all(14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Row(
-                  children: [
-                    Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.blueAccent.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Icon(
-                          Icons.location_on_outlined,
-                          size: 28,
-                          color: Colors.blueAccent,
-                        )
-                    ),
-                    // const SizedBox(width: 8,),
-
-                    const SizedBox(width: 16,),
-                    const Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text("Start-Stop Visit", style: TextStyle(fontSize: 16, color: Colors.black87, fontWeight: FontWeight.w600),),
-                          SizedBox(height: 4),
-                          Text('Start and Stop your active visit', style: TextStyle(fontSize: 14, color: Colors.black54),),
-                        ],),
-                    ),
-
-                    // const Spacer(),
-                    // const Padding(padding: EdgeInsets.symmetric(horizontal: 10),
-                    /*child:*/ Icon(Icons.arrow_forward_ios_rounded, color: MyColors.lighterBlue),
-                    // ),
-                  ],
-                ),
-              ),
-
-            ),
-          ),
-
-          GestureDetector(
-            onTap: (){
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (_) => BlocProvider(
-                          create: (context) {
-                            return MainBloc(
-                                webService: WebService());
-                          },
-                          child: const VisitHistoryScreen())));
-            },
-            child: Card.filled(
-              color: Colors.white,
-              elevation: 2,
-              margin: const EdgeInsets.all(14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Row(
-                  children: [
-                    Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.blueAccent.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Icon(
-                          Icons.location_history_outlined,
-                          size: 28,
-                          color: Colors.blueAccent,
-                        )
-                    ),
-                    const SizedBox(width: 16,),
-                    const Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text("Visit History", style: TextStyle(fontSize: 16, color: Colors.black87, fontWeight: FontWeight.w600),),
-                          SizedBox(height: 4),
-                          Text('Track your visit history location', style: TextStyle(fontSize: 14, color: Colors.black54),),
-                        ],),
-                    ),
-                    const Icon(Icons.arrow_forward_ios_rounded, color: MyColors.lighterBlue),
-                  ],
-                ),
-              ),
-            ),
-          ),
-
-        ],
-      ),
-    );
-  }
-
-  void _reloadPage() {
-    _updateButtonInitialState();
-    // setState(() {
-    //   isLoading = true;
-    // });
-    //
-    // // Simulate a network request or page reload with a delay
-    // Future.delayed(Duration(seconds: 2), () {
-    //   setState(() {
-    //     isLoading = false;
-    //   });
-    //   _updateButtonInitialState();
-    // });
-  }
-
-  void _showSnackbar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        duration: Duration(seconds: 3),
-        action: SnackBarAction(
-          label: 'OK',
-          onPressed: (){},
         ),
       ),
     );
   }
 
+  Widget _buildHeader() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text("Hello,", style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey)),
+                Text(staffName ?? "", style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87)),
+              ],
+            ),
+          ),
+          GestureDetector(
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const Profile())),
+            child: Container(
+              padding: const EdgeInsets.all(2),
+              decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: MyColors.lightBlue, width: 2)),
+              child: const CircleAvatar(radius: 22, backgroundColor: Colors.white, child: Icon(Icons.person, color: MyColors.lightBlue)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBannerSection() {
+    return Column(
+      children: [
+        SizedBox(
+          height: isTablet ? 300 : 190,
+          child: PageView.builder(
+            controller: _pageController,
+            itemCount: attendanceBanners.length,
+            onPageChanged: (index) {
+              _currentPage = index;
+            },
+            itemBuilder: (context, index) {
+              final banner = attendanceBanners[index];
+
+              return Card(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                clipBehavior: Clip.antiAlias,
+                margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                elevation: 5,
+                child: Stack(
+                  children: [
+
+                    /// Banner Image
+                    Image.asset(
+                      banner.image,
+                      height: isTablet ? 300 : 190,
+                      width: double.infinity,
+                      fit: BoxFit.fill,
+                    ),
+                    /// Dark overlay
+                    Positioned.fill(
+                      child: Container(
+                        color: Colors.black.withOpacity(0.20),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(attendanceBanners.length, (index) => Container(
+            margin: const EdgeInsets.symmetric(horizontal: 3),
+            width: _currentPage == index ? 12 : 6,
+            height: 6,
+            decoration: BoxDecoration(color: _currentPage == index ? MyColors.lightBlue : Colors.grey[300], borderRadius: BorderRadius.circular(3)),
+          )),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAttendanceSection() {
+    return Container(
+      margin: const EdgeInsets.all(10),
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 15, offset: const Offset(0, 5))],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(height: 10,),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text("Daily Attendance", style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.bold)),
+              Text(todayDate, style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey)),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              Expanded(child: _buildPunchButton(true)),
+              const SizedBox(width: 15),
+              Expanded(child: _buildPunchButton(false)),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildPunchTimeInfo("IN Time", lastInTime ?? "--:--", lastPunchIn ? Colors.grey : Colors.green),
+              Container(height: 30, width: 1, color: Colors.grey[200]),
+              _buildPunchTimeInfo("OUT Time", lastOutTime ?? "--:--", lastPunchOut ? Colors.grey : Colors.redAccent),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPunchButton(bool isPunchIn) {
+    bool isDisabled = isPunchIn ? isButtonDisabledIn : isButtonDisabledOut;
+    Color color = isPunchIn ? Colors.green : Colors.redAccent;
+    
+    return InkWell(
+      onTap: isDisabled ? null : () => _showPunchConfirmation(isPunchIn),
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 15),
+        decoration: BoxDecoration(
+          color: isDisabled ? Colors.grey[100] : color.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: isDisabled ? Colors.grey[200]! : color.withOpacity(0.3)),
+        ),
+        child: Column(
+          children: [
+            Icon(isPunchIn ? Icons.login_rounded : Icons.logout_rounded, color: isDisabled ? Colors.grey : color, size: 28),
+            const SizedBox(height: 8),
+            Text(isPunchIn ? "PUNCH IN" : "PUNCH OUT", style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.bold, color: isDisabled ? Colors.grey : color)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showPunchConfirmation(bool isPunchIn) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(isPunchIn ? "Punch In" : "Punch Out", style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.asset(isPunchIn ? "assets/icons/In01.png" : "assets/icons/out01.png", width: 80),
+            const SizedBox(height: 15),
+            Text("Ready to mark your ${isPunchIn ? 'arrival' : 'departure'}?", textAlign: TextAlign.center),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text("CANCEL")),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: MyColors.lightBlue, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+            onPressed: () async {
+              Navigator.pop(context);
+              setState(() => _isOverlayLoading = true);
+              isPunchIn ? await checkBiometrics() : await checkbiometricspunchout();
+              setState(() => _isOverlayLoading = false);
+            },
+            child: const Text("CONFIRM"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPunchTimeInfo(String label, String time, Color statusColor) {
+    return Column(
+      children: [
+        Text(label, style: GoogleFonts.poppins(fontSize: 11, color: Colors.grey)),
+        Text(time, style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.bold, color: statusColor)),
+      ],
+    );
+  }
+
+  Widget _buildVisitSection() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text("Visit Management", style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(child: _buildFeatureCard(Icons.add_location_alt_outlined, "Plan Visit", Colors.blue, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const VisitOutside())))),
+              const SizedBox(width: 12),
+              Expanded(child: _buildFeatureCard(Icons.play_circle_outline_rounded, "Start/Stop", Colors.orange, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const VisitStartStopScreen(visit: null))))),
+              const SizedBox(width: 12),
+              Expanded(child: _buildFeatureCard(Icons.history_toggle_off_rounded, "History", Colors.purple, () => Navigator.push(context, MaterialPageRoute(builder: (_) => BlocProvider(create: (_) => MainBloc(webService: WebService()), child: const VisitHistoryScreen()))))),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFeatureCard(IconData icon, String label, Color color, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        height: 100,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.grey.shade100),
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 8, offset: const Offset(0, 4))],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle), child: Icon(icon, color: color, size: 24)),
+            const SizedBox(height: 8),
+            Text(label, style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.black87)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOtherFeaturesSection() {
+    return Padding(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text("Quick Actions", style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 12),
+          _buildQuickActionTile(Icons.backpack_outlined, "Leave Management", "Apply or check leave status", Colors.teal, () => Navigator.push(context, MaterialPageRoute(builder: (_) => BlocProvider(create: (_) => MainBloc(webService: WebService()), child: const PendingLeave())))),
+          _buildQuickActionTile(Icons.book_outlined, "Gate Pass", "Apply for temporary exit", Colors.indigo, () => Navigator.push(context, MaterialPageRoute(builder: (_) => BlocProvider(create: (_) => MainBloc(webService: WebService()), child: const GatePass())))),
+          _buildQuickActionTile(Icons.monetization_on_outlined, "Expense Claims", "Manage your work expenses", Colors.green, () => Navigator.push(context, MaterialPageRoute(builder: (_) => BlocProvider(create: (_) => MainBloc(webService: WebService()), child: const Expensemanagmentscreen())))),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuickActionTile(IconData icon, String title, String subtitle, Color color, VoidCallback onTap) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade100),
+      ),
+      child: ListTile(
+        onTap: onTap,
+        leading: Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(12)), child: Icon(icon, color: color)),
+        title: Text(title, style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600)),
+        subtitle: Text(subtitle, style: GoogleFonts.poppins(fontSize: 11, color: Colors.grey)),
+        trailing: const Icon(Icons.chevron_right_rounded, color: Colors.grey),
+      ),
+    );
+  }
+
+  // --- Core Attendance Logic (Maintained exactly as provided) ---
+
   Future<void> punchIn() async {
     bool hasPermission = await handleLocationPermission();
+    if (!hasPermission) return;
 
-    if (!hasPermission) {
-      _showSnackbar("Location permission required for Punch In!.Please allow from settings");
-      return;
-    }
-
-    if(DISTANCEFLAG == 'N'){
-      print("errorrr0N");
-      if(ADDRESSFLAG == 'Y') {
-        print("errorrr0NY");
-
-        LocationHandler.changeToRemoteLocation();
-
-        LocationHandler.remoteZoneLat = double.parse(REMOTELAT);
-        LocationHandler.remoteZoneLon = double.parse(REMOTELONG);
+    if(DISTANCEFLAG == 'Y'){
         try {
+          await LocationHandler.checkIfInZone();
           _currentLat = LocationHandler.currentLat.toString();
           _currentLon = LocationHandler.currentLon.toString();
           _currentAddress = LocationHandler.currentAddress;
-          LogFileManager.writeLog("punch in N Y"+_currentLat! + _currentLon! + _currentAddress!);
-
-          print(_currentLat);
-          print(_currentLon);
-          print(_currentAddress);
-
-          String currentDate = DateFormat('dd-MM-yyyy HH:mm:ss').format(
-              DateTime.now()).substring(0, 10);
-          String currentTime = DateFormat('dd-MM-yyyy HH:mm:ss').format(
-              DateTime.now()).substring(11, 19);
-          String currentDateTime = DateFormat('dd-MM-yyyy HH:mm:ss').format(
-              DateTime.now()).substring(0, 19);
-          print(currentDate);
-          print(currentTime);
-          print(currentDateTime);
-          print(_currentAddress);
-          await retorepunchdata();
-          if (await getInEntryFromDataBase(currentDate, currentTime, staffCode!)) {
-            String? result = await storeInEntry(
-                currentDate,
-                currentDateTime,
-                staffCode!,
-                "001",
-                _currentAddress!,
-                _currentLat!,
-                _currentLon!,
-                plantcode?.toString() ?? "01"
-            );
-
-            print("result $result");
-            // After successful operation, show a SnackBar
-            setState(() {
-              isButtonDisabledIn = true;
-              isButtonDisabledOut = false;
-              _updateButtonInitialState();
-            });
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                  content: const Text('Punch-in Successful!'),
-                  action: SnackBarAction(label: 'OK', onPressed: () {
-                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                  }),
-                  backgroundColor: Colors.green,
-                  duration: const Duration(seconds: 3)
-              ),
-            );
-            LogFileManager.writeLog("punch in try flag y result if $result");
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                  content: const Text('Already Marked!! or First Punch Out!!'),
-                  action: SnackBarAction(label: 'X', onPressed: () {
-                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                  }),
-                  backgroundColor: Colors.redAccent,
-                  duration: const Duration(seconds: 3)
-              ),
-            );
-            LogFileManager.writeLog("punch in try flag Y else result ");
-          }
-        } catch (e) {
-          print("Error: $e");
-
-          // If there is an error, show a SnackBar with the error message
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-                content: Text('Punch-in failed! Please try again.'),
-                duration: const Duration(seconds: 3)
-            ),
-          );
-          LogFileManager.writeLog("punch in catch flag N catch Error: $e");
-        } finally{
-          setState(() {
-            isLoading=false;
-          });
-        }
-      }
-      else{
-        try {
-
-          _currentLat = LocationHandler.currentLat.toString();
-          _currentLon = LocationHandler.currentLon.toString();
-          _currentAddress = LocationHandler.currentAddress;
-          LogFileManager.writeLog("punch in N y else"+_currentLat! + _currentLon! + _currentAddress!);
-
-          String currentDate = DateFormat('dd-MM-yyyy HH:mm:ss').format(DateTime.now()).substring(0, 10);
+          String currentDate = DateFormat('dd-MM-yyyy HH:mm:ss').format(DateTime.now()).substring(0, 19);
           String currentTime = DateFormat('dd-MM-yyyy HH:mm:ss').format(DateTime.now()).substring(11, 19);
           String currentDateTime = DateFormat('dd-MM-yyyy HH:mm:ss').format(DateTime.now()).substring(0, 19);
-          await retorepunchdata();
           if (await getInEntryFromDataBase(currentDate, currentTime, staffCode!)) {
-            String? result = await storeInEntry(currentDate, currentDateTime, staffCode!, "001", _currentAddress!, _currentLat!, _currentLon!,
-                plantcode?.toString() ?? "01"
-
-            );
-
-            print("result $result");
-
-            // After successful operation, show a SnackBar
-            setState(() {
-              isButtonDisabledIn = true;
-              isButtonDisabledOut = false;
-              _updateButtonInitialState();
-            });
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                  content: const Text('Punch-in Successful!'),
-                  action: SnackBarAction(label: 'OK', onPressed: (){ScaffoldMessenger.of(context).hideCurrentSnackBar();}),
-                  backgroundColor: Colors.green,
-                  duration: const Duration(seconds: 3)
-              ),
-            );
-            LogFileManager.writeLog("punch in flag Y try if: $result");
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                  content: const Text('Already Marked!! or First Punch Out!!'),
-                  action: SnackBarAction(label: 'X', onPressed: (){ScaffoldMessenger.of(context).hideCurrentSnackBar();}),
-                  backgroundColor: Colors.redAccent,
-                  duration: const Duration(seconds: 3)
-              ),
-            );
-            LogFileManager.writeLog("punch in flag Y try else ");
+            await storeInEntry(currentDate, currentDateTime, staffCode!, "001", _currentAddress!, _currentLat!, _currentLon!, plantcode?.toString() ?? "01");
+            setState(() { isButtonDisabledIn = true; isButtonDisabledOut = false; _updateButtonInitialState(); });
+            // ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Punch-in Successful!'), backgroundColor: Colors.green));
+            showPunchSnackbar(isPunchIn: true, success: true);
           }
         } catch (e) {
-          print("Error: $e");
-
-          // If there is an error, show a SnackBar with the error message
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-                content: Text('Punch-in failed! Please try again.'),
-                duration: const Duration(seconds: 3)
-            ),
-          );
-          print(_currentLat);
-          print(_currentLon);
-          print(_currentAddress);
-          print(staffCode);
-          print("actual location flag N catch $e");
-          LogFileManager.writeLog("actual location flag N catch $e");
-        } finally{
-          setState(() {
-            isLoading = false;
-          });
-        }
-      }
-    }
-    else{
-      print("errorrr0001");
+          // ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Punch-in failed!')));
+          showPunchSnackbar(isPunchIn: true, success: false);
+        } finally { setState(() => _isOverlayLoading = false); }
+    } else {
       if(ADDRESSFLAG == 'Y'){
-        print("errorrr0002");
-
         LocationHandler.changeToRemoteLocation();
         LocationHandler.remoteZoneLat = double.parse(REMOTELAT);
         LocationHandler.remoteZoneLon = double.parse(REMOTELONG);
-        // _currentAddress = REMOTELOCATION.toString();
         bool ifInZone = await LocationHandler.checkIfInZone();
-        print(ifInZone);
         if(ifInZone) {
-          // Simulate API calls
           try {
             _currentLat = LocationHandler.currentLat.toString();
             _currentLon = LocationHandler.currentLon.toString();
             _currentAddress = LocationHandler.currentAddress;
-            LogFileManager.writeLog("punch in Y"+_currentLat! + _currentLon! + _currentAddress!);
-
-            String currentDate = DateFormat('dd-MM-yyyy HH:mm:ss').format(DateTime.now()).substring(0, 10);
+            String currentDate = DateFormat('dd-MM-yyyy HH:mm:ss').format(DateTime.now()).substring(0, 19);
             String currentTime = DateFormat('dd-MM-yyyy HH:mm:ss').format(DateTime.now()).substring(11, 19);
             String currentDateTime = DateFormat('dd-MM-yyyy HH:mm:ss').format(DateTime.now()).substring(0, 19);
-//if (await getOutEntryFromDataBase(currentDate, currentTime, staffCode!))
-            await retorepunchdata();
             if (await getInEntryFromDataBase(currentDate, currentTime, staffCode!)) {
-              String? result = await storeInEntry(currentDate, currentDateTime, staffCode!, "001", _currentAddress!, _currentLat!, _currentLon!,plantcode?.toString() ?? "01"
-              );
-              print(currentDate);
-              print(currentTime);
-              print(currentDateTime);
-              print(_currentAddress);
-              // After successful operation, show a SnackBar
-              setState(() {
-                isButtonDisabledIn = true;
-                isButtonDisabledOut = false;
-                _updateButtonInitialState();
-              });
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                    content: const Text('Punch-in Successful!'),
-                    action: SnackBarAction(label: 'OK', onPressed: (){ScaffoldMessenger.of(context).hideCurrentSnackBar();}),
-                    backgroundColor: Colors.green,
-                    duration: const Duration(seconds: 3)
-                ),
-              );
-              LogFileManager.writeLog("punch in flag N else if try: $result");
-            } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                    content: const Text('Already Marked!! or First Punch Out!!'),
-                    action: SnackBarAction(label: 'X', onPressed: (){ScaffoldMessenger.of(context).hideCurrentSnackBar();}),
-                    backgroundColor: Colors.redAccent,
-                    duration: const Duration(seconds: 3)
-                ),
-              );
-            }
-            LogFileManager.writeLog("punch in flag N else if else");
-          } catch (e) {
-            print("Error: $e");
-
-            // If there is an error, show a SnackBar with the error message
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                  content: Text('Punch-in failed! Please try again.'),
-                  duration: const Duration(seconds: 3)
-              ),
-            );
-            LogFileManager.writeLog("punch in flag N else catch Error: $e");
-          } finally{
-            setState(() {
-              isLoading = false;
-            });
-          }
-        } else{
-          Fluttertoast.showToast(
-              msg: "Not in zone!!",
-              toastLength: Toast.LENGTH_SHORT,
-              gravity: ToastGravity.BOTTOM,
-              timeInSecForIosWeb: 1,
-              // textColor: Colors.white,
-              fontSize: 12.0
-          );
-          LogFileManager.writeLog("punch in flag y not in zone");
-          print("Not in zone");
-        }
-      }
-      else{
-        bool ifInZone = await LocationHandler.checkIfInZone();
-        if(ifInZone) {
-          try {
-            _currentLat = LocationHandler.currentLat.toString();
-            _currentLon = LocationHandler.currentLon.toString();
-            _currentAddress = LocationHandler.currentAddress;
-            print(_currentLat);
-            print(_currentLon);
-            print(_currentAddress);
-            LogFileManager.writeLog("punch in else y  else"+_currentLat! + _currentLon! + _currentAddress!);
-
-            String currentDate = DateFormat('dd-MM-yyyy HH:mm:ss').format(
-                DateTime.now()).substring(0, 10);
-            String currentTime = DateFormat('dd-MM-yyyy HH:mm:ss').format(
-                DateTime.now()).substring(11, 19);
-            String currentDateTime = DateFormat('dd-MM-yyyy HH:mm:ss').format(
-                DateTime.now()).substring(0, 19);
-            await retorepunchdata();
-            if (await getInEntryFromDataBase(
-                currentDate, currentTime, staffCode!)) {
-              String? result = await storeInEntry(
-                  currentDate,
-                  currentDateTime,
-                  staffCode!,
-                  "001",
-                  _currentAddress!,
-                  _currentLat!,
-                  _currentLon!,
-                  plantcode?.toString() ?? "01"
-
-              );
-
-              print("result $result");
-
-              // After successful operation, show a SnackBar
-              setState(() {
-                isButtonDisabledIn = true;
-                isButtonDisabledOut = false;
-                _updateButtonInitialState();
-              });
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                    content: const Text('Punch-in Successful!'),
-                    action: SnackBarAction(label: 'OK', onPressed: () {
-                      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                    }),
-                    backgroundColor: Colors.green,
-                    duration: const Duration(seconds: 3)
-                ),
-              );
-              LogFileManager.writeLog("punch in flag N else actual location: $result");
-            } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                    content: const Text(
-                        'Already Marked!! or First Punch Out!!'),
-                    action: SnackBarAction(label: 'X', onPressed: () {
-                      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                    }),
-                    backgroundColor: Colors.redAccent,
-                    duration: const Duration(seconds: 3)
-                ),
-              );
+              await storeInEntry(currentDate, currentDateTime, staffCode!, "001", _currentAddress!, _currentLat!, _currentLon!, plantcode?.toString() ?? "01");
+              setState(() { isButtonDisabledIn = true; isButtonDisabledOut = false; _updateButtonInitialState(); });
+              // ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Punch-in Successful!'), backgroundColor: Colors.green));
+              showPunchSnackbar(isPunchIn: true, success: true);
             }
           } catch (e) {
-            print("Error: $e");
-
-            // If there is an error, show a SnackBar with the error message
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                  content: Text('Punch-in failed! Please try again.'),
-                  duration: const Duration(seconds: 3)
-              ),
-            );
-            LogFileManager.writeLog("punch in flag N else actual location catch: $e");
-
-          } finally{
-            setState(() {
-              isLoading = false;
-            });
-          }
+            showPunchSnackbar(isPunchIn: true, success: false);
+            // ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Punch-in failed!')));
+          } finally { setState(() => _isOverlayLoading = false); }
         } else {
-          Fluttertoast.showToast(
-              msg: "Not in zone!!",
-              toastLength: Toast.LENGTH_SHORT,
-              gravity: ToastGravity.BOTTOM,
-              timeInSecForIosWeb: 1,
-              // textColor: Colors.white,
-              fontSize: 12.0
-          );
-          LogFileManager.writeLog("punch in flag P not in zone");
-          print("Not in zone");
+          _currentLat = LocationHandler.currentLat.toString();
+          _currentLon = LocationHandler.currentLon.toString();
+          _currentAddress = LocationHandler.currentAddress;
+          String currentDate = DateFormat('dd-MM-yyyy HH:mm:ss').format(DateTime.now()).substring(0, 19);
+          String currentDateTime = DateFormat('dd-MM-yyyy HH:mm:ss').format(DateTime.now()).substring(0, 19);
+          await storeNotInZoneEntry(currentDate, currentDateTime, staffCode!, "002", _currentAddress!, _currentLat!, _currentLon!, plantcode?.toString() ?? "01");
+          Fluttertoast.showToast(msg: "Not in zone!!");
         }
       }
     }
-
   }
 
   Future<void> punchOut() async {
     bool hasPermission = await handleLocationPermission();
-    if (!hasPermission) {
-      _showSnackbar("Location permission required for Punch In!.Please allow from settings");
-      return;
-    }
-    if(DISTANCEFLAG =='N'){
-      if(ADDRESSFLAG == 'Y') {
-        LocationHandler.changeToRemoteLocation();
+    if (!hasPermission) return;
 
-        LocationHandler.remoteZoneLat = double.parse(REMOTELAT);
-        LocationHandler.remoteZoneLon = double.parse(REMOTELONG);
-        // _currentAddress = REMOTELOCATION.toString();
-        // bool ifInZone = await LocationHandler.checkIfInZone();
-        // if (ifInZone) {
+    if(DISTANCEFLAG =='Y'){
         try {
+          await LocationHandler.checkIfInZone();
           _currentLat = LocationHandler.currentLat.toString();
           _currentLon = LocationHandler.currentLon.toString();
           _currentAddress = LocationHandler.currentAddress;
-          LogFileManager.writeLog("punch out N Y"+_currentLat! + _currentLon! + _currentAddress!);
-
-          String currentDate = DateFormat('dd-MM-yyyy HH:mm:ss').format(
-              DateTime.now()).substring(0, 10);
-          String currentTime = DateFormat('dd-MM-yyyy HH:mm:ss').format(
-              DateTime.now()).substring(11, 19);
-          String currentDateTime = DateFormat('dd-MM-yyyy HH:mm:ss').format(
-              DateTime.now()).substring(0, 19);
-          await retorepunchoutdata();
-          if (await getOutEntryFromDataBase(currentDate, currentTime, staffCode!)) {
-            String? result = await storeOutEntry(
-                currentDate,
-                currentDateTime,
-                staffCode!,
-                "000",
-                _currentAddress!,
-                _currentLat!,
-                _currentLon!,
-                plantcode?.toString() ?? "01"
-            );
-
-            print("result $result");
-
-            // After successful operation, show a SnackBar
-            setState(() {
-              isButtonDisabledIn = true;
-              isButtonDisabledOut = false;
-              _updateButtonInitialState();
-            });
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                  content: const Text('Punch-out Successful!'),
-                  action: SnackBarAction(label: 'OK', onPressed: () {
-                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                  }),
-                  backgroundColor: Colors.green,
-                  duration: const Duration(seconds: 3)
-              ),
-            );
-            LogFileManager.writeLog("punch out remote location try: $result");
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                  content: const Text('Already Marked!! or First Punch Out!!'),
-                  action: SnackBarAction(label: 'X', onPressed: () {
-                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                  }),
-                  backgroundColor: Colors.redAccent,
-                  duration: const Duration(seconds: 3)
-              ),
-            );
-          }
-        } catch (e) {
-          print("Error: $e");
-
-          // If there is an error, show a SnackBar with the error message
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-                content: Text('Punch-out failed! Please try again.'),
-                duration: const Duration(seconds: 3)
-            ),
-          );
-          LogFileManager.writeLog("punch out remote location catch: $e");
-        } finally{
-          setState(() {
-            isLoading = false;
-          });
-        }
-      }
-      else{
-        try {
-
-          _currentLat = LocationHandler.currentLat.toString();
-          _currentLon = LocationHandler.currentLon.toString();
-          _currentAddress = LocationHandler.currentAddress;
-          LogFileManager.writeLog("punch out N y else"+_currentLat! + _currentLon! + _currentAddress!);
-
-          String currentDate = DateFormat('dd-MM-yyyy HH:mm:ss').format(DateTime.now()).substring(0, 10);
+          String currentDate = DateFormat('dd-MM-yyyy HH:mm:ss').format(DateTime.now()).substring(0, 19);
           String currentTime = DateFormat('dd-MM-yyyy HH:mm:ss').format(DateTime.now()).substring(11, 19);
           String currentDateTime = DateFormat('dd-MM-yyyy HH:mm:ss').format(DateTime.now()).substring(0, 19);
-          await retorepunchoutdata();
-
           if (await getOutEntryFromDataBase(currentDate, currentTime, staffCode!)) {
-            String? result = await storeOutEntry(currentDate, currentDateTime, staffCode!, "000", _currentAddress!, _currentLat!, _currentLon!,plantcode?.toString() ?? "01"
-            );
-
-            print("result $result");
-
-            // After successful operation, show a SnackBar
-            setState(() {
-              isButtonDisabledIn = true;
-              isButtonDisabledOut = false;
-              _updateButtonInitialState();
-            });
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                  content: const Text('Punch-out Successful!'),
-                  action: SnackBarAction(label: 'OK', onPressed: (){ScaffoldMessenger.of(context).hideCurrentSnackBar();}),
-                  backgroundColor: Colors.green,
-                  duration: const Duration(seconds: 3)
-              ),
-            );
-            LogFileManager.writeLog("punch out acual location try: $result");
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                  content: const Text('Already Marked!! or First Punch Out!!'),
-                  action: SnackBarAction(label: 'X', onPressed: (){ScaffoldMessenger.of(context).hideCurrentSnackBar();}),
-                  backgroundColor: Colors.redAccent,
-                  duration: const Duration(seconds: 3)
-              ),
-            );
-            LogFileManager.writeLog("punch out actual location try else");
+            await storeOutEntry(currentDate, currentDateTime, staffCode!, "000", _currentAddress!, _currentLat!, _currentLon!, plantcode?.toString() ?? "01");
+            setState(() { isButtonDisabledIn = false; isButtonDisabledOut = true; _updateButtonInitialState(); });
+            // ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Punch-out Successful!'), backgroundColor: Colors.green));
+            showPunchSnackbar(isPunchIn: false, success: true);
           }
-
         } catch (e) {
-          print("Error: $e");
-
-          // If there is an error, show a SnackBar with the error message
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-                content: Text('Punch-out failed! Please try again.'),
-                duration: const Duration(seconds: 3)
-            ),
-          );
-          LogFileManager.writeLog("punch out actual location catch: $e");
-        } finally {
-          setState(() {
-            isLoading = false;
-          });
-        }
-      }
-    }
-    else{
-      print("errorrr001");
-
+          showPunchSnackbar(isPunchIn: false, success: false);
+          // ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Punch-out failed!')));
+        } finally { setState(() => _isOverlayLoading = false); }
+    } else {
       if(ADDRESSFLAG == 'Y'){
-
-        print("errorrr002");
-
         LocationHandler.changeToRemoteLocation();
-
-        // String? remoLoc= REMOTELOCATION.toString();
-        // String? remoLat= REMOTELAT.toString();
-        // String? remoLong= REMOTELONG.toString();
-        // print("error"+ remoLoc + remoLong + remoLat);
-
-        // setState(() async {
-        //
-        // });
-/**/
         LocationHandler.remoteZoneLat = double.parse(REMOTELAT);
         LocationHandler.remoteZoneLon = double.parse(REMOTELONG);
-        // _currentAddress = REMOTELOCATION.toString();
-        bool ifInZone = await LocationHandler.checkIfInZone();
-        if(ifInZone) {
-          // Simulate API calls
-          try {
-            _currentLat = LocationHandler.currentLat.toString();
-            _currentLon = LocationHandler.currentLon.toString();
-            _currentAddress = LocationHandler.currentAddress;
-            LogFileManager.writeLog("punch out else y"+_currentLat! + _currentLon! + _currentAddress!);
-
-            String currentDate = DateFormat('dd-MM-yyyy HH:mm:ss').format(
-                DateTime.now()).toString().substring(0, 10);
-            String currentTime = DateFormat('dd-MM-yyyy HH:mm:ss').format(
-                DateTime.now()).toString().substring(11, 19);
-            String currentDateTime = DateFormat('dd-MM-yyyy HH:mm:ss').format(
-                DateTime.now()).toString().substring(0, 19);
-            await retorepunchoutdata();
-
-            if (await getOutEntryFromDataBase(
-                currentDate, currentTime, staffCode!)) {
-              String? result = await storeOutEntry(
-                  currentDate,
-                  currentDateTime,
-                  staffCode!,
-                  "000",
-                  _currentAddress!,
-                  _currentLat!,
-                  _currentLon!,
-                  plantcode?.toString() ?? "01"
-              );
-
-              setState(() {
-                isButtonDisabledOut = true;
-                isButtonDisabledIn = false;
-                _updateButtonInitialState();
-              });
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: const Text('Punch-out Successful!'),
-                  action: SnackBarAction(label: 'OK', onPressed: () {
-                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                  }),
-                  backgroundColor: Colors.green,
-                ),
-              );
-              LogFileManager.writeLog("punch out remote location flagN else  try: $result");
-            } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                    content: const Text('Already Marked!! or First Punch In!!'),
-                    action: SnackBarAction(label: 'X', onPressed: () {
-                      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                    }),
-                    backgroundColor: Colors.redAccent,
-                    duration: const Duration(seconds: 3)
-                ),
-              );
-              LogFileManager.writeLog("punch out remote location fllag N else else");
-            }
-          } catch (e) {
-            print("Error: $e");
-
-            // If there is an error, show a SnackBar with the error message
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                  content: Text('Punch-out failed! Please try again.'),
-                  duration: const Duration(seconds: 3)
-              ),
-            );
-            LogFileManager.writeLog("punch out remote location flagN else  catch: $e");
-          } finally{
-            setState(() {
-              isLoading = false;
-            });
-          }
-        } else{
-          Fluttertoast.showToast(
-              msg: "Not in zone!!",
-              toastLength: Toast.LENGTH_SHORT,
-              gravity: ToastGravity.BOTTOM,
-              timeInSecForIosWeb: 1,
-              // textColor: Colors.white,
-              fontSize: 12.0
-          );
-          print("Not in zone");
-          LogFileManager.writeLog("punch out remote location flagN not in zone");
-        }
-      }
-      else{
         bool ifInZone = await LocationHandler.checkIfInZone();
         if(ifInZone) {
           try {
             _currentLat = LocationHandler.currentLat.toString();
             _currentLon = LocationHandler.currentLon.toString();
             _currentAddress = LocationHandler.currentAddress;
-            LogFileManager.writeLog("punch out else y else"+_currentLat! + _currentLon! + _currentAddress!);
-
-            String currentDate = DateFormat('dd-MM-yyyy HH:mm:ss').format(
-                DateTime.now()).substring(0, 10);
-            String currentTime = DateFormat('dd-MM-yyyy HH:mm:ss').format(
-                DateTime.now()).substring(11, 19);
-            String currentDateTime = DateFormat('dd-MM-yyyy HH:mm:ss').format(
-                DateTime.now()).substring(0, 19);
-            await retorepunchoutdata();
-
-            if (await getOutEntryFromDataBase(
-                currentDate, currentTime, staffCode!)) {
-              String? result = await storeOutEntry(
-                  currentDate,
-                  currentDateTime,
-                  staffCode!,
-                  "000",
-                  _currentAddress!,
-                  _currentLat!,
-                  _currentLon!,
-                  plantcode?.toString() ?? "01"
-              );
-
-              print("result $result");
-
-              // After successful operation, show a SnackBar
-              setState(() {
-                isButtonDisabledIn = true;
-                isButtonDisabledOut = false;
-                _updateButtonInitialState();
-              });
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                    content: const Text('Punch-out Successful!'),
-                    action: SnackBarAction(label: 'OK', onPressed: () {
-                      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                    }),
-                    backgroundColor: Colors.green,
-                    duration: const Duration(seconds: 3)
-                ),
-              );
-              LogFileManager.writeLog("punch out actual location flagN else  catch: $result");
-
-            } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                    content: const Text(
-                        'Already Marked!! or First Punch Out!!'),
-                    action: SnackBarAction(label: 'X', onPressed: () {
-                      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                    }),
-                    backgroundColor: Colors.redAccent,
-                    duration: const Duration(seconds: 3)
-                ),
-              );
-              LogFileManager.writeLog("punch out remote location flagN else  else");
-
+            String currentDate = DateFormat('dd-MM-yyyy HH:mm:ss').format(DateTime.now()).substring(0, 19);
+            String currentTime = DateFormat('dd-MM-yyyy HH:mm:ss').format(DateTime.now()).substring(11, 19);
+            String currentDateTime = DateFormat('dd-MM-yyyy HH:mm:ss').format(DateTime.now()).substring(0, 19);
+            if (await getOutEntryFromDataBase(currentDate, currentTime, staffCode!)) {
+              await storeOutEntry(currentDate, currentDateTime, staffCode!, "000", _currentAddress!, _currentLat!, _currentLon!, plantcode?.toString() ?? "01");
+              setState(() { isButtonDisabledOut = true; isButtonDisabledIn = false; _updateButtonInitialState(); });
+              // ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Punch-out Successful!'), backgroundColor: Colors.green));
+              showPunchSnackbar(isPunchIn: false, success: true);
             }
           } catch (e) {
-            print("Error: $e");
-            print(_currentLat);
-            print(_currentLon);
-            print(_currentAddress);
-            // If there is an error, show a SnackBar with the error message
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                  content: Text('Punch-out failed! Please try again.'),
-                  duration: const Duration(seconds: 3)
-              ),
-            );
-            LogFileManager.writeLog("punch out actual location flagN else  catch: $e");
-
-          } finally{
-            setState(() {
-              isLoading = false;
-            });
-          }
-        }
-        else{
-          Fluttertoast.showToast(
-              msg: "Not in zone!!",
-              toastLength: Toast.LENGTH_SHORT,
-              gravity: ToastGravity.BOTTOM,
-              timeInSecForIosWeb: 1,
-              // textColor: Colors.white,
-              fontSize: 12.0
-          );
-          print("Not in zone");
-          LogFileManager.writeLog("punch out actaual location flagN else not in zone");
-
+            showPunchSnackbar(isPunchIn: false, success: false);
+            // ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Punch-out failed!')));
+          } finally { setState(() => _isOverlayLoading = false); }
+        } else {
+          _currentLat = LocationHandler.currentLat.toString();
+          _currentLon = LocationHandler.currentLon.toString();
+          _currentAddress = LocationHandler.currentAddress;
+          String currentDate = DateFormat('dd-MM-yyyy HH:mm:ss').format(DateTime.now()).substring(0, 19);
+          String currentDateTime = DateFormat('dd-MM-yyyy HH:mm:ss').format(DateTime.now()).substring(0, 19);
+          await storeNotInZoneEntry(currentDate, currentDateTime, staffCode!, "002", _currentAddress!, _currentLat!, _currentLon!, plantcode?.toString() ?? "01");
+          Fluttertoast.showToast(msg: "Not in zone!!");
         }
       }
     }
   }
 
-  Future<bool> getInEntryFromDataBase(
-      String TransactionDate, String TransactionTime, String StaffCode)
-  async {
-    try{
+  Future<bool> getInEntryFromDataBase(String TransactionDate, String TransactionTime, String StaffCode) async {
+    try {
       final response = await http.post(
-        Uri.parse("https://m-techinnovations.co.in/PersonTrackingAPI/API/DuplicateCheck"),
-        headers: <String, String> {
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-        body: jsonEncode(<String, String> {
-          'TransactionDate': TransactionDate,
-          'StaffCode': StaffCode,
-          // 'TransactionTime': TransactionTime,
+        Uri.parse("http://114.143.140.28:8020/api/InOut/InOutLastFlag"),
+        headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $Auth_Token'},
+        body: jsonEncode({'TransactionDate': TransactionDate, 'StaffCode': StaffCode}),
+      );
+      final res = json.decode(response.body);
+      if (response.statusCode == 200 || response.statusCode == 201) return res['data'] == "000";
+      if (response.statusCode == 400 && res['message'] == "No Record Found.") return true;
+      return false;
+    } catch(e) { return false; }
+  }
+
+  Future<bool> getOutEntryFromDataBase(String TransactionDate, String TransactionTime, String StaffCode) async {
+    try {
+      final response = await http.post(
+        Uri.parse("http://114.143.140.28:8020/api/InOut/InOutLastFlag"),
+        headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $Auth_Token'},
+        body: jsonEncode({'TransactionDate': TransactionDate, 'StaffCode': StaffCode}),
+      );
+      final res = json.decode(response.body);
+      return (response.statusCode == 200 || response.statusCode == 201) && res['data'] == "001";
+    } catch(e) { return false; }
+  }
+
+  Future<String?> storeInEntry(String TransactionDate, String TransactionTime, String StaffCode, String FlagValue, String Address, String Latitude, String Longitude, String plantcode) async {
+    try {
+      final response = await http.post(
+        Uri.parse("http://114.143.140.28:8020/api/InOut/InOutSaveData"),
+        headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $Auth_Token'},
+        body: jsonEncode({
+          'TransactionDate': TransactionDate, 'TransactionTime': TransactionTime, 'StaffCode': StaffCode,
+          'flagValue': FlagValue, 'address': Address, 'latitude': Latitude, 'longitude': Longitude, "plantCode": plantcode
         }),
       );
-      print("response getInEntryFromDataBase ${response.body}");
-      String res = json.decode(response.body).toString();
-      print("res getInEntryFromDataBase $res");
-      if (response.statusCode == 201) {
-        if(res == "[{FlagValue: 000}]" || res == "[]"){
-          LogFileManager.writeLog("get in entry $res");
-          return true;
-        }else {
-          LogFileManager.writeLog("get in entry else $response");
-
-          return false;
-        }
-
-      } else {
-        LogFileManager.writeLog("get in entry try else:");
-        throw Exception('Failed to failed to fetch entry');
-        LogFileManager.writeLog('Failed to fetch entry');
-      }
-
-
-    } catch(e){
-      LogFileManager.writeLog("Error in getInEntryFrom Database: $e");
-      print("Error in getInEntryFrom Database: $e");
-      throw Exception('Failed to failed to fetch entry');
-    }
-
+      return response.body;
+    } catch(e) { return null; }
   }
 
-  Future<String?> storeInEntry(
-      String TransactionDate, String TransactionTime, String StaffCode, String FlagValue, String Address, String Latitude, String Longitude,String plantcode)
-  async {
-    try{
-      print("plantcode"+plantcode);
+  Future<String?> storeOutEntry(String TransactionDate, String TransactionTime, String StaffCode, String FlagValue, String Address, String Latitude, String Longitude, String plantcode) async {
+    try {
       final response = await http.post(
-        Uri.parse("https://m-techinnovations.co.in/PersonTrackingAPI/API/SaveDetails"),
-        headers: <String, String> {
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-        body: jsonEncode(<String, String> {
-          'TransactionDate': TransactionDate,
-          'TransactionTime': TransactionTime,
-          'StaffCode': StaffCode,
-          'FlagValue': FlagValue,
-          'Address': Address,
-          'Latitude': Latitude,
-          'Longitude': Longitude,
-          "Plant":plantcode
+        Uri.parse("http://114.143.140.28:8020/api/InOut/InOutSaveData"),
+        headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $Auth_Token'},
+        body: jsonEncode({
+          'TransactionDate': TransactionDate, 'TransactionTime': TransactionTime, 'StaffCode': StaffCode,
+          'flagValue': FlagValue, 'address': Address, 'latitude': Latitude, 'longitude': Longitude, "plantCode": plantcode
         }),
       );
-      print("tls response"+response.body);
-      if (response.statusCode == 201) {
-        LogFileManager.writeLog("storeinentry $response");
-        if(atsflag=='Y'){
-          try{
-            final response = await http.post(
-              Uri.parse("https://m-techinnovations.co.in/PersonTrackingAPI/API/SaveDetailsTLS"),
-              headers: <String, String> {
-                'Content-Type': 'application/json; charset=UTF-8',
-              },
-              body: jsonEncode(<String, String> {
-                'TransactionDate': TransactionDate,
-                'TransactionTime': TransactionTime,
-                'StaffCode': StaffCode,
-                'FlagValue': FlagValue,
-                'Address': Address,
-                'Latitude': Latitude,
-                'Longitude': Longitude
-              }),
-            );
-            print(response.body);
-            if (response.statusCode == 201) {
-              LogFileManager.writeLog("storeinentry $response");
-              return json.decode(response.body).toString();
-            } else {
-              LogFileManager.writeLog("storeinentry else");
-              sqlitePunchIN(TransactionDate,TransactionTime,StaffCode,FlagValue,Address,Latitude,Longitude);
-              return json.decode(response.body).toString();
-              //throw Exception('Failed to store entry');
-            }
-          }catch(e){
-            //sqlitePunchIN(TransactionDate,TransactionTime,StaffCode,FlagValue,Address,Latitude,Longitude);
-            LogFileManager.writeLog('Error in Store InEntry: $e');
-          }
-        }
-        return json.decode(response.body).toString();
-
-      } else {
-        LogFileManager.writeLog("storeinentry else");
-        sqlitePunchIN(TransactionDate,TransactionTime,StaffCode,FlagValue,Address,Latitude,Longitude);
-        return json.decode(response.body).toString();
-        //throw Exception('Failed to store entry');
-      }
-    } catch(e){
-      sqlitePunchIN(TransactionDate,TransactionTime,StaffCode,FlagValue,Address,Latitude,Longitude);
-      LogFileManager.writeLog('Error in Store InEntry: $e');
-    }
+      return response.body;
+    } catch(e) { return null; }
   }
 
-  Future<bool> getOutEntryFromDataBase(
-      String TransactionDate, String TransactionTime, String StaffCode)
-  async {
-    final response = await http.post(
-      Uri.parse("https://m-techinnovations.co.in/PersonTrackingAPI/API/DuplicateCheck"),
-      headers: <String, String> {
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode(<String, String> {
-        'TransactionDate': TransactionDate,
-        'StaffCode': StaffCode,
-        // 'TransactionTime': TransactionTime,
-      }),
-    );
-    print("response getOutEntryFromDataBase ${response.body}");
-    String res = json.decode(response.body).toString();
-    print("res getOutEntryFromDataBase $res");
-    if (response.statusCode == 201) {
-      if(res == "[{FlagValue: 001}]"){
-        LogFileManager.writeLog("getOutEntryFromDataBase $res");
-        return true;
-      }else {
-        final scaffold = ScaffoldMessenger.of(context);
-        scaffold.showSnackBar(
-          SnackBar(
-              content: const Text('Already Marked!! or First Punch In!!'),
-              action: SnackBarAction(label: 'X', onPressed: scaffold.hideCurrentSnackBar),
-              backgroundColor: Colors.redAccent,
-              duration: const Duration(seconds: 3)
-          ),
-        );
-        LogFileManager.writeLog("getOutEntryFromDataBase else $res");
-
-        return false;
-      }
-    } else {
-      LogFileManager.writeLog("getOutEntryFromDataBase exception $res");
-      throw Exception('Failed to failed to fetch entry');
-    }
-  }
-
-  Future<String?> storeOutEntry(
-      String TransactionDate, String TransactionTime, String StaffCode, String FlagValue, String Address, String Latitude, String Longitude,String plantcode) async {
-    try{
-      print("plantcodeout"+plantcode);
+  Future<String?> storeNotInZoneEntry(String TransactionDate, String TransactionTime, String StaffCode, String FlagValue, String Address, String Latitude, String Longitude, String plantcode) async {
+    try {
       final response = await http.post(
-        Uri.parse("https://m-techinnovations.co.in/PersonTrackingAPI/API/SaveDetails"),
-        headers: <String, String> {
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-        body: jsonEncode(<String, String> {
-          'TransactionDate': TransactionDate,
-          'TransactionTime': TransactionTime,
-          'StaffCode': StaffCode,
-          'FlagValue': FlagValue,
-          'Address': Address,
-          'Latitude': Latitude,
-          'Longitude': Longitude,
-          'Plant': plantcode
+        Uri.parse("http://114.143.140.28:8020/api/InOut/InOutSaveData"),
+        headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $Auth_Token'},
+        body: jsonEncode({
+          'TransactionDate': TransactionDate, 'TransactionTime': TransactionTime, 'StaffCode': StaffCode,
+          'flagValue': FlagValue, 'address': Address, 'latitude': Latitude, 'longitude': Longitude, "plantCode": plantcode
         }),
       );
-      print(response.body);
-      if (response.statusCode == 201) {
-        LogFileManager.writeLog("storeoutentry $response");
-        if(atsflag=='Y'){
-          try{
-            final response = await http.post(
-              Uri.parse("https://m-techinnovations.co.in/PersonTrackingAPI/API/SaveDetailsTLS"),
-              headers: <String, String> {
-                'Content-Type': 'application/json; charset=UTF-8',
-              },
-              body: jsonEncode(<String, String> {
-                'TransactionDate': TransactionDate,
-                'TransactionTime': TransactionTime,
-                'StaffCode': StaffCode,
-                'FlagValue': FlagValue,
-                'Address': Address,
-                'Latitude': Latitude,
-                'Longitude': Longitude
-              }),
-            );
-            print(response.body);
-            if (response.statusCode == 201) {
-              LogFileManager.writeLog("storeinentry $response");
-              return json.decode(response.body).toString();
-            } else {
-              LogFileManager.writeLog("storeinentry else");
-              sqlitePunchIN(TransactionDate,TransactionTime,StaffCode,FlagValue,Address,Latitude,Longitude);
-              return json.decode(response.body).toString();
-              //throw Exception('Failed to store entry');
-            }
-          }catch(e){
-            //sqlitePunchIN(TransactionDate,TransactionTime,StaffCode,FlagValue,Address,Latitude,Longitude);
-            LogFileManager.writeLog('Error in Store InEntry: $e');
-          }
-        }
-        return json.decode(response.body).toString();
-      } else {
-        LogFileManager.writeLog("storeoutentry else");
-        sqlitePunchOUT(TransactionDate,TransactionTime,StaffCode,"000",Address,Latitude,Longitude);
-        throw Exception('Failed to store entry');
-      }
-
-    } catch(e){
-      LogFileManager.writeLog("Error in Store OutDetails: $e");
-      sqlitePunchOUT(TransactionDate,TransactionTime,StaffCode,"000",Address,Latitude,Longitude);
-      print("Error in Store OutDetails: $e");
-    }
-  }
-
-  Future<void> stopVisit() async {
-    // await service.stopSelf();
-    // await locationStream?.cancel();
-    // locationStream = null;
-
-    try{
-      await storage.delete(key: 'SelectedVisit');
-      // ✅ Update global state only
-      VisitState.isVisitRunning.value = false;
-
-      BackgroundService backgroundService = BackgroundService();
-      backgroundService.stopService();
-      // ❗️ Manually cancel the notification (especially for iOS)
-      await FlutterLocalNotificationsPlugin().cancel(foregroundServiceNotificationId);
-      if (Platform.isIOS) {
-        await NativeLocationBridge.stopNativeTracking(); // 👈 Native ios stop tracking
-      }
-    } catch (e){
-      print("stop visit at Logout $e");
-      LogFileManager.writeLog("stop visit at Logout $e");
-    }
-
-  }
-
-  Future<bool> showStopVisitDialogBox(BuildContext context) async {
-    final result = await showDialog<bool>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text("Stop Visit Tracking"),
-          content: const Text("Are you sure you want to stop tracking the visit?"),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(false); // ❌ Cancel
-              },
-              child: const Text("Cancel"),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                stopVisit();
-                Navigator.of(context).pop(true); // ✅ OK
-              },
-              child: const Text("Ok"),
-            ),
-          ],
-        );
-      },
-    );
-    return result ?? false; // Return false if dismissed
-  }
-
-  void onLogout() async {
-    if(VisitState.isVisitRunning.value){
-     bool result = await showStopVisitDialogBox(context);
-     if(!result){
-       return;
-     }
-    }
-
-    // Clear the secure storage
-    await clearAllSecureStorage();
-
-    // , navigate the user to the login screen or any other screen
-    Navigator.pop(context);
-
-    Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(
-          builder: (context) => BlocProvider(
-              create: (context) {
-                return MainBloc(webService: WebService());
-              },
-              child: LoginScreen()),
-        ),
-            (Route<dynamic> route) => false);
-  }
-
-  // Function to clear specific keys
-  Future<void> clearSecureStorage() async {
-    await storage.delete(key: 'Auth_Token');  // Delete auth token
-    await storage.delete(key: 'Staff_Code');  // Delete staff code
-    await storage.delete(key: 'Staff_Name');  // Delete staff name
-    await storage.delete(key: 'username');   // Delete username (if used for remember me)
-    await storage.delete(key: 'password');   // Delete password (if used for remember me)
-  }
-
-// Or to clear all stored data
-  Future<void> clearAllSecureStorage() async {
-    await storage.deleteAll();  // Clear all stored data
-  }
-
-  Future<void> retorepunchdata() async {
-    final dbHelper = DatabaseHelper();
-    List<Map<String, dynamic>> offlineEntries = await dbHelper.getOfflinePunchEntries();
-
-    for (var entry in offlineEntries) {
-      try {
-        final response = await http.post(
-          Uri.parse("https://m-techinnovations.co.in/PersonTrackingAPI/API/SaveDetails"),
-          headers: <String, String>{
-            'Content-Type': 'application/json; charset=UTF-8',
-          },
-          body: jsonEncode({
-            'TransactionDate': entry['transaction_date'],
-            'TransactionTime': entry['transaction_time'],
-            'StaffCode': entry['staff_code'],
-            'FlagValue': entry['flag_value'],
-            'Address': entry['address'],
-            'Latitude': entry['latitude'],
-            'Longitude': entry['longitude'],
-          }),
-        );
-
-        if (response.statusCode == 201) {
-          await dbHelper.deletePunchEntry(entry['id']);
-          print("Restored and deleted offline punch entry");
-
-          // Only update UI if this was the most recent operation
-          final lastEntry = await dbHelper.getLastPunchEntry(entry['staff_code']);
-          if (lastEntry != null && lastEntry['id'] == entry['id']) {
-            setState(() {
-              if (entry['flag_value'] == "001") {
-                isButtonDisabledIn = true;
-                isButtonDisabledOut = false;
-              } else {
-                isButtonDisabledIn = false;
-                isButtonDisabledOut = true;
-              }
-            });
-          }
-        }
-      } catch (e) {
-        print("Error restoring punch data:$e");
-      }
-    }
-  }
-
-  Future<void> retorepunchoutdata() async {
-    final dbHelper = DatabaseHelperPunchout();
-    List<Map<String, dynamic>> offlineEntries = await dbHelper.getOfflinePunchoutEntries();
-
-    for (var entry in offlineEntries) {
-      try {
-        final response = await http.post(
-          Uri.parse("https://m-techinnovations.co.in/PersonTrackingAPI/API/SaveDetails"),
-          headers: <String, String>{
-            'Content-Type': 'application/json; charset=UTF-8',
-          },
-          body: jsonEncode({
-            'TransactionDate': entry['transaction_date'],
-            'TransactionTime': entry['transaction_time'],
-            'StaffCode': entry['staff_code'],
-            'FlagValue': entry['flag_value'],
-            'Address': entry['address'],
-            'Latitude': entry['latitude'],
-            'Longitude': entry['longitude'],
-          }),
-        );
-
-        if (response.statusCode == 201) {
-          await dbHelper.deletePunchoutEntry(entry['id']);
-          print("Restored and deleted offline punch entry");
-
-          // Only update UI if this was the most recent operation
-          final lastEntry = await dbHelper.getLastPunchoutEntry(entry['staff_code']);
-          if (lastEntry != null && lastEntry['id'] == entry['id']) {
-            setState(() {
-              if (entry['flag_value'] == "001") {
-                isButtonDisabledIn = true;
-                isButtonDisabledOut = false;
-              } else {
-                isButtonDisabledIn = false;
-                isButtonDisabledOut = true;
-              }
-            });
-          }
-        }
-      } catch (e) {
-        print("Error restoring punch data:$e");
-      }
-    }
-  }
-
-  Future<void> sqlitePunchIN(
-      String transactionDate,
-      String transactionTime,
-      String staffCode,
-      String flagvalue,
-      String address,
-      String latitude,
-      String longitude,
-      )
-  async {
-    final dbHelper = DatabaseHelper();
-
-    // Check if entry already exists
-    bool exists = await dbHelper.checkDuplicateEntry(staffCode, transactionDate, flagvalue);
-    if (exists) {
-      LogFileManager.writeLog("Duplicate offline entry skipped for $staffCode on $transactionDate with flag $flagvalue");
-      return;
-    }
-
-    Map<String, dynamic> row = {
-      'transaction_date': transactionDate,
-      'transaction_time': transactionTime,
-      'staff_code': staffCode,
-      'flag_value': flagvalue,
-      'address': address,
-      'latitude': latitude,
-      'longitude': longitude,
-    };
-
-    await dbHelper.insertPunchEntry(row);
-    LogFileManager.writeLog("Offline punch entry saved: $row");
-
-    setState(() {
-      isButtonDisabledIn = true;
-      isButtonDisabledOut = false;
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Punch in saved offline!'),
-        backgroundColor: Colors.orange,
-        duration: const Duration(seconds: 3),
-      ),
-    );
-  }
-
-  Future<void> sqlitePunchOUT(String transactionDate, String transactionTime, String staffCode, String s, String address, String latitude, String longitude) async {
-
-    final dbHelper = DatabaseHelperPunchout();
-
-    // Check if entry already exists
-    bool exists = await dbHelper.checkDuplicatePunchOut(staffCode, transactionDate, s);
-    if (exists) {
-      LogFileManager.writeLog("Duplicate offline entry skipped for $staffCode on $transactionDate with flag $s");
-      return;
-    }
-
-    Map<String, dynamic> row = {
-      'transaction_date': transactionDate,
-      'transaction_time': transactionTime,
-      'staff_code': staffCode,
-      'flag_value': s,
-      'address': address,
-      'latitude': latitude,
-      'longitude': longitude,
-    };
-
-    await dbHelper.insertPunchoutEntry(row);
-    LogFileManager.writeLog("Offline punch entry saved: $row");
-
-    setState(() {
-      isButtonDisabledIn = false;
-      isButtonDisabledOut = true;
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Punch out saved offline!'),
-        backgroundColor: Colors.orange,
-        duration: const Duration(seconds: 3),
-      ),
-    );
-
+      return response.body;
+    } catch(e) { return null; }
   }
 
   Future<void> checkBiometrics() async {
-    try
-    {
-      bool canCheckBiometrics = await auth.canCheckBiometrics;
-      if (canCheckBiometrics)
-      {
-        List<BiometricType> availableBiometrics = await auth.getAvailableBiometrics();
-        print("Available biometrics: $availableBiometrics");
-        LogFileManager.writeLog("Available biometrics: $availableBiometrics");
-        //LogFileManager.saveData("Available biometrics: $availableBiometrics","hereeeee");
-        await authenticate();
-      }
-      else
-      {
-        // Fluttertoast.showToast(
-        //   msg: "  No biometrics available on this device...!   ",
-        //   toastLength: Toast.LENGTH_SHORT,
-        //   timeInSecForIosWeb: 1,
-        // );
-
-        LogFileManager.writeLog("No biometrics available on this device");
-        //LogFileManager.saveData("Available biometrics: ");
-
-        print("No biometrics available on this device");
-
-        await authenticate();
-      }
-    }
-    catch (e)
-    {
-      LogFileManager.writeLog('Error checking biometrics: $e');
-      print("Error checking biometrics: $e");
-    }
+    try {
+      bool canCheck = await auth.canCheckBiometrics;
+      if (canCheck) await authenticate();
+      else await punchIn();
+    } catch (e) { await punchIn(); }
   }
 
   Future<void> authenticate() async {
     try {
-      bool isAuthenticated = await auth.authenticate(
-        localizedReason: 'Please authenticate to proceed',
-        /*     useErrorDialogs: true,  // Show error dialogs automatically*/
-        //stickyAuth: true,       // Keep the authentication prompt on screen
-      );
-
-      if (isAuthenticated) {
-        print("Authentication successful!");
-        // Fluttertoast.showToast(
-        //   msg: "  Authentication successful",
-        //   toastLength: Toast.LENGTH_LONG,
-        //   timeInSecForIosWeb: 1,
-        // );
-        await punchIn();
-      }
-      else
-      {
-        // Fluttertoast.showToast(
-        //   msg: "Authentication failed. Please try again!",
-        //   toastLength: Toast.LENGTH_LONG,
-        //   timeInSecForIosWeb: 1,
-        // );
-        print("Authentication failed.");
-      }
-    } catch (e) {
-      if (e is PlatformException)
-      {
-
-        print ("Authentication e.code----"+e.code);
-        LogFileManager.writeLog("Authentication e.code----"+e.code);
-        switch (e.code)
-        {
-          case 'NotAvailable':
-            LogFileManager.writeLog("Biometric authentication is not available on this device.");
-            print("Biometric authentication is not available on this device.");
-            // Fluttertoast.showToast(
-            //   msg: "Biometric authentication is not available on this device.",
-            //   toastLength: Toast.LENGTH_LONG,
-            //   timeInSecForIosWeb: 1,
-            // );
-            await punchIn();
-
-            break;
-          case 'NotEnrolled':
-            LogFileManager.writeLog("No biometrics enrolled. Please enroll your fingerprint or Face ID in device settings.");
-            print("No biometrics enrolled. Please enroll your fingerprint or Face ID in device settings.");
-            // Fluttertoast.showToast(
-            //   msg: "No biometrics enrolled. Please enroll your fingerprint or Face ID in device settings.",
-            //   toastLength: Toast.LENGTH_LONG,
-            //   timeInSecForIosWeb: 1,
-            // );
-            break;
-          case 'LockedOut':
-            print("Biometric authentication is temporarily locked. Please try again later.");
-            LogFileManager.writeLog("Biometric authentication is temporarily locked. Please try again later.");
-            // Fluttertoast.showToast(
-            //   msg: "Biometric authentication is temporarily locked. Please try again later.",
-            //   toastLength: Toast.LENGTH_LONG,
-            //   timeInSecForIosWeb: 1,
-            // );
-            break;
-          case 'Failed':
-            print("Authentication failed. Please try again.");
-            LogFileManager.writeLog("Authentication failed. Please try again.");
-            // Fluttertoast.showToast(
-            //   msg: "Authentication failed. Please try again.",
-            //   toastLength: Toast.LENGTH_LONG,
-            //   timeInSecForIosWeb: 1,
-            // );
-            break;
-          case 'UserCancel':
-            print("Authentication was canceled by the user.");
-            LogFileManager.writeLog("Authentication was canceled by the user.");
-            // Fluttertoast.showToast(
-            //   msg: "Authentication was canceled by the user.",
-            //   toastLength: Toast.LENGTH_LONG,
-            //   timeInSecForIosWeb: 1,
-            // );
-            break;
-          case 'PasscodeNotSet':
-            print("A passcode must be set to use biometric authentication.");
-            LogFileManager.writeLog("A passcode must be set to use biometric authentication.");
-            // Fluttertoast.showToast(
-            //   msg: "A passcode must be set to use biometric authentication.",
-            //   toastLength: Toast.LENGTH_LONG,
-            //   timeInSecForIosWeb: 1,
-            // );
-            break;
-          default:
-            print("An unexpected error occurred: ${e.message}");
-            LogFileManager.writeLog("An unexpected error occurred: ${e.message}");
-        // Fluttertoast.showToast(
-        //   msg: "An unexpected error occurred: ${e.message}",
-        //   toastLength: Toast.LENGTH_LONG,
-        //   timeInSecForIosWeb: 1,
-        // );
-        }
-      }
-    }
+      bool authResult = await auth.authenticate(localizedReason: 'Please authenticate to proceed');
+      if (authResult) await punchIn();
+    } catch (e) { await punchIn(); }
   }
 
   Future<void> checkbiometricspunchout() async {
-    try
-    {
-      bool canCheckBiometrics = await auth.canCheckBiometrics;
-      if (canCheckBiometrics)
-      {
-        List<BiometricType> availableBiometrics = await auth.getAvailableBiometrics();
-        print("Available biometrics: $availableBiometrics");
-        LogFileManager.writeLog("Available biometrics: $availableBiometrics");
-        //LogFileManager.saveData("Available biometrics: $availableBiometrics","hereeeee");
-        await authenticatepunchout();
-      }
-      else
-      {
-        // Fluttertoast.showToast(
-        //   msg: "  No biometrics available on this device...!   ",
-        //   toastLength: Toast.LENGTH_SHORT,
-        //   timeInSecForIosWeb: 1,
-        // );
-
-        LogFileManager.writeLog("No biometrics available on this device");
-        //LogFileManager.saveData("Available biometrics: ");
-
-        print("No biometrics available on this device");
-
-        await authenticatepunchout();
-      }
-    }
-    catch (e)
-    {
-      LogFileManager.writeLog('Error checking biometrics: $e');
-      print("Error checking biometrics: $e");
-    }
+    try {
+      bool canCheck = await auth.canCheckBiometrics;
+      if (canCheck) await authenticatepunchout();
+      else await punchOut();
+    } catch (e) { await punchOut(); }
   }
-
 
   Future<void> authenticatepunchout() async {
     try {
-      bool isAuthenticated = await auth.authenticate(
-        localizedReason: 'Please authenticate to proceed',
-        /*     useErrorDialogs: true,  // Show error dialogs automatically*/
-        //stickyAuth: true,       // Keep the authentication prompt on screen
-      );
-
-      if (isAuthenticated) {
-        print("Biometric Authentication successful!");
-        // Fluttertoast.showToast(
-        //   msg: "Biometric Authentication Successful",
-        //   toastLength: Toast.LENGTH_LONG,
-        //   timeInSecForIosWeb: 1,
-        // );
-        await punchOut();
-      }
-      else
-      {
-        Fluttertoast.showToast(
-          msg: "Authentication failed. Please try again!",
-          toastLength: Toast.LENGTH_LONG,
-          timeInSecForIosWeb: 1,
-        );
-        print("Authentication failed.");
-      }
-    } catch (e) {
-      if (e is PlatformException)
-      {
-
-        print ("Authentication e.code----"+e.code);
-        LogFileManager.writeLog("Authentication e.code----"+e.code);
-        switch (e.code)
-        {
-          case 'NotAvailable':
-            LogFileManager.writeLog("Biometric authentication is not available on this device.");
-            print("Biometric authentication is not available on this device.");
-            // Fluttertoast.showToast(
-            //   msg: "Biometric authentication is not available on this device.",
-            //   toastLength: Toast.LENGTH_LONG,
-            //   timeInSecForIosWeb: 1,
-            // );
-            await punchOut();
-
-            break;
-          case 'NotEnrolled':
-            LogFileManager.writeLog("No biometrics enrolled. Please enroll your fingerprint or Face ID in device settings.");
-            print("No biometrics enrolled. Please enroll your fingerprint or Face ID in device settings.");
-            // Fluttertoast.showToast(
-            //   msg: "No biometrics enrolled. Please enroll your fingerprint or Face ID in device settings.",
-            //   toastLength: Toast.LENGTH_LONG,
-            //   timeInSecForIosWeb: 1,
-            // );
-            break;
-          case 'LockedOut':
-            print("Biometric authentication is temporarily locked. Please try again later.");
-            LogFileManager.writeLog("Biometric authentication is temporarily locked. Please try again later.");
-            // Fluttertoast.showToast(
-            //   msg: "Biometric authentication is temporarily locked. Please try again later.",
-            //   toastLength: Toast.LENGTH_LONG,
-            //   timeInSecForIosWeb: 1,
-            // );
-            break;
-          case 'Failed':
-            print("Authentication failed. Please try again.");
-            LogFileManager.writeLog("Authentication failed. Please try again.");
-            // Fluttertoast.showToast(
-            //   msg: "Authentication failed. Please try again.",
-            //   toastLength: Toast.LENGTH_LONG,
-            //   timeInSecForIosWeb: 1,
-            // );
-            break;
-          case 'UserCancel':
-            print("Authentication was canceled by the user.");
-            LogFileManager.writeLog("Authentication was canceled by the user.");
-            // Fluttertoast.showToast(
-            //   msg: "Authentication was canceled by the user.",
-            //   toastLength: Toast.LENGTH_LONG,
-            //   timeInSecForIosWeb: 1,
-            // );
-            break;
-          case 'PasscodeNotSet':
-            print("A passcode must be set to use biometric authentication.");
-            LogFileManager.writeLog("A passcode must be set to use biometric authentication.");
-            // Fluttertoast.showToast(
-            //   msg: "A passcode must be set to use biometric authentication.",
-            //   toastLength: Toast.LENGTH_LONG,
-            //   timeInSecForIosWeb: 1,
-            // );
-            break;
-          default:
-            print("An unexpected error occurred: ${e.message}");
-            LogFileManager.writeLog("An unexpected error occurred: ${e.message}");
-        // Fluttertoast.showToast(
-        //   msg: "An unexpected error occurred: ${e.message}",
-        //   toastLength: Toast.LENGTH_LONG,
-        //   timeInSecForIosWeb: 1,
-        // );
-        }
-      }
-    }
+      bool authResult = await auth.authenticate(localizedReason: 'Please authenticate to proceed');
+      if (authResult) await punchOut();
+    } catch (e) { await punchOut(); }
   }
 
-}
+  void showPunchSnackbar({
+    required bool isPunchIn,
+    required bool success,
+  }) {
+    final now = DateFormat('hh:mm a').format(DateTime.now());
 
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        backgroundColor: success
+            ? (isPunchIn ? Colors.green : Colors.green)
+            : Colors.orange,
+        duration: const Duration(seconds: 3),
+        content: Row(
+          children: [
+            Icon(
+              success
+                  ? (isPunchIn ? Icons.login : Icons.logout)
+                  : Icons.error_outline,
+              color: Colors.white,
+              size: 28,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                success
+                    ? (isPunchIn
+                    ? "Punch In Successful • $now"
+                    : "Punch Out Successful • $now")
+                    : "Punch action failed",
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
 class _BannerItem {
   final String image;
   final String text;
-
   _BannerItem({required this.image, required this.text});
 }
-
-

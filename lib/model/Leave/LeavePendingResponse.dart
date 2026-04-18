@@ -36,7 +36,7 @@ class Message {
   String? enFhflag;
   String? enShflag;
   String? leaveTypeCode;
-  int? noOfDays;
+  double? noOfDays;
   String? reason;
   String? addrOnLeave;
   String? approvedFlag;
@@ -52,7 +52,7 @@ class Message {
   String? fromTime;
   String? toTime;
   String? fractionOfLeave;
-  int? totalTime;
+  double? totalTime;
   String? pcipaddress;
 
   Message({
@@ -97,7 +97,7 @@ class Message {
     enFhflag: json['enFhflag'],
     enShflag: json['enShflag'],
     leaveTypeCode: json['leaveTypeCode'],
-    noOfDays: json['noOfDays'],
+    noOfDays: (json['noOfDays'] as num?)?.toDouble(),
     reason: json['reason'],
     addrOnLeave: json['addrOnLeave'],
     approvedFlag: json['approvedFlag'],
@@ -113,7 +113,7 @@ class Message {
     fromTime: json['fromTime'],
     toTime: json['toTime'],
     fractionOfLeave: json['fractionOfLeave'],
-    totalTime: json['totalTime'],
+    totalTime: (json['totalTime'] as num?)?.toDouble(),
     pcipaddress: json['pcipaddress'],
   );
 

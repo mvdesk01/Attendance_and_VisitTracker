@@ -15,7 +15,7 @@ import '../../model/Leave/LeavePendingResponse.dart';
 import 'leave.dart';
 
 class AddLeavePage extends StatefulWidget {
-  final int flag; // Accept the flag value
+  final int flag;
   final dynamic leaveData;
 
   const AddLeavePage({super.key, required this.flag, required this.leaveData});
@@ -24,137 +24,97 @@ class AddLeavePage extends StatefulWidget {
 }
 
 class _AddLeavePageState extends State<AddLeavePage> {
-  bool isUpdate = true;
-  final leaveTypes = ['Please Select', 'CL', 'PL', 'SL', 'LWP'];
-  String selectedLeaveType = 'Please Select';
-  bool showNextScreenContent = false;
-  bool fromTimeSelected = false;
-  TextEditingController _StaffcodeController = new TextEditingController();
-  TextEditingController _StaffnameController = new TextEditingController();
-  TextEditingController _StaffplantnameController = new TextEditingController();
-  TextEditingController _StaffdepartmentnameController = new TextEditingController();
-  TextEditingController _StaffDOJController = new TextEditingController();
-  final TextEditingController leaveBalanceController = TextEditingController();
+  final TextEditingController _staffCodeController = TextEditingController();
+  final TextEditingController _staffNameController = TextEditingController();
+  final TextEditingController _plantNameController = TextEditingController();
+  final TextEditingController _departmentController = TextEditingController();
+  final TextEditingController _dojController = TextEditingController();
+  
   late Message leaveDetailss;
-  late String transactioniD;
-  bool showTable = false; // Track whether the table should be displayed
-  List<Map<String, String>> leaveDetails = []; // Table data
-  DateTime selectedDate = DateTime.now();
-  late String date = '';
-  List<String> yearlist = [];
+  bool showTable = false;
+  List<Map<String, String>> leaveDetailsList = [];
   String year = "2025";
-  bool isYearselected = false;
-  bool ClickStatus = false;
   String? staffCode = "";
-  String? Auth_Token = "";
+  String? authToken = "";
 
   late bool _isLoading = false;
   late MainBloc mainBloc;
-  final storage = FlutterSecureStorage();
+  final storage = const FlutterSecureStorage();
 
   @override
   void initState() {
-    print("Received Flag: ${widget.flag}");
+    super.initState();
     mainBloc = BlocProvider.of(context);
-
     getData();
   }
+
   Future<void> getData() async {
-    print("Received Flag: ${widget.flag}");
-
-    // Retrieve staff code and token
     staffCode = await storage.read(key: 'Staff_Code');
-    print("staffCode-->" + staffCode!);
-    Auth_Token = await storage.read(key: 'Auth_Token');
-    print("authtoken->"+Auth_Token!);
+    authToken = await storage.read(key: 'Auth_Token');
 
-    // Set leave details from the widget
-    // leaveDetailss = widget.leaveData;
     if (widget.leaveData != null) {
       leaveDetailss = widget.leaveData;
-      print("leaveDetails --> " + leaveDetailss.transactionId.toString());
     } else {
-      print("leaveData is null. Creating an empty instance.");
-      leaveDetailss = Message(); // Create a default Message instance
+      leaveDetailss = Message();
     }
 
-    //transactioniD = leaveDetailss.transactionId.toString();
-
-    print("Auth_Token-->${Auth_Token!}");
-    print( leaveDetailss);
-    print("leaveDetails -->" + leaveDetailss.transactionId.toString());
-
-    mainBloc.add(
-        GetLeaveStaffDetails(StaffCode: staffCode!, token: Auth_Token!));
+    if (staffCode != null && authToken != null) {
+      mainBloc.add(GetLeaveStaffDetails(StaffCode: staffCode!, token: authToken!));
+    }
   }
 
+  @override
   Widget build(BuildContext context) {
     return LoadingOverlay(
       isLoading: _isLoading,
+      opacity: 0.3,
+      color: Colors.black,
+      progressIndicator: const CircularProgressIndicator(color: Colors.white),
       child: Scaffold(
+        // backgroundColor: Colors.white,
         appBar: AppBar(
-          leading:IconButton(
-              icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
-              onPressed: () =>
-                  Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                          builder: (_) => BlocProvider(
-                              create: (context) {
-                                return MainBloc(
-                                    webService: WebService());
-                              },
-                              child: PendingLeave())))
-
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
+            onPressed: () => Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (_) => BlocProvider(
+                  create: (context) => MainBloc(webService: WebService()),
+                  child: const PendingLeave(),
+                ),
+              ),
+            ),
           ),
-          title: const Text("Apply For Leave"),
+          title: Text(
+            "Apply For Leave",
+            style: GoogleFonts.poppins(fontWeight: FontWeight.w600, color: Colors.white, fontSize: 18),
+          ),
           backgroundColor: MyColors.lightBlue,
           centerTitle: true,
         ),
         body: BlocListener<MainBloc, MainState>(
           listener: (context, state) {
             if (state is GetLeaveStaffDetailsLoadingtstate) {
-              setState(() {
-                _isLoading = true;
-              });
-            }
-            else if (state is GetLeaveStaffDetailsLoadedtstate) {
-              setState(() {
-                _isLoading = false;
-              });
-
-              _StaffcodeController.text = state.staffdetails.message!.staffCode!;
-              _StaffnameController.text = state.staffdetails.message!.fullName!;
-              _StaffplantnameController.text = state.staffdetails.message!.plantName!;
-              _StaffdepartmentnameController.text = state.staffdetails.message!.department!;
-              _StaffDOJController.text = "05/02/2025";
-              // parseAndSetDate(state.staffdetails.message!.dateOfJoining);
-              print(state.staffdetails.message?.dateOfJoining);
-              Fluttertoast.showToast(
-                msg: "Success!",
-                toastLength: Toast.LENGTH_SHORT,
-              );
-            }
-            else if (state is GetLeaveStaffDetailsErrorState) {
-              setState(() {
-                _isLoading = false;
-              });
-              Fluttertoast.showToast(
-                msg: "Failed To Connect Server!",
-                toastLength: Toast.LENGTH_SHORT,
-              );
+              setState(() => _isLoading = true);
+            } else if (state is GetLeaveStaffDetailsLoadedtstate) {
+              setState(() => _isLoading = false);
+              _staffCodeController.text = state.staffdetails.message?.staffCode ?? "";
+              _staffNameController.text = state.staffdetails.message?.fullName ?? "";
+              _plantNameController.text = state.staffdetails.message?.plantName ?? "";
+              _departmentController.text = state.staffdetails.message?.department ?? "";
+              _dojController.text = "05/02/2025"; 
+            } else if (state is GetLeaveStaffDetailsErrorState) {
+              setState(() => _isLoading = false);
+              Fluttertoast.showToast(msg: "Failed to fetch staff details");
             }
 
-            if(state is GetLeaveTypeLoadingState ){
-              setState(() {
-                _isLoading=true;
-              });
-
-            }
-            else if (state is GetLeaveTypeLoadedState) {
+            if (state is GetLeaveTypeLoadingState) {
+              setState(() => _isLoading = true);
+            } else if (state is GetLeaveTypeLoadedState) {
               setState(() {
                 _isLoading = false;
-                leaveDetails = state.leavedetails.leaveTypes!.map((detail) {
+                leaveDetailsList = state.leavedetails.leaveTypes!.map((detail) {
                   return {
                     'Code': detail.leaveTypeCode.toString(),
                     'Leave Type': detail.leaveTypeName.toString(),
@@ -165,191 +125,138 @@ class _AddLeavePageState extends State<AddLeavePage> {
                   };
                 }).toList();
               });
-            }
-            else if(state is GetLeaveTypeErrorState){
-              setState(() {
-                _isLoading=false;
-              });
+            } else if (state is GetLeaveTypeErrorState) {
+              setState(() => _isLoading = false);
               Fluttertoast.showToast(msg: "No Leave Details Found");
             }
           },
           child: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(15.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Staff code row
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          readOnly: true,
-                          controller: _StaffcodeController,
-                          decoration: InputDecoration(
-                            labelText: 'Staff Code',
-                            border: OutlineInputBorder(),
-
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: 10),
-                      ElevatedButton(
-                        onPressed: () {
-                          //Fluttertoast.showToast(msg: "under progress");
-                          setState(() {
-                            showTable=true;
-                          });
-                          if (staffCode != null && Auth_Token != null) {
-                            mainBloc.add(GetLeavetypeEvents(
-                              StaffCode: staffCode!,
-                              token: Auth_Token!,
-                              Year: year,
-                            ));
-                            print("error"+ staffCode! + Auth_Token! + year);
-                          }
-                        },
-                        child: Text('OK'),
-                      ),
-                      SizedBox(width: 10),
-                      DropdownButton<String>(
-                        value: year,
-                        items: ['2024', '2025','2026']
-                            .map((year) => DropdownMenuItem(
-                          value: year,
-                          child: Text(year),
-                        ))
-                            .toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            year = value!;
-                          });
-                        },
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 20),
-
-                  // Table
-                  if (showTable && leaveDetails.isNotEmpty)
-                    Table(
-                      border: TableBorder.all(),
-                      columnWidths: {
-                        0: FlexColumnWidth(3),
-                        1: FlexColumnWidth(3),
-                        2: FlexColumnWidth(4),
-                        3: FlexColumnWidth(3),
-                        4: FlexColumnWidth(4),
-                        5: FlexColumnWidth(4),
-                      },
-                      children: [
-                        TableRow(
-                          decoration: BoxDecoration(color: Colors.grey[300]),
-                          children: [
-                            TableCell(child: Padding(padding: EdgeInsets.all(8.0), child: Text('Code', textAlign: TextAlign.center))),
-                            TableCell(child: Padding(padding: EdgeInsets.all(8.0), child: Text('Leave Type', textAlign: TextAlign.center))),
-                            TableCell(child: Padding(padding: EdgeInsets.all(8.0), child: Text('Days Remaining', textAlign: TextAlign.center))),
-                            TableCell(child: Padding(padding: EdgeInsets.all(8.0), child: Text('Total Days', textAlign: TextAlign.center))),
-                            TableCell(child: Padding(padding: EdgeInsets.all(8.0), child: Text('Min Days Allowed', textAlign: TextAlign.center))),
-                            TableCell(child: Padding(padding: EdgeInsets.all(8.0), child: Text('Max Days Allowed', textAlign: TextAlign.center))),
-                          ],
-                        ),
-                        ...leaveDetails.map((row) {
-                          return TableRow(
-                            children: row.values.map((cell) {
-                              return TableCell(
-                                child: Padding(padding: EdgeInsets.all(8.0), child: Text(cell, textAlign: TextAlign.center)),
-                              );
-                            }).toList(),
-                          );
-                        }).toList(),
-                      ],
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildSectionTitle("Staff Information"),
+                const SizedBox(height: 16),
+                
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      flex: 2,
+                      child: _buildReadOnlyField('Staff Code', _staffCodeController, Icons.badge_outlined),
                     ),
-                  SizedBox(height: 20),
-
-                  // Staff name controller
-                  TextField(
-                    readOnly: true,
-                    controller: _StaffnameController,
-                    decoration: InputDecoration(
-                      labelText: 'Staff Name',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                  SizedBox(height: 20),
-
-                  // Plant name and department row
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          readOnly: true,
-                          controller: _StaffplantnameController,
-                          decoration: InputDecoration(
-                            labelText: 'Plant Name',
-                            border: OutlineInputBorder(),
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: 10),
-                      Expanded(
-                        child: TextField(
-                          controller: _StaffdepartmentnameController,
-                          readOnly: true,
-                          decoration: InputDecoration(
-                            labelText: 'Department',
-                            border: OutlineInputBorder(),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 20),
-
-/*                  // Date of joining controller
-                  TextField(
-                    controller: _StaffDOJController,
-                    decoration: InputDecoration(
-                      labelText: 'Date of Joining',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                  SizedBox(height: 20),*/
-
-                  // Navigation button
-                  Center(
-                    child: ElevatedButton(
-                      onPressed: () async {
-                        // Store the selected year in FlutterSecureStorage
-                        await storage.write(key: 'selectedYear', value: year);
-                        await storage.write(key: 'stafcodeee', value: staffCode);
-                        await storage.write(key: 'authtokenn', value: Auth_Token);
-                        await storage.write(key: 'staffname', value: _StaffnameController.text);
-                        await storage.write(key: 'doj', value: _StaffDOJController.text);
-                        await storage.write(key: 'plantname', value: _StaffplantnameController.text);
-                        await storage.write(key: 'department', value: _StaffdepartmentnameController.text);
-                        print((key: 'stafcodeee', value: staffCode));
-                        // Navigate to the next page
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => BlocProvider<MainBloc>(
-                              create: (context) => MainBloc(webService: WebService()),
-                              child: LeaveDetailsPage(
-                                flag: 1,
-                                tokennn: Auth_Token!,
-                                leaveData: leaveDetailss,
+                    const SizedBox(width: 12),
+                    Expanded(
+                      flex: 1,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text("Year", style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.grey)),
+                          const SizedBox(height: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10),
+                            height: 52,
+                            decoration: BoxDecoration(
+                              color: Colors.grey[50],
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.grey[200]!),
+                            ),
+                            child: DropdownButtonHideUnderline(
+                              child: DropdownButton<String>(
+                                value: year,
+                                isExpanded: true,
+                                items: ['2024', '2025', '2026']
+                                    .map((y) => DropdownMenuItem(value: y, child: Text(y, style: GoogleFonts.poppins(fontSize: 14))))
+                                    .toList(),
+                                onChanged: (value) => setState(() => year = value!),
                               ),
                             ),
                           ),
-                        );
-                      },
-                      child: Text('Next Page'),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 24),
+                      child: IconButton.filled(
+                        style: IconButton.styleFrom(
+                          backgroundColor: MyColors.lightBlue,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          fixedSize: const Size(52, 52),
+                        ),
+                        onPressed: () {
+                          setState(() => showTable = true);
+                          if (staffCode != null && authToken != null) {
+                            mainBloc.add(GetLeavetypeEvents(StaffCode: staffCode!, token: authToken!, Year: year));
+                          }
+                        },
+                        icon: const Icon(Icons.refresh_rounded, color: Colors.white),
+                      ),
+                    ),
+                  ],
+                ),
+                
+                _buildReadOnlyField('Staff Name', _staffNameController, Icons.person_outline_rounded),
+                
+                Row(
+                  children: [
+                    Expanded(child: _buildReadOnlyField('Plant Name', _plantNameController, Icons.factory_outlined)),
+                    const SizedBox(width: 12),
+                    Expanded(child: _buildReadOnlyField('Department', _departmentController, Icons.account_tree_outlined)),
+                  ],
+                ),
+
+                if (showTable) ...[
+                  const SizedBox(height: 20),
+                  _buildSectionTitle("Leave Balances"),
+                  _buildLeaveTable(),
+                ],
+
+                const SizedBox(height: 32),
+                
+                SizedBox(
+                  width: double.infinity,
+                  height: 54,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: MyColors.lightBlue,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                      elevation: 0,
+                    ),
+                    onPressed: () async {
+                      await storage.write(key: 'selectedYear', value: year);
+                      await storage.write(key: 'stafcodeee', value: staffCode);
+                      await storage.write(key: 'authtokenn', value: authToken);
+                      await storage.write(key: 'staffname', value: _staffNameController.text);
+                      await storage.write(key: 'doj', value: _dojController.text);
+                      await storage.write(key: 'plantname', value: _plantNameController.text);
+                      await storage.write(key: 'department', value: _departmentController.text);
+                      
+                      if (!mounted) return;
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => BlocProvider<MainBloc>(
+                            create: (context) => MainBloc(webService: WebService()),
+                            child: LeaveDetailsPage(
+                              flag: 1,
+                              tokennn: authToken!,
+                              leaveData: leaveDetailss,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                    child: Text(
+                      'PROCEED TO APPLY',
+                      style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 1),
                     ),
                   ),
-
-                ],
-              ),
+                ),
+                const SizedBox(height: 40),
+              ],
             ),
           ),
         ),
@@ -357,42 +264,123 @@ class _AddLeavePageState extends State<AddLeavePage> {
     );
   }
 
-  void parseAndSetDate(String? originalDOJ) {
-    print("Received DOJ: '$originalDOJ'"); // Debugging output
-
-    if (originalDOJ != null && originalDOJ.trim().isNotEmpty) { // Trim spaces and check
-      try {
-        String formattedDate = _formatDate(originalDOJ);
-        _StaffDOJController.text = formattedDate;
-      } catch (e) {
-        _StaffDOJController.text = "Invalid Date Format";
-        print("Error setting DOJ: $e");
-      }
-    } else {
-      _StaffDOJController.text = "N/A";
-    }
+  Widget _buildSectionTitle(String title) {
+    return Text(
+      title,
+      style: GoogleFonts.poppins(
+        fontSize: 18,
+        fontWeight: FontWeight.bold,
+        color: Colors.black87,
+      ),
+    );
   }
 
+  Widget _buildReadOnlyField(String label, TextEditingController controller, IconData icon) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.grey)),
+          const SizedBox(height: 6),
+          TextFormField(
+            readOnly: true,
+            controller: controller,
+            style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w500),
+            decoration: InputDecoration(
+              prefixIcon: Icon(icon, color: MyColors.appDefaultColorCode, size: 20),
+              filled: true,
+              fillColor: Colors.grey[50],
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Colors.grey[200]!),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Colors.grey[200]!),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
+  Widget _buildLeaveTable() {
+    if (leaveDetailsList.isEmpty) {
+      return Container(
+        height: 100,
+        margin: const EdgeInsets.only(top: 12),
+        decoration: BoxDecoration(color: Colors.grey[50], borderRadius: BorderRadius.circular(12)),
+        child: Center(child: Text("Click refresh to load balances", style: GoogleFonts.poppins(color: Colors.grey, fontSize: 13))),
+      );
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(top: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey[200]!),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4)),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: DataTable(
+            horizontalMargin: 15,
+            columnSpacing: 20,
+            headingRowHeight: 45,
+            headingRowColor: MaterialStateProperty.all(Colors.grey[100]),
+            columns: [
+              DataColumn(label: Text('Type', style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 13))),
+              DataColumn(label: Text('Rem.', style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 13))),
+              DataColumn(label: Text('Total', style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 13))),
+              DataColumn(label: Text('Min', style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 13))),
+              DataColumn(label: Text('Max', style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 13))),
+            ],
+            rows: leaveDetailsList.map((row) {
+              return DataRow(cells: [
+                DataCell(Text(row['Leave Type'] ?? '', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600))),
+                DataCell(Text(row['Days Remaining'] ?? '', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.green[700]))),
+                DataCell(Text(row['Total Days'] ?? '', style: GoogleFonts.poppins(fontSize: 13))),
+                DataCell(Text(row['Min Days Allowed'] ?? '', style: GoogleFonts.poppins(fontSize: 13))),
+                DataCell(Text(row['Max Days Allowed'] ?? '', style: GoogleFonts.poppins(fontSize: 13))),
+              ]);
+            }).toList(),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void parseAndSetDate(String? originalDOJ) {
+    if (originalDOJ != null && originalDOJ.trim().isNotEmpty) {
+      try {
+        String formattedDate = _formatDate(originalDOJ);
+        _dojController.text = formattedDate;
+      } catch (e) {
+        _dojController.text = "N/A";
+      }
+    } else {
+      _dojController.text = "N/A";
+    }
+  }
 
   String _formatDate(String? date) {
     if (date == null || date.isEmpty) return "N/A";
     try {
-      // Remove extra spaces
       String cleanedDate = date.replaceAll(RegExp(r'\s+'), ' ').trim();
-
-      // Define the input format
       DateFormat inputFormat = DateFormat("MMM d yyyy h:mma");
-      // Define the output format
       DateFormat outputFormat = DateFormat("dd/MM/yyyy");
-
-      // Parse and format the date
       DateTime parsedDate = inputFormat.parse(cleanedDate);
       return outputFormat.format(parsedDate);
     } catch (e) {
-      print("Error parsing date: $e");
-      return "Invalid Date";
+      return "N/A";
     }
   }
-
 }

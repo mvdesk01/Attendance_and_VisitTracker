@@ -1,7 +1,6 @@
 import 'package:attendance_system_ios/bloc/main_bloc.dart';
 import 'package:attendance_system_ios/bloc/main_event.dart';
 import 'package:attendance_system_ios/bloc/main_state.dart';
-import 'package:attendance_system_ios/model/CoffCredit/CreditCOffEntryRequest.dart';
 import 'package:attendance_system_ios/model/CoffDebit/SubmitCoffDebitRequest.dart';
 import 'package:attendance_system_ios/screen/Gate%20Pass/gate_pass.dart';
 import 'package:attendance_system_ios/screen/Home/home.dart';
@@ -23,19 +22,17 @@ class Debitcoffscreen extends StatefulWidget {
   int flag;
   Message datum;
 
-  Debitcoffscreen(
-      {
-        Key? key,
-        required this.flag,
-        required this.datum,
-      })
-      : super(key: key);
+  Debitcoffscreen({
+    Key? key,
+    required this.flag,
+    required this.datum,
+  }) : super(key: key);
+
   @override
   State<Debitcoffscreen> createState() => _DebitcoffscreenState();
 }
 
 class _DebitcoffscreenState extends State<Debitcoffscreen> {
-
   TextEditingController _TransactionidController = new TextEditingController();
   TextEditingController _gatepassdatecontroller = new TextEditingController();
   TextEditingController _staffCodecontroller = new TextEditingController();
@@ -51,35 +48,34 @@ class _DebitcoffscreenState extends State<Debitcoffscreen> {
   late MainBloc mainBloc;
   final storage = FlutterSecureStorage();
   DateTime selectedDate = DateTime.now();
-  late String date='';
+  late String date = '';
   List<String> typeList = [];
   List<String> reasonsList = [];
-  String gatePasstype="Select";
-  String gatePassReason="Select";
+  String gatePasstype = "Select";
+  String gatePassReason = "Select";
   bool isGatepasscontainerselected = false;
   bool isReasoncontainerselected = false;
-  bool ClickStatus=false;
+  bool ClickStatus = false;
   var fromTimeController;
   TextEditingController fromTimeInput = TextEditingController();
   var toTimeController;
   TextEditingController toTimeInput = TextEditingController();
 
-  String? Auth_Token="";
+  String? Auth_Token = "";
 
-  String? staffCode="";
+  String? staffCode = "";
 
-  String designation="";
+  String designation = "";
 
-  String departmentName="";
+  String departmentName = "";
 
-  bool isTypecontainerselected=false;
+  bool isTypecontainerselected = false;
 
-
-  String reason="Select";
+  String reason = "Select";
 
   @override
   void initState() {
-    mainBloc=BlocProvider.of(context);
+    mainBloc = BlocProvider.of(context);
     typeList.add("H/WOFF");
     typeList.add("COFF");
 
@@ -93,9 +89,7 @@ class _DebitcoffscreenState extends State<Debitcoffscreen> {
 
     //getData();
 
-    if (widget.flag == 2)
-    {
-
+    if (widget.flag == 2) {
       print("widget.flag == 2");
 
       //type=widget.datum.type.toString();
@@ -106,69 +100,54 @@ class _DebitcoffscreenState extends State<Debitcoffscreen> {
       //   gatePasstype=widget.datum.type.toString();
       // _purposecontroller.text=widget.datum.customerName.toString();
 
-      fromTimeInput.text=widget.datum.fromTime.toString();
-      toTimeInput.text=widget.datum.toTime.toString();
+      fromTimeInput.text = widget.datum.fromTime.toString();
+      toTimeInput.text = widget.datum.toTime.toString();
       getData();
-
-    }
-    else
-    {
+    } else {
       print("widget.flag == 1");
       getData();
     }
-
   }
+
   Future<void> getData() async {
     staffCode = await storage.read(key: 'Staff_Code');
 
-    print("staffCode-->"+staffCode!);
+    print("staffCode-->" + staffCode!);
     Auth_Token = await storage.read(key: 'Auth_Token');
 
-    print("Auth_Token-->"+Auth_Token!);
+    print("Auth_Token-->" + Auth_Token!);
 
     // _staffCodecontroller.text="cd02851";
-    _staffCodecontroller.text= staffCode!;
-
+    _staffCodecontroller.text = staffCode!;
 
     DateTime now = DateTime.now();
 
     // Format the date in dd/MM/yyyy format
     String formattedDate = DateFormat('dd/MM/yyyy').format(now);
 
-    if (widget.flag == 2)
-    {
+    if (widget.flag == 2) {
       _gatepassdatecontroller.text = widget.datum.cOffDate.toString();
-    }
-    else
-    {
-      _gatepassdatecontroller.text=formattedDate;
+    } else {
+      _gatepassdatecontroller.text = formattedDate;
     }
 
-
-    mainBloc.add(GetStaffDetailsForCoffEvents(type: "H/WOFF", staffCode: staffCode!, date: formattedDate, token: Auth_Token!));
+    mainBloc.add(GetStaffDetailsForCoffEvents(
+        type: "H/WOFF",
+        staffCode: staffCode!,
+        date: formattedDate,
+        token: Auth_Token!));
     // mainBloc.add(GetStaffDetailsEvents(StaffCode: staffCode!, token: Auth_Token!));
-
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-
       appBar: AppBar(
           leading: IconButton(
-              icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
-              onPressed: () =>
-                  Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                          builder: (_) => BlocProvider(
-                              create: (context) {
-                                return MainBloc(
-                                    webService: WebService());
-                              },
-                              child: HomeScreen())))
-
+            icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
+            onPressed: () =>
+                Navigator.of(context).pop(), // Simple pop to go back
           ),
-
           title: const Text("C-Off Debit (-)"),
           backgroundColor: MyColors.lightBlue,
           centerTitle: true,
@@ -177,12 +156,8 @@ class _DebitcoffscreenState extends State<Debitcoffscreen> {
             fontSize: 18.0,
           ).copyWith(
             color: Colors.white,
-          )
-      ),
-
-
-      body:
-      WillPopScope(
+          )),
+      body: WillPopScope(
         onWillPop: () async {
           if (Navigator.canPop(context)) {
             Navigator.pop(context);
@@ -194,16 +169,15 @@ class _DebitcoffscreenState extends State<Debitcoffscreen> {
                 MaterialPageRoute(
                     builder: (_) => BlocProvider(
                         create: (context) {
-                          return MainBloc(
-                              webService: WebService());
+                          return MainBloc(webService: WebService());
                         },
                         child: HomeScreen())));
-            return false;  // Prevent the app from closing
+            return false; // Prevent the app from closing
           }
           return true;
         },
-        child:
-        _addGatePass(),),
+        child: _addGatePass(),
+      ),
       bottomNavigationBar: BottomAppBar(
         child: SizedBox(
           height: 70,
@@ -214,17 +188,13 @@ class _DebitcoffscreenState extends State<Debitcoffscreen> {
               GestureDetector(
                 onTap: () {
                   setState(() {
-
-
                     _gatepassdatecontroller.clear();
                     _purposecontroller.clear();
-                    gatePasstype="Select";
-                    reason="Select";
-                    ClickStatus=false;
-                    fromTimeInput.text="";
-                    toTimeInput.text="";
-
-
+                    gatePasstype = "Select";
+                    reason = "Select";
+                    ClickStatus = false;
+                    fromTimeInput.text = "";
+                    toTimeInput.text = "";
                   });
                 },
                 child: Column(
@@ -247,7 +217,6 @@ class _DebitcoffscreenState extends State<Debitcoffscreen> {
                   if (Navigator.canPop(context)) {
                     Navigator.pop(context);
                     print(" Navigatorrrrrrrrrrrrr");
-
                   } else {
                     // You can also handle custom back button logic here
                     // For example, exit the app, show a confirmation dialog, etc.
@@ -259,8 +228,7 @@ class _DebitcoffscreenState extends State<Debitcoffscreen> {
                         MaterialPageRoute(
                             builder: (_) => BlocProvider(
                                 create: (context) {
-                                  return MainBloc(
-                                      webService: WebService());
+                                  return MainBloc(webService: WebService());
                                 },
                                 child: GatePass())));
                     // Prevent the app from closing
@@ -325,9 +293,7 @@ class _DebitcoffscreenState extends State<Debitcoffscreen> {
             setState(() {
               _isLoading = true;
             });
-          }
-          else if (state is GetStaffDetailsForCoffLoadedState)
-          {
+          } else if (state is GetStaffDetailsForCoffLoadedState) {
             setState(() {
               _isLoading = false;
             });
@@ -336,11 +302,15 @@ class _DebitcoffscreenState extends State<Debitcoffscreen> {
               toastLength: Toast.LENGTH_SHORT,
               timeInSecForIosWeb: 1,
             );*/
-            _staffNamecontroller.text=state.getStaffDetailsForCoffResponse.message!.name!;
-            _departmentNamecontroller.text=state.getStaffDetailsForCoffResponse.message!.department!;
-            _designationController.text=state.getStaffDetailsForCoffResponse.message!.designation!;
-            _shiftController.text="GS";
-            _balancehrsController.text=state.getStaffDetailsForCoffResponse.message!.balanceHours!;
+            _staffNamecontroller.text =
+            state.getStaffDetailsForCoffResponse.message!.name!;
+            _departmentNamecontroller.text =
+            state.getStaffDetailsForCoffResponse.message!.department!;
+            _designationController.text =
+            state.getStaffDetailsForCoffResponse.message!.designation!;
+            _shiftController.text = "GS";
+            _balancehrsController.text =
+            state.getStaffDetailsForCoffResponse.message!.balanceHours!;
 
             /* if(widget.flag==1) {
 
@@ -362,10 +332,7 @@ class _DebitcoffscreenState extends State<Debitcoffscreen> {
               departmentName=state.staffDetailsResponse.message!.departmentName.toString();
 
             });*/
-
-          }
-          else if (state is GetStaffDetailsForCoffErrorState)
-          {
+          } else if (state is GetStaffDetailsForCoffErrorState) {
             setState(() {
               _isLoading = false;
             });
@@ -382,10 +349,9 @@ class _DebitcoffscreenState extends State<Debitcoffscreen> {
             setState(() {
               _isLoading = true;
             });
-          }
-          else if (state is SubmitCoffDebitLoadedState)
-          {
-            print("SubmitCoffEventsLoadedState"+state.cancelGatepassResponse.message!);
+          } else if (state is SubmitCoffDebitLoadedState) {
+            print("SubmitCoffEventsLoadedState" +
+                state.cancelGatepassResponse.message!);
             setState(() {
               _isLoading = false;
             });
@@ -394,30 +360,20 @@ class _DebitcoffscreenState extends State<Debitcoffscreen> {
               toastLength: Toast.LENGTH_SHORT,
               timeInSecForIosWeb: 1,
             );
-            if(widget.flag==1) {
+            if (widget.flag == 1) {
               if (state.cancelGatepassResponse.message ==
-                  "D-Off details saved successfully !") {
-
-
-                DialogForUpdate().popUp(
-                    context, "D-OFF Saved Successfully!", "1");
+                  "C-Off details saved successfully !") {
+                DialogForUpdate()
+                    .popUp(context, "D-OFF Saved Successfully!", "1");
               }
-            }
-            else if(widget.flag==2)
-            {
-
+            } else if (widget.flag == 2) {
               if (state.cancelGatepassResponse.message ==
-                  "D-Off details updated successfully !") {
-                DialogForUpdate().popUp(
-                    context, "D-OFF Updated Successfully!", "1");
+                  "C-Off details updated successfully !") {
+                DialogForUpdate()
+                    .popUp(context, "D-OFF Updated Successfully!", "1");
               }
-            }else
-            {
-
-            }
-          }
-          else if (state is SubmitCoffDebitErrorState )
-          {
+            } else {}
+          } else if (state is SubmitCoffDebitErrorState) {
             setState(() {
               _isLoading = false;
             });
@@ -427,128 +383,13 @@ class _DebitcoffscreenState extends State<Debitcoffscreen> {
               timeInSecForIosWeb: 1,
             );
           }
-
         },
-        child:
-        SingleChildScrollView(
+        child: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.only(
                 top: 20.0, left: 15, right: 15, bottom: 20),
             child: Column(
               children: [
-                /* Padding(
-                  padding: const EdgeInsets.only(top: 4.0, bottom: 8),
-                  child: Row(
-                    children: [
-                      Text(
-                        "Type",
-                        style: TextStyle(fontSize: 18),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(left: 3.0),
-                        child: Text("*",
-                            style: TextStyle(
-                                fontSize: 18,
-                                color: MyColors.redColorCode)),
-                      )
-                    ],
-                  ),
-                ),
-                GestureDetector(
-                  onTap: () {
-
-                    setState(() {});
-                  },
-                  child:
-
-                  Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child:
-                      Container(
-                        margin: EdgeInsets.only(top: 10.0, right: 3.0, left: 3.0),
-                        height: 50.0,
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          border: Border.all(width: 1.0, color: Colors.grey),
-
-                        ),
-                        child: ListTile(
-                          leading: Text(type ?? gatePasstype.toString(),style: TextStyle(fontSize: 15.0, )),
-                          trailing:
-                          isGatepasscontainerselected?
-                          IconButton(
-                            icon: Icon(
-                              Icons.keyboard_arrow_up,
-                            ),
-                            onPressed: () {
-                              isTypecontainerselected = false;
-                              setState(() {});
-                            },
-                          )
-                              :
-
-                          IconButton(
-                            icon: Icon(
-                                Icons.keyboard_arrow_down),
-
-                            onPressed: () {
-                              isTypecontainerselected = true;
-
-
-                              setState(() {});
-                            },
-                          ),
-
-                        ),
-
-                      )),
-                ),
-                isTypecontainerselected
-                    ?
-                Card(
-                  elevation: 3.0,
-                  child: Container(
-                    height: 150.0,
-                    width: double.infinity,
-                    margin: EdgeInsets.only(left: 20.0, right: 20.0),
-                    child: ListView.builder(
-                      itemCount: typeList!.length,
-                      itemBuilder: (BuildContext context, int index) {
-                        return Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  isTypecontainerselected = false;
-
-                                  type =typeList[index].toString();
-                                });
-                                DateTime now = DateTime.now();
-
-                                // Format the date in dd/MM/yyyy format
-                                String formattedDate = DateFormat('dd/MM/yyyy').format(now);
-                                if(type== "COFF")
-                                  {
-                                    mainBloc.add(GetStaffDetailsForCoffEvents(type: "COFF", staffCode: "cd02851", date: formattedDate, token: Auth_Token!));
-                                   //event
-
-                                  }
-
-                                String selectedGatepassType = typeList![index].toString();
-                                print("type : "+type);
-                              },
-                              child: SizedBox(
-                                height: 40.0,
-                                width: 50.0,
-                                child: Text(typeList![index].toString()),
-                              ),
-                            ));
-                      },
-                    ),
-                  ),
-                )
-                    : SizedBox(),*/
-
                 Align(
                     alignment: Alignment.centerLeft,
                     child: Padding(
@@ -593,8 +434,7 @@ class _DebitcoffscreenState extends State<Debitcoffscreen> {
                         borderRadius: BorderRadius.all(Radius.circular(4)),
                         borderSide: BorderSide(
                           width: 1,
-                        )
-                    ),
+                        )),
                     errorBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(4)),
                         borderSide: BorderSide(
@@ -631,8 +471,7 @@ class _DebitcoffscreenState extends State<Debitcoffscreen> {
                           )
                         ],
                       ),
-                    )
-                ),
+                    )),
                 TextField(
                   controller: _staffNamecontroller,
                   enabled: false, // to trigger disabledBorder
@@ -657,8 +496,7 @@ class _DebitcoffscreenState extends State<Debitcoffscreen> {
                         borderRadius: BorderRadius.all(Radius.circular(4)),
                         borderSide: BorderSide(
                           width: 1,
-                        )
-                    ),
+                        )),
                     errorBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(4)),
                         borderSide: BorderSide(
@@ -676,7 +514,6 @@ class _DebitcoffscreenState extends State<Debitcoffscreen> {
                   // onChanged: _authenticationFormBloc.onPasswordChanged,
                   obscureText: false,
                 ),
-
                 Align(
                     alignment: Alignment.centerLeft,
                     child: Padding(
@@ -696,8 +533,7 @@ class _DebitcoffscreenState extends State<Debitcoffscreen> {
                           )
                         ],
                       ),
-                    )
-                ),
+                    )),
                 TextField(
                   controller: _departmentNamecontroller,
                   enabled: false, // to trigger disabledBorder
@@ -722,8 +558,7 @@ class _DebitcoffscreenState extends State<Debitcoffscreen> {
                         borderRadius: BorderRadius.all(Radius.circular(4)),
                         borderSide: BorderSide(
                           width: 1,
-                        )
-                    ),
+                        )),
                     errorBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(4)),
                         borderSide: BorderSide(
@@ -741,8 +576,6 @@ class _DebitcoffscreenState extends State<Debitcoffscreen> {
                   // onChanged: _authenticationFormBloc.onPasswordChanged,
                   obscureText: false,
                 ),
-
-
                 Align(
                     alignment: Alignment.centerLeft,
                     child: Padding(
@@ -762,8 +595,7 @@ class _DebitcoffscreenState extends State<Debitcoffscreen> {
                           )
                         ],
                       ),
-                    )
-                ),
+                    )),
                 TextField(
                   controller: _designationController,
                   enabled: false, // to trigger disabledBorder
@@ -788,8 +620,7 @@ class _DebitcoffscreenState extends State<Debitcoffscreen> {
                         borderRadius: BorderRadius.all(Radius.circular(4)),
                         borderSide: BorderSide(
                           width: 1,
-                        )
-                    ),
+                        )),
                     errorBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(4)),
                         borderSide: BorderSide(
@@ -807,8 +638,6 @@ class _DebitcoffscreenState extends State<Debitcoffscreen> {
                   // onChanged: _authenticationFormBloc.onPasswordChanged,
                   obscureText: false,
                 ),
-
-
                 Align(
                     alignment: Alignment.centerLeft,
                     child: Padding(
@@ -828,8 +657,7 @@ class _DebitcoffscreenState extends State<Debitcoffscreen> {
                           )
                         ],
                       ),
-                    )
-                ),
+                    )),
                 TextField(
                   controller: _shiftController,
                   enabled: false, // to trigger disabledBorder
@@ -854,8 +682,7 @@ class _DebitcoffscreenState extends State<Debitcoffscreen> {
                         borderRadius: BorderRadius.all(Radius.circular(4)),
                         borderSide: BorderSide(
                           width: 1,
-                        )
-                    ),
+                        )),
                     errorBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(4)),
                         borderSide: BorderSide(
@@ -873,7 +700,6 @@ class _DebitcoffscreenState extends State<Debitcoffscreen> {
                   // onChanged: _authenticationFormBloc.onPasswordChanged,
                   obscureText: false,
                 ),
-
                 Align(
                     alignment: Alignment.centerLeft,
                     child: Padding(
@@ -898,17 +724,18 @@ class _DebitcoffscreenState extends State<Debitcoffscreen> {
                   controller: _gatepassdatecontroller,
                   enabled: true,
                   readOnly: true,
-                  onTap: (){
+                  onTap: () {
                     FocusScope.of(context).requestFocus(new FocusNode());
                     _selectDate(context);
-                  },// to trigger disabledBorder
+                  },
+                  // to trigger disabledBorder
                   decoration: InputDecoration(
                     filled: true,
                     fillColor: MyColors.whiteColorCode,
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(4)),
-                      borderSide: BorderSide(
-                          width: 1, color: MyColors.buttonColorCode),
+                      borderSide:
+                      BorderSide(width: 1, color: MyColors.buttonColorCode),
                     ),
                     disabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(4)),
@@ -921,27 +748,23 @@ class _DebitcoffscreenState extends State<Debitcoffscreen> {
                     ),
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(4)),
-                        borderSide: BorderSide(width: 1,)
-                    ),
+                        borderSide: BorderSide(
+                          width: 1,
+                        )),
                     errorBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(4)),
                         borderSide: BorderSide(
-                            width: 1, color: MyColors.textBoxBorderColorCode)
-                    ),
+                            width: 1, color: MyColors.textBoxBorderColorCode)),
                     focusedErrorBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(4)),
                         borderSide: BorderSide(
-                            width: 2, color: MyColors.buttonColorCode)
-                    ),
+                            width: 2, color: MyColors.buttonColorCode)),
                     hintText: "DD/MM/YYYY",
-                    suffixIcon:
-                    Icon(
-                      Icons
-                          .calendar_month,
+                    suffixIcon: Icon(
+                      Icons.calendar_month,
                       size: 24,
-                      color: MyColors
-                          .dateIconColorCode,
-                    ) ,
+                      color: MyColors.dateIconColorCode,
+                    ),
                     hintStyle: TextStyle(
                         fontSize: 16, color: MyColors.datePlacehoderColorCode),
                     errorText: "",
@@ -969,8 +792,7 @@ class _DebitcoffscreenState extends State<Debitcoffscreen> {
                           )
                         ],
                       ),
-                    )
-                ),
+                    )),
                 TextField(
                   controller: _balancehrsController,
                   enabled: false, // to trigger disabledBorder
@@ -995,8 +817,7 @@ class _DebitcoffscreenState extends State<Debitcoffscreen> {
                         borderRadius: BorderRadius.all(Radius.circular(4)),
                         borderSide: BorderSide(
                           width: 1,
-                        )
-                    ),
+                        )),
                     errorBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(4)),
                         borderSide: BorderSide(
@@ -1036,150 +857,76 @@ class _DebitcoffscreenState extends State<Debitcoffscreen> {
                     )),
                 Padding(
                   padding: const EdgeInsets.only(left: 4.0),
-                  child:
-                  TextField(
+                  child: TextField(
                     // onChanged: (value) {
                     //   fromTimeController = value;
                     // },
                     onTap: () async {
-                      final DateFormat
-                      formatter =
-                      DateFormat(
-                          'H:mm',
-                          Localizations.localeOf(
-                              context)
-                              .toLanguageTag());
-                      final TimeOfDay? picked =
-                      await showTimePicker(
-                          context:
-                          context,
-                          initialTime:
-                          TimeOfDay
-                              .now());
+                      final DateFormat formatter = DateFormat('H:mm',
+                          Localizations.localeOf(context).toLanguageTag());
+                      final TimeOfDay? picked = await showTimePicker(
+                          context: context, initialTime: TimeOfDay.now());
                       builder:
-                          (BuildContext
-                      context,
-                          Widget? child) {
+                          (BuildContext context, Widget? child) {
                         return MediaQuery(
-                            data: MediaQuery.of(
-                                context)
-                                .copyWith(
-                                alwaysUse24HourFormat:
-                                true),
-                            child:
-                            child!);
+                            data: MediaQuery.of(context)
+                                .copyWith(alwaysUse24HourFormat: true),
+                            child: child!);
                       };
-                      if (picked !=
-                          null) {
-                        final String
-                        fromTime =
-                        formatter.format(
-                            DateTime(
-                                0,
-                                1,
-                                1,
-                                picked
-                                    .hour,
-                                picked
-                                    .minute));
-                        fromTimeController =
-                            fromTime;
+                      if (picked != null) {
+                        final String fromTime = formatter.format(
+                            DateTime(0, 1, 1, picked.hour, picked.minute));
+                        fromTimeController = fromTime;
                         setState(() {
-                          fromTimeInput
-                              .text =
-                              fromTimeController;
+                          fromTimeInput.text = fromTimeController;
                         });
                       }
                     },
                     readOnly: true,
-                    enabled:
-                    true, // to trigger disabledBorder
-                    decoration:
-                    const InputDecoration(
+                    enabled: true,
+                    // to trigger disabledBorder
+                    decoration: const InputDecoration(
                       filled: true,
-                      fillColor: MyColors
-                          .whiteColorCode,
-                      focusedBorder:
-                      OutlineInputBorder(
-                        borderRadius:
-                        BorderRadius
-                            .all(Radius
-                            .circular(
-                            4)),
+                      fillColor: MyColors.whiteColorCode,
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(4)),
                         borderSide: BorderSide(
-                            width: 1,
-                            color: MyColors
-                                .buttonColorCode),
+                            width: 1, color: MyColors.buttonColorCode),
                       ),
-                      disabledBorder:
-                      OutlineInputBorder(
-                        borderRadius:
-                        BorderRadius
-                            .all(Radius
-                            .circular(
-                            4)),
-                        borderSide: BorderSide(
-                            width: 1,
-                            color: Colors
-                                .orange),
+                      disabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(4)),
+                        borderSide: BorderSide(width: 1, color: Colors.orange),
                       ),
-                      enabledBorder:
-                      OutlineInputBorder(
-                        borderRadius:
-                        BorderRadius
-                            .all(Radius
-                            .circular(
-                            4)),
-                        borderSide: BorderSide(
-                            width: 1,
-                            color: MyColors
-                                .textColorCode),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(4)),
+                        borderSide:
+                        BorderSide(width: 1, color: MyColors.textColorCode),
                       ),
-                      border:
-                      OutlineInputBorder(
-                          borderRadius:
-                          BorderRadius.all(Radius.circular(
-                              4)),
-                          borderSide:
-                          BorderSide(
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(4)),
+                          borderSide: BorderSide(
                             width: 1,
                           )),
                       errorBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius
-                              .all(Radius
-                              .circular(
-                              4)),
+                          borderRadius: BorderRadius.all(Radius.circular(4)),
                           borderSide: BorderSide(
                               width: 1,
-                              color: MyColors
-                                  .textBoxBorderColorCode)),
+                              color: MyColors.textBoxBorderColorCode)),
                       focusedErrorBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius
-                              .all(Radius
-                              .circular(
-                              4)),
+                          borderRadius: BorderRadius.all(Radius.circular(4)),
                           borderSide: BorderSide(
-                              width: 2,
-                              color: MyColors
-                                  .buttonColorCode)),
-                      hintText:
-                      "hh:mm:AM",
-                      suffixIcon:
-                      Icon(
-                        Icons
-                            .watch_later_outlined,
+                              width: 2, color: MyColors.buttonColorCode)),
+                      hintText: "hh:mm:AM",
+                      suffixIcon: Icon(
+                        Icons.watch_later_outlined,
                         size: 24,
-                        color: MyColors
-                            .dateIconColorCode,
+                        color: MyColors.dateIconColorCode,
                       ),
                       hintStyle: TextStyle(
-                          fontSize: 18,
-                          color: MyColors
-                              .searchTextColorCode),
+                          fontSize: 18, color: MyColors.searchTextColorCode),
                       errorText: "",
                     ),
-                    controller:
-                    fromTimeInput,
+                    controller: fromTimeInput,
                     // controller: _passwordController,
                     // onChanged: _authenticationFormBloc.onPasswordChanged,
                     obscureText: false,
@@ -1207,160 +954,83 @@ class _DebitcoffscreenState extends State<Debitcoffscreen> {
                     )),
                 Padding(
                   padding: const EdgeInsets.only(left: 4.0),
-                  child:
-                  TextField(
+                  child: TextField(
                     // onChanged: (value) {
                     //   fromTimeController = value;
                     // },
                     onTap: () async {
-                      final DateFormat
-                      formatter =
-                      DateFormat(
-                          'H:mm',
-                          Localizations.localeOf(
-                              context)
-                              .toLanguageTag());
-                      final TimeOfDay? picked =
-                      await showTimePicker(
-                          context:
-                          context,
-                          initialTime:
-                          TimeOfDay
-                              .now());
+                      final DateFormat formatter = DateFormat('H:mm',
+                          Localizations.localeOf(context).toLanguageTag());
+                      final TimeOfDay? picked = await showTimePicker(
+                          context: context, initialTime: TimeOfDay.now());
                       builder:
-                          (BuildContext
-                      context,
-                          Widget? child) {
+                          (BuildContext context, Widget? child) {
                         return MediaQuery(
-                            data: MediaQuery.of(
-                                context)
-                                .copyWith(
-                                alwaysUse24HourFormat:
-                                true),
-                            child:
-                            child!);
+                            data: MediaQuery.of(context)
+                                .copyWith(alwaysUse24HourFormat: true),
+                            child: child!);
                       };
-                      if (picked !=
-                          null) {
-                        final String
-                        fromTime =
-                        formatter.format(
-                            DateTime(
-                                0,
-                                1,
-                                1,
-                                picked
-                                    .hour,
-                                picked
-                                    .minute));
-                        toTimeController =
-                            fromTime;
+                      if (picked != null) {
+                        final String fromTime = formatter.format(
+                            DateTime(0, 1, 1, picked.hour, picked.minute));
+                        toTimeController = fromTime;
                         setState(() {
-                          toTimeInput
-                              .text =
-                              toTimeController;
+                          toTimeInput.text = toTimeController;
                         });
-
 
                         //    calculateTotalMin( );
                       }
                     },
                     readOnly: true,
-                    enabled:
-                    true, // to trigger disabledBorder
-                    decoration:
-                    const InputDecoration(
+                    enabled: true,
+                    // to trigger disabledBorder
+                    decoration: const InputDecoration(
                       filled: true,
-                      fillColor: MyColors
-                          .whiteColorCode,
-                      focusedBorder:
-                      OutlineInputBorder(
-                        borderRadius:
-                        BorderRadius
-                            .all(Radius
-                            .circular(
-                            4)),
+                      fillColor: MyColors.whiteColorCode,
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(4)),
                         borderSide: BorderSide(
-                            width: 1,
-                            color: MyColors
-                                .buttonColorCode),
+                            width: 1, color: MyColors.buttonColorCode),
                       ),
-                      disabledBorder:
-                      OutlineInputBorder(
-                        borderRadius:
-                        BorderRadius
-                            .all(Radius
-                            .circular(
-                            4)),
-                        borderSide: BorderSide(
-                            width: 1,
-                            color: Colors
-                                .orange),
+                      disabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(4)),
+                        borderSide: BorderSide(width: 1, color: Colors.orange),
                       ),
-                      enabledBorder:
-                      OutlineInputBorder(
-                        borderRadius:
-                        BorderRadius
-                            .all(Radius
-                            .circular(
-                            4)),
-                        borderSide: BorderSide(
-                            width: 1,
-                            color: MyColors
-                                .textColorCode),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(4)),
+                        borderSide:
+                        BorderSide(width: 1, color: MyColors.textColorCode),
                       ),
-                      border:
-                      OutlineInputBorder(
-                          borderRadius:
-                          BorderRadius.all(Radius.circular(
-                              4)),
-                          borderSide:
-                          BorderSide(
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(4)),
+                          borderSide: BorderSide(
                             width: 1,
                           )),
                       errorBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius
-                              .all(Radius
-                              .circular(
-                              4)),
+                          borderRadius: BorderRadius.all(Radius.circular(4)),
                           borderSide: BorderSide(
                               width: 1,
-                              color: MyColors
-                                  .textBoxBorderColorCode)),
+                              color: MyColors.textBoxBorderColorCode)),
                       focusedErrorBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius
-                              .all(Radius
-                              .circular(
-                              4)),
+                          borderRadius: BorderRadius.all(Radius.circular(4)),
                           borderSide: BorderSide(
-                              width: 2,
-                              color: MyColors
-                                  .buttonColorCode)),
-                      hintText:
-                      "hh:mm:AM",
+                              width: 2, color: MyColors.buttonColorCode)),
+                      hintText: "hh:mm:AM",
                       suffixIcon: Icon(
-                        Icons
-                            .watch_later_outlined,
+                        Icons.watch_later_outlined,
                         size: 24,
-                        color: MyColors
-                            .dateIconColorCode,
+                        color: MyColors.dateIconColorCode,
                       ),
                       hintStyle: TextStyle(
-                          fontSize: 18,
-                          color: MyColors
-                              .searchTextColorCode),
+                          fontSize: 18, color: MyColors.searchTextColorCode),
                       errorText: "",
                     ),
-                    controller:
-                    toTimeInput,
+                    controller: toTimeInput,
                     // controller: _passwordController,
                     // onChanged: _authenticationFormBloc.onPasswordChanged,
                     obscureText: false,
                   ),
                 ),
-
-
-
                 Padding(
                   padding: const EdgeInsets.only(top: 4.0, bottom: 8),
                   child: Row(
@@ -1373,36 +1043,32 @@ class _DebitcoffscreenState extends State<Debitcoffscreen> {
                         padding: const EdgeInsets.only(left: 3.0),
                         child: Text("*",
                             style: TextStyle(
-                                fontSize: 18,
-                                color: MyColors.redColorCode)),
+                                fontSize: 18, color: MyColors.redColorCode)),
                       )
                     ],
                   ),
                 ),
                 GestureDetector(
                   onTap: () {
-
                     setState(() {});
                   },
-                  child:
-
-                  Padding(
+                  child: Padding(
                       padding: const EdgeInsets.only(bottom: 8),
-                      child:
-                      Container(
-                        margin: EdgeInsets.only(top: 10.0, right: 3.0, left: 3.0),
+                      child: Container(
+                        margin:
+                        EdgeInsets.only(top: 10.0, right: 3.0, left: 3.0),
                         height: 50.0,
                         width: double.infinity,
                         decoration: BoxDecoration(
                           border: Border.all(width: 1.0, color: Colors.grey),
-
                         ),
-
                         child: ListTile(
-                          leading: Text(reason ,style: TextStyle(fontSize: 15.0, )),
-                          trailing:
-                          isReasoncontainerselected?
-                          IconButton(
+                          leading: Text(reason,
+                              style: TextStyle(
+                                fontSize: 15.0,
+                              )),
+                          trailing: isReasoncontainerselected
+                              ? IconButton(
                             icon: Icon(
                               Icons.keyboard_arrow_up,
                             ),
@@ -1411,25 +1077,18 @@ class _DebitcoffscreenState extends State<Debitcoffscreen> {
                               setState(() {});
                             },
                           )
-                              :
-
-                          IconButton(
-                            icon: Icon(
-                                Icons.keyboard_arrow_down),
-
+                              : IconButton(
+                            icon: Icon(Icons.keyboard_arrow_down),
                             onPressed: () {
                               isReasoncontainerselected = true;
                               setState(() {});
                             },
                           ),
-
                         ),
-
                       )),
                 ),
                 isReasoncontainerselected
-                    ?
-                Card(
+                    ? Card(
                   elevation: 3.0,
                   child: Container(
                     height: 150.0,
@@ -1442,21 +1101,21 @@ class _DebitcoffscreenState extends State<Debitcoffscreen> {
                             padding: const EdgeInsets.all(8.0),
                             child: GestureDetector(
                               onTap: () {
-
-
                                 setState(() {
                                   isReasoncontainerselected = false;
 
-                                  reason =reasonsList[index].toString();
+                                  reason = reasonsList[index].toString();
                                 });
 
-                                String selectedGatepassType = reasonsList![index].toString();
-                                print("reason : "+reason);
+                                String selectedGatepassType =
+                                reasonsList![index].toString();
+                                print("reason : " + reason);
                               },
                               child: SizedBox(
                                 height: 40.0,
                                 width: 50.0,
-                                child: Text(reasonsList![index].toString()),
+                                child:
+                                Text(reasonsList![index].toString()),
                               ),
                             ));
                       },
@@ -1467,41 +1126,38 @@ class _DebitcoffscreenState extends State<Debitcoffscreen> {
                 Align(
                     alignment: Alignment.topCenter,
                     child: Padding(
-                        padding: const EdgeInsets.only(bottom: 8,left: 25),
-                        child:CheckboxListTile(
-                          title: Text("Please Check Mark To Enter Purpose",style: TextStyle(fontSize: 17.0, )), //    <-- label
+                        padding: const EdgeInsets.only(bottom: 8, left: 25),
+                        child: CheckboxListTile(
+                          title: Text("Please Check Mark To Enter Purpose",
+                              style: TextStyle(
+                                fontSize: 17.0,
+                              )),
+                          //    <-- label
                           value: ClickStatus,
                           activeColor: Colors.red,
                           checkColor: Colors.white,
                           onChanged: (newValue) {
-                            setState(()  {
-                              ClickStatus=newValue!;
+                            setState(() {
+                              ClickStatus = newValue!;
                               //   ClickStatus?_purposecontroller.clear():" Enter Purpose ";
-                              if(ClickStatus)
-                              {
-                                String value=_purposecontroller.text;
-                                print("purpose value---" +value.toString());
+                              if (ClickStatus) {
+                                String value = _purposecontroller.text;
+                                print("purpose value---" + value.toString());
 
                                 //    _purposecontroller.clear();
                                 //     _purposecontroller.text=" Enter Purpose ";
-                              }
-                              else{
+                              } else {
                                 _purposecontroller.clear();
-
                               }
-                              print("checkvalue---" +newValue.toString());
-
+                              print("checkvalue---" + newValue.toString());
                             });
-
-
                           },
                           dense: true,
                           controlAffinity: ListTileControlAffinity.leading,
                           contentPadding: EdgeInsets.all(0),
-                        ))   ),
-
-                ClickStatus?
-                Align(
+                        ))),
+                ClickStatus
+                    ? Align(
                     alignment: Alignment.centerLeft,
                     child: Padding(
                       padding: const EdgeInsets.only(bottom: 8),
@@ -1513,7 +1169,8 @@ class _DebitcoffscreenState extends State<Debitcoffscreen> {
                           ),
                         ],
                       ),
-                    )):Align(
+                    ))
+                    : Align(
                     alignment: Alignment.centerLeft,
                     child: Padding(
                       padding: const EdgeInsets.only(bottom: 8),
@@ -1526,8 +1183,8 @@ class _DebitcoffscreenState extends State<Debitcoffscreen> {
                         ],
                       ),
                     )),
-                ClickStatus?
-                TextField(
+                ClickStatus
+                    ? TextField(
                   controller: _purposecontroller,
                   enabled: true, // to trigger disabledBorder
 
@@ -1536,29 +1193,35 @@ class _DebitcoffscreenState extends State<Debitcoffscreen> {
                     fillColor: MyColors.whiteColorCode,
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(4)),
-                      borderSide:
-                      BorderSide(width: 1, color: MyColors.buttonColorCode),
+                      borderSide: BorderSide(
+                          width: 1, color: MyColors.buttonColorCode),
                     ),
                     disabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(4)),
-                      borderSide: BorderSide(width: 1, color: Colors.orange),
+                      borderSide:
+                      BorderSide(width: 1, color: Colors.orange),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(4)),
                       borderSide: BorderSide(
-                          width: 1, color: MyColors.textBoxBorderColorCode),
+                          width: 1,
+                          color: MyColors.textBoxBorderColorCode),
                     ),
                     border: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(4)),
+                        borderRadius:
+                        BorderRadius.all(Radius.circular(4)),
                         borderSide: BorderSide(
                           width: 1,
                         )),
                     errorBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(4)),
+                        borderRadius:
+                        BorderRadius.all(Radius.circular(4)),
                         borderSide: BorderSide(
-                            width: 1, color: MyColors.textBoxBorderColorCode)),
+                            width: 1,
+                            color: MyColors.textBoxBorderColorCode)),
                     focusedErrorBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(4)),
+                        borderRadius:
+                        BorderRadius.all(Radius.circular(4)),
                         borderSide: BorderSide(
                             width: 2, color: MyColors.buttonColorCode)),
                     // hintText: "HintText",
@@ -1569,7 +1232,8 @@ class _DebitcoffscreenState extends State<Debitcoffscreen> {
                   // controller: _passwordController,
                   // onChanged: _authenticationFormBloc.onPasswordChanged,
                   obscureText: false,
-                ):Align(
+                )
+                    : Align(
                     alignment: Alignment.centerLeft,
                     child: Padding(
                       padding: const EdgeInsets.only(bottom: 8),
@@ -1582,8 +1246,6 @@ class _DebitcoffscreenState extends State<Debitcoffscreen> {
                         ],
                       ),
                     ))
-
-
               ],
             ),
           ),
@@ -1599,147 +1261,112 @@ class _DebitcoffscreenState extends State<Debitcoffscreen> {
         toastLength: Toast.LENGTH_SHORT,
         timeInSecForIosWeb: 1,
       );
-    }
-
-    else  if (fromTimeInput.text.isEmpty) {
+    } else if (fromTimeInput.text.isEmpty) {
       Fluttertoast.showToast(
         msg: "  Please Select From Time...!  ",
         toastLength: Toast.LENGTH_SHORT,
         timeInSecForIosWeb: 1,
       );
-    }
-    else if (toTimeInput.text.isEmpty) {
+    } else if (toTimeInput.text.isEmpty) {
       Fluttertoast.showToast(
         msg: "  Please Select To Time...!  ",
         toastLength: Toast.LENGTH_SHORT,
         timeInSecForIosWeb: 1,
       );
-    }
-    else if (reason=="Select") {
+    } else if (reason == "Select") {
       Fluttertoast.showToast(
         msg: "  Please Select Reason...!  ",
         toastLength: Toast.LENGTH_SHORT,
         timeInSecForIosWeb: 1,
       );
-    }
-
-    else if (ClickStatus==true)
-    {
-
-      if(_purposecontroller.text.isEmpty)
-      {
+    } else if (ClickStatus == true) {
+      if (_purposecontroller.text.isEmpty) {
         Fluttertoast.showToast(
           msg: "  Please Enter Purpose...!  ",
           toastLength: Toast.LENGTH_SHORT,
           timeInSecForIosWeb: 1,
         );
-      }
-      else{
+      } else {
         print(" ifffffff_else..............");
         // _CoffDebit();
         calculateTotalMin();
       }
-    }
-    else
-    {
+    } else {
       print(" _else..............");
 
       calculateTotalMin();
     }
-
   }
-  _CoffDebit(){
-    print(" _CoffDebit() called ClickStatus.............."+ClickStatus.toString());
 
-    if(widget.flag==1)
-    {
+  _CoffDebit() {
+    print(" _CoffDebit() called ClickStatus.............." +
+        ClickStatus.toString());
+
+    if (widget.flag == 1) {
       mainBloc.add(SubmitCoffDebitEvents(
           submitCoffDebitRequest: SubmitCoffDebitRequest(
-              coffID:"",
-              staffCode:_staffCodecontroller.text,
+              coffID: "",
+              staffCode: _staffCodecontroller.text,
               staffName: _staffNamecontroller.text,
-              coffDate:_gatepassdatecontroller.text,
-              department:_departmentNamecontroller.text ,
-              designation:designation,
+              coffDate: _gatepassdatecontroller.text,
+              department: _departmentNamecontroller.text,
+              designation: designation,
               shift: "GS",
               balance: _balancehrsController.text,
-              fromTime:fromTimeInput.text,
-              toTime:toTimeInput.text,
-              reason:reason,
-              check:ClickStatus.toString(),
-              purpose:_purposecontroller.text,
-              add:true
-          ),
+              fromTime: fromTimeInput.text,
+              toTime: toTimeInput.text,
+              reason: reason,
+              check: ClickStatus.toString(),
+              purpose: _purposecontroller.text,
+              add: true),
+          token: Auth_Token!));
+      _clearFields();
+    } else if (widget.flag == 2) {
+      mainBloc.add(SubmitCoffDebitEvents(
+          submitCoffDebitRequest: SubmitCoffDebitRequest(
+              coffID: widget.datum.cOffId.toString(),
+              staffCode: _staffCodecontroller.text,
+              staffName: _staffNamecontroller.text,
+              coffDate: _gatepassdatecontroller.text,
+              department: _departmentNamecontroller.text,
+              designation: designation,
+              shift: "GS",
+              balance: _balancehrsController.text,
+              fromTime: fromTimeInput.text,
+              toTime: toTimeInput.text,
+              reason: reason,
+              check: ClickStatus.toString(),
+              purpose: _purposecontroller.text,
+              add: false),
           token: Auth_Token!));
       _clearFields();
     }
-    else if(widget.flag==2){
-      mainBloc.add(SubmitCoffDebitEvents(
-          submitCoffDebitRequest: SubmitCoffDebitRequest(
-              coffID:widget.datum.cOffId.toString(),
-              staffCode:_staffCodecontroller.text,
-              staffName: _staffNamecontroller.text,
-              coffDate:_gatepassdatecontroller.text,
-              department:_departmentNamecontroller.text ,
-              designation:designation,
-              shift: "GS",
-              balance: _balancehrsController.text,
-              fromTime:fromTimeInput.text,
-              toTime:toTimeInput.text,
-              reason:reason,
-              check:ClickStatus.toString(),
-              purpose:_purposecontroller.text,
-              add:false
-          ),
-          token: Auth_Token!));
-      _clearFields();
-    }
-
-
   }
 
   Future<void> _selectDate(BuildContext context) async {
-    //  DateTime dateBefore45Days = selectedDate.subtract(Duration(days: 45));
+    DateTime now = DateTime.now();
+
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: selectedDate,
-      // firstDate: DateTime.now(),
-      // firstDate: DateTime(2015, 8),
-      // firstDate: DateTime.now().subtract(Duration(days: 1)),
-      //firstDate: selectedDate,
-      firstDate: selectedDate.subtract(Duration(days:40)),
-      lastDate: DateTime(2026),
-      // lastDate: DateTime(2102)
+
+      initialDate: now, // always safe
+
+      firstDate: now.subtract(Duration(days: 40)),
+
+      lastDate: DateTime(now.year + 1), // FIXED (was wrong)
     );
-    if (picked != null && picked != selectedDate) {
+
+    if (picked != null) {
       setState(() {
         selectedDate = picked;
-        _gatepassdatecontroller.text=selectedDate.day.toString()+"/"+selectedDate.month.toString()+"/"+selectedDate.year.toString();
-        date=selectedDate.year.toString()+"-"+selectedDate.month.toString()+"-"+selectedDate.day.toString();
 
+        _gatepassdatecontroller.text =
+            DateFormat('dd/MM/yyyy').format(selectedDate);
+
+        date = DateFormat('yyyy-MM-dd').format(selectedDate);
       });
     }
   }
-
-/*
-  void calculateTotalMin() {
-    // Define start and end time as strings
-    String startTimeStr = fromTimeInput.text;  // Start time as string
-    String endTimeStr = toTimeInput.text;    // End time as string
-    // Parse the time strings into DateTime objects (using today's date)
-    DateTime time1 = _parseTime(startTimeStr);
-    DateTime time2 = _parseTime(endTimeStr);
-
-    // Calculate the difference between the two times
-    Duration difference = time2.difference(time1);
-
-    // Get the difference in minutes
-    int minutes = difference.inMinutes;
-
-    print('The difference in minutes is: $minutes');
-
-   // _totalmincontroller.text=minutes.toString();
-  }*/
 
   void calculateTotalMin() {
     String startTimeStr = fromTimeInput.text;
@@ -1756,7 +1383,8 @@ class _DebitcoffscreenState extends State<Debitcoffscreen> {
     // Convert balance time to minutes
     String balanceStr = _balancehrsController.text; // Example: "04:44"
     List<String> balanceParts = balanceStr.split(":");
-    int balanceMinutes = (int.parse(balanceParts[0]) * 60) + int.parse(balanceParts[1]);
+    int balanceMinutes =
+        (int.parse(balanceParts[0]) * 60) + int.parse(balanceParts[1]);
 
     print('Calculated Time in minutes: $calculatedMinutes');
     print('Balance Time in minutes: $balanceMinutes');
@@ -1779,7 +1407,8 @@ class _DebitcoffscreenState extends State<Debitcoffscreen> {
     List<String> parts = timeStr.split(":");
     int hours = int.parse(parts[0]);
     int minutes = int.parse(parts[1]);
-    return DateTime(2024, 1, 1, hours, minutes); // Arbitrary date for time calculation
+    return DateTime(
+        2024, 1, 1, hours, minutes); // Arbitrary date for time calculation
   }
 
   void _clearFields() {
@@ -1798,6 +1427,4 @@ class _DebitcoffscreenState extends State<Debitcoffscreen> {
 //     int minutes = int.parse(parts[1]);
 //     return DateTime(2024, 1, 1, hours, minutes); // Arbitrary date
 //   }
-
-
 }

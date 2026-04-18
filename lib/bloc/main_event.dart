@@ -230,11 +230,17 @@ class VisitlatLongListEvents extends MainEvent {
 
 //GetAllUsersData
 class GetAllUsersListEvent extends MainEvent {
-
+  String pagenumber;
+  String pagesize;
   String token;
 
-  GetAllUsersListEvent({
-    required this.token});
+  GetAllUsersListEvent({required this.pagenumber, required this.pagesize, required this.token});
+
+}
+class SearchbyStaffcodeEvents extends MainEvent{
+  String staffcode;
+  String token;
+  SearchbyStaffcodeEvents({required this.staffcode, required this.token});
 }
 
 //GetVisitListbetweenFromdateAndToDate

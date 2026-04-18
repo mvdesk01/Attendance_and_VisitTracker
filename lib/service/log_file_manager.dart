@@ -1,76 +1,55 @@
 import 'dart:io';
-import 'package:external_path/external_path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:intl/intl.dart';
 
-import 'background_service.dart' as Permission;
-
 class LogFileManager {
+
   // Get the file path for the log file
   static Future<String> _getLogFilePath() async {
-    final directory = await getExternalStorageDirectory();
-    final logDir = Directory('${directory?.path}/Logs');
-    print("path : "+directory!.path.toString());
 
-    // Create the directory if it doesn't exist
+    final directory = await getExternalStorageDirectory();
+
+    Directory logDir = Directory('${directory!.path}/Logs');
+
+    print("Log directory path: ${logDir.path}");
+
+    // Create directory if not exists
     if (!await logDir.exists()) {
       await logDir.create(recursive: true);
-      print(" not Exists");
+      print("Logs folder created");
+    } else {
+      print("Logs folder exists");
+    }
 
-    }else
-      {
-        print("Exists");
-      }
+    // Daily log file
+    final logFileName =
+        'log_${DateFormat('yyyyMMdd').format(DateTime.now())}.txt';
 
-    // Log file name with current date
-    final logFileName = 'log_${DateFormat('yyyyMMdd').format(DateTime.now())}.txt';
     return '${logDir.path}/$logFileName';
   }
 
-  // Write a log message to the log file
-/*
-  static Future<void> writeLog(String message) async {
+  // Write log
+  static Future<void> writeLog(String sBody) async {
+
     try {
-      final filePath = await _getLogFilePath();
-      final logFile = File(filePath);
 
-      final logMessage = '${DateTime.now().toIso8601String()} - $message\n';
-      await logFile.writeAsString(logMessage, mode: FileMode.append);
-      //print("Log written: $logMessage");
+      String filePath = await _getLogFilePath();
+
+      File logFile = File(filePath);
+
+      String time = DateTime.now().toIso8601String();
+
+      await logFile.writeAsString(
+        '$time , $sBody\n',
+        mode: FileMode.append,
+      );
+
+      print("✅ Log written: $sBody");
+
     } catch (e) {
-      print("Failed to write log: $e");
-    }
-  }
-*/
 
-   static Future<void> writeLog( String sBody) async {
-     // print("saveData Called");
-     String path;
+      print("❌ Error writing log: $e");
 
-     path = await ExternalPath.getExternalStoragePublicDirectory(
-         ExternalPath.DIRECTORY_DOCUMENTS);
-     print("saveLogData Called path :"+path);
-
-     Directory root = Directory('${path}/Flutter Attendance APP LogFile');
-
-    if (!await root.exists()) {
-      await root.create(recursive: true);
-    }
-
-    File gpxfile = File('${root.path}/Log.txt');
-    FileWriter writer;
-     print("saveLogData Called RootPath"+root.path);
-    String time=DateTime.now().toIso8601String();
-    if (!await gpxfile.exists()) {
-      writer = FileWriter(gpxfile, true);
-      await writer.appendData('$time , $sBody\n');
-      await writer.close();
-      print("Data saved in log file 1");
-    } else {
-      writer = FileWriter(gpxfile, true);
-      await writer.appendData('$time , $sBody\n');
-      await writer.close();
-      print("Data saved in log file 2");
     }
   }
 }
@@ -82,11 +61,14 @@ class FileWriter {
   FileWriter(this.file, this.append);
 
   Future<void> appendData(String data) async {
-    await file.writeAsString(data, mode: append ? FileMode.append : FileMode.write);
+    await file.writeAsString(
+      data,
+      mode: append ? FileMode.append : FileMode.write,
+    );
   }
 
   Future<void> close() async {
-    // No explicit close needed for Dart's File operations
+    // Dart File API does not require manual close
   }
 }
 
@@ -98,13 +80,18 @@ class LogManagerTrackingData {
       // 🕒 Step 1: Prepare timestamp
       String time = DateTime.now().toIso8601String();
 
-      // 📂 Step 2: Get public Documents directory
-      String path = await ExternalPath.getExternalStoragePublicDirectory(
-        ExternalPath.DIRECTORY_DOCUMENTS,
-      );
+      // // 📂 Step 2: Get public Documents directory
+      // String path = await ExternalPath.getExternalStoragePublicDirectory(
+      //   ExternalPath.DIRECTORY_DOCUMENTS,
+      // );
+      // // 🗂️ Step 3: Create subfolder if not exists
+      // Directory root = Directory('$path/Flutter Attendance APP LogFile');
 
-      // 🗂️ Step 3: Create subfolder if not exists
-      Directory root = Directory('$path/Flutter Attendance APP LogFile');
+      // 📂 App specific storage (Play Store allowed)
+      final directory = await getExternalStorageDirectory();
+
+      Directory root = Directory('${directory!.path}/FlutterAttendanceLogs');
+
       if (!await root.exists()) {
         await root.create(recursive: true);
       }

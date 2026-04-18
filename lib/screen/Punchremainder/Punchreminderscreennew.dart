@@ -209,7 +209,6 @@ class _AlarmScreenState extends State<AlarmScreen> {
     );
   }
 
-
   tz.TZDateTime _nextInstanceOfTime(TimeOfDay time) {
     final tz.Location localTz = tz.getLocation('Asia/Kolkata'); // Replace with your timezone
     final now = tz.TZDateTime.now(localTz);
@@ -404,10 +403,7 @@ class _AlarmScreenState extends State<AlarmScreen> {
       ],
     );
   }
-
 }
-
-
 
 @pragma('vm:entry-point')
 void alarmCallback() async {
@@ -424,14 +420,12 @@ void alarmCallback() async {
     requestBadgePermission: false,
     requestSoundPermission: false,
   );
-
   await flutterLocalNotificationsPlugin.initialize(
     InitializationSettings(
       android: androidSettings,
       iOS: iosSettings,
     ),
   );
-
   // 2. Show notification for both platforms
   await flutterLocalNotificationsPlugin.show(
     0,
@@ -453,12 +447,8 @@ void alarmCallback() async {
       ),
     ),
   );
-
   print('Notification shown successfully');
 }
-
-
-
 
 /*  @override
   Widget build(BuildContext context) {
