@@ -57,7 +57,7 @@ class _UserListScreenState extends State<UserListScreen> {
 
   // @override
   // void initState() {
-  //   super.initState();
+  //   super.initState();state.getAllusersListResponse?.data
   //   mainBloc = BlocProvider.of<MainBloc>(context);
   //   getData();
   //
@@ -199,7 +199,7 @@ class _UserListScreenState extends State<UserListScreen> {
                   userList.addAll(newData);
                   totalUsers = state.getAllusersListResponse?.totalcount ?? 0;
 
-                  if (newData.length < 50) {
+                  if (newData.length < 15) {
                     isLastPage = true;
                   }
 

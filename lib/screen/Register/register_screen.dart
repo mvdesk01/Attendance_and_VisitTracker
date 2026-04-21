@@ -191,7 +191,7 @@ M-Tech Attendance System Support Team
         _isLoading = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('OTP sent successfully!')),
+        const SnackBar(content: Text('OTP sent to your EmailId')),
       );
     } catch (e) {
       setState(() {

@@ -5,72 +5,41 @@ import 'package:intl/intl.dart';
 
 import 'background_service.dart' as Permission;
 
-class LogFileManager {
-  // Get the file path for the log file
-  static Future<String> _getLogFilePath() async {
-    final directory = await getExternalStorageDirectory();
-    final logDir = Directory('${directory?.path}/Logs');
-    print("path : "+directory!.path.toString());
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+import 'package:intl/intl.dart';
 
-    // Create the directory if it doesn't exist
+class LogFileManager {
+
+  static Future<File> _getLogFile() async {
+    final dir = await getExternalStorageDirectory();
+    final logDir = Directory('${dir!.path}/Logs');
+
     if (!await logDir.exists()) {
       await logDir.create(recursive: true);
-      print(" not Exists");
+    }
 
-    }else
-      {
-        print("Exists");
-      }
+    final fileName =
+        'log_${DateFormat('yyyyMMdd').format(DateTime.now())}.txt';
 
-    // Log file name with current date
-    final logFileName = 'log_${DateFormat('yyyyMMdd').format(DateTime.now())}.txt';
-    return '${logDir.path}/$logFileName';
+    return File('${logDir.path}/$fileName');
   }
 
-  // Write a log message to the log file
-/*
   static Future<void> writeLog(String message) async {
     try {
-      final filePath = await _getLogFilePath();
-      final logFile = File(filePath);
+      final file = await _getLogFile();
 
-      final logMessage = '${DateTime.now().toIso8601String()} - $message\n';
-      await logFile.writeAsString(logMessage, mode: FileMode.append);
-      //print("Log written: $logMessage");
+      final logLine =
+          '${DateTime.now().toIso8601String()} - $message\n';
+
+      await file.writeAsString(
+        logLine,
+        mode: FileMode.append,
+      );
+
+      print("Log written: ${file.path}");
     } catch (e) {
-      print("Failed to write log: $e");
-    }
-  }
-*/
-
-   static Future<void> writeLog( String sBody) async {
-     // print("saveData Called");
-     String path;
-
-     path = await ExternalPath.getExternalStoragePublicDirectory(
-         ExternalPath.DIRECTORY_DOCUMENTS);
-     print("saveLogData Called path :"+path);
-
-     Directory root = Directory('${path}/Flutter Attendance APP LogFile');
-
-    if (!await root.exists()) {
-      await root.create(recursive: true);
-    }
-
-    File gpxfile = File('${root.path}/Log.txt');
-    FileWriter writer;
-     print("saveLogData Called RootPath"+root.path);
-    String time=DateTime.now().toIso8601String();
-    if (!await gpxfile.exists()) {
-      writer = FileWriter(gpxfile, true);
-      await writer.appendData('$time , $sBody\n');
-      await writer.close();
-      print("Data saved in log file 1");
-    } else {
-      writer = FileWriter(gpxfile, true);
-      await writer.appendData('$time , $sBody\n');
-      await writer.close();
-      print("Data saved in log file 2");
+      print("Log write error: $e");
     }
   }
 }
@@ -93,35 +62,36 @@ class FileWriter {
 class LogManagerTrackingData {
   static Future<void> writeLog(String logBody) async {
     try {
-      // ✅ Step 1: Check storage permission
 
-      // 🕒 Step 1: Prepare timestamp
+      // 🕒 Timestamp
       String time = DateTime.now().toIso8601String();
 
-      // 📂 Step 2: Get public Documents directory
-      String path = await ExternalPath.getExternalStoragePublicDirectory(
-        ExternalPath.DIRECTORY_DOCUMENTS,
-      );
+      // 📂 Get app-specific external directory
+      final directory = await getExternalStorageDirectory();
 
-      // 🗂️ Step 3: Create subfolder if not exists
-      Directory root = Directory('$path/Flutter Attendance APP LogFile');
-      if (!await root.exists()) {
-        await root.create(recursive: true);
+      // 🗂️ Create Logs folder
+      final logDir = Directory('${directory!.path}/TrackingLogs');
+
+      if (!await logDir.exists()) {
+        await logDir.create(recursive: true);
       }
 
-      // 📄 Step 4: Create or open file
-      File file = File('${root.path}/TrackingLogs.txt');
+      // 📄 Log file
+      final File file = File('${logDir.path}/TrackingLogs.txt');
 
-      // ✍️ Step 5: Append log line with timestamp
-      await file.writeAsString('$time , $logBody\n', mode: FileMode.append);
+      // ✍️ Write log
+      await file.writeAsString(
+        '$time , $logBody\n',
+        mode: FileMode.append,
+      );
 
-      print("✅ Log saved successfully at: ${file.path}");
+      print("✅ Log saved successfully: ${file.path}");
+
     } catch (e) {
       print("❌ Error writing log: $e");
     }
   }
 }
-
 /// hand written log generate code
 /*
 class LogManagerTrackingData {

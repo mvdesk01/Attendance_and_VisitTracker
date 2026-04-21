@@ -10,11 +10,13 @@ import 'package:attendance_system_ios/screen/Gate%20Pass/gate_pass.dart';
 import 'package:attendance_system_ios/screen/Home/report.dart';
 import 'package:attendance_system_ios/screen/Leave/leave.dart';
 import 'package:attendance_system_ios/screen/Login/login_screen.dart';
+import 'package:attendance_system_ios/screen/MinutesOfTheMeetingForm.dart';
 import 'package:attendance_system_ios/screen/Profile/profile.dart';
 import 'package:attendance_system_ios/screen/Remote%20Location/remote_location.dart';
 import 'package:attendance_system_ios/screen/Transaction/COff%20Debit/CoffDebitScreen.dart';
 import 'package:attendance_system_ios/screen/Transaction/CoffCreditScreen.dart';
 import 'package:attendance_system_ios/screen/Visit%20History/Visit_History_Screen.dart';
+import 'package:attendance_system_ios/screen/Visit/track_visit_location.dart';
 import 'package:attendance_system_ios/service/LocationHandler.dart';
 import 'package:attendance_system_ios/service/WebService.dart';
 import 'package:attendance_system_ios/service/log_file_manager.dart';
@@ -46,7 +48,6 @@ import '../Visit/visit_outside/visit_outside.dart';
 
 class HomeScreen extends StatefulWidget {
   final String? initialPayload;
-
   const HomeScreen({super.key, this.initialPayload});
 
   @override
@@ -54,18 +55,15 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  String todayDate =
-      DateFormat('dd-MM-yyyy HH:mm:ss').format(DateTime.now()).substring(0, 10);
-  String currentTime = DateFormat('dd-MM-yyyy HH:mm:ss')
-      .format(DateTime.now())
-      .substring(10, 19);
+
+  String todayDate = DateFormat('dd-MM-yyyy HH:mm:ss').format(DateTime.now()).substring(0, 10);
+  String currentTime = DateFormat('dd-MM-yyyy HH:mm:ss').format(DateTime.now()).substring(10, 19);
 
   static bool isLoading = false;
   String? _currentLat;
   String? _currentLon;
   Position? _currentPosition;
   String? _currentAddress;
-
   // String formattedDate = DateFormat('dd-MM-yyyy HH:mm:ss').format(DateTime.now());
   // String currentDate = formattedDate.substring(0,10);
   bool isButtonDisabledIn = false;
@@ -83,23 +81,23 @@ class _HomeScreenState extends State<HomeScreen> {
   late MainBloc mainBloc;
   final storage = FlutterSecureStorage();
 
-  String? staffCode = "";
+  String? staffCode="";
 
-  String? Auth_Token = "";
-  String? staffName = "";
-  String? remotelocation = "";
-  String? distancecheckglag = "";
-  String? remotelat = "";
-  String? remotelong = "";
-  String? addressflag = "";
-  String REMOTELOCATION = "";
-  String REMOTELAT = "";
-  String REMOTELONG = "";
-  String ADDRESSFLAG = "";
-  String DISTANCEFLAG = "";
-  String STAFFCODE = "";
-  String? atsflag = "";
-  String? plantcode = "";
+  String? Auth_Token="";
+  String? staffName="";
+  String? remotelocation="";
+  String? distancecheckglag="";
+  String? remotelat="";
+  String? remotelong="";
+  String? addressflag="";
+  String REMOTELOCATION="";
+  String REMOTELAT="";
+  String REMOTELONG="";
+  String ADDRESSFLAG="";
+  String DISTANCEFLAG="";
+  String STAFFCODE="";
+  String? atsflag="";
+  String? plantcode="";
 
   PageController _pageController = PageController(viewportFraction: 0.85);
   int _currentPage = 0;
@@ -123,7 +121,6 @@ class _HomeScreenState extends State<HomeScreen> {
   ];
 
   @override
-
   ///change3
   void initState() {
     // TODO: implement initState
@@ -137,14 +134,11 @@ class _HomeScreenState extends State<HomeScreen> {
         );
       }
     });
-
     ///changes
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      InternetService()
-          .startListening(MyApp.navigatorKey.currentState!.overlay!.context);
+      InternetService().startListening(MyApp.navigatorKey.currentState!.overlay!.context);
     });
     initialize();
-
     ///change2
     // Future.delayed(const Duration(seconds: 1), () {
     //   if (mounted) {
@@ -166,45 +160,39 @@ class _HomeScreenState extends State<HomeScreen> {
     await _checkAndRequestLocationPermission();
     await _updateButtonInitialState();
   }
-
   Future<void> _checkauthorisation() async {
     staffCode = await storage.read(key: 'Staff_Code');
 
     print("staffCode-->$staffCode");
     Auth_Token = await storage.read(key: 'Auth_Token');
 
-    print("Auth_Token-->${Auth_Token}");
+    print("Auth_Token-->${Auth_Token}")  ;
     staffName = await storage.read(key: 'Staff_Name');
 
-    mainBloc
-        .add(GetStaffDetailsEvents(StaffCode: staffCode!, token: Auth_Token!));
+    mainBloc.add(GetStaffDetailsEvents(StaffCode: staffCode!, token: Auth_Token!));
     //mainBloc.add(GetStaffDetailsEvents(StaffCode: staffCode, token: Auth_Token));
   }
-
   Future<void> getData() async {
     staffCode = await storage.read(key: 'Staff_Code');
 
     print("staffCode-->$staffCode");
     Auth_Token = await storage.read(key: 'Auth_Token');
 
-    print("Auth_Token-->" + Auth_Token!);
+    print("Auth_Token-->"+Auth_Token!);
     staffName = await storage.read(key: 'Staff_Name');
 
     mainBloc.add(GetUserInfoEvents(Staffcode: staffCode!, token: Auth_Token!));
     //mainBloc.add(GetStaffDetailsEvents(StaffCode: staffCode, token: Auth_Token));
   }
-
   Future<void> _checkAndRequestLocationPermission() async {
     // while (true) {
-    bool hasPermission = await handleLocationPermission();
-    if (!hasPermission) {
-      _showSnackbar(
-          "Location permission is required! Please allow from settings.");
-    }
+      bool hasPermission = await handleLocationPermission();
+      if (!hasPermission) {
+        _showSnackbar("Location permission is required! Please allow from settings.");
+      }
     // }
     return;
   }
-
   Future<bool> handleLocationPermission() async {
     bool serviceEnabled;
     LocationPermission permission;
@@ -231,14 +219,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return true;
   }
-
   Future<void> _updateButtonInitialState() async {
     // print("inout statuscode inside update");
     final hasPermission = await handleLocationPermission();
-    if (!hasPermission) {
+    if (!hasPermission){
       Fluttertoast.showToast(
-        msg:
-            "Allow location permission from settings to use Punch-In Punch-Out feature!",
+        msg: "Allow location permission from settings to use Punch-In Punch-Out feature!",
         toastLength: Toast.LENGTH_SHORT,
         gravity: ToastGravity.BOTTOM,
         fontSize: 14.0,
@@ -248,48 +234,42 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       isLoading = true;
     });
-    try {
+    try{
       print("inout statuscode try");
 
       // Format the date to 'dd/MM/yyyy' format as required by the API
-      String formattedFromDate =
-          DateFormat('dd/MM/yyyy').format(DateTime.now());
+      String formattedFromDate = DateFormat('dd/MM/yyyy').format(DateTime.now());
       String formattedToDate = DateFormat('dd/MM/yyyy').format(DateTime.now());
 
-      final response = await http
-          .post(
-            Uri.parse('http://114.143.140.28:8020/api/InOut/InOutDetails'),
-            headers: {
-              "Content-Type": "application/json",
-              'Authorization': 'Bearer $Auth_Token'
-            },
-            body: jsonEncode({
-              "staffCode": staffCode,
-              "fromDate": formattedFromDate,
-              "toDate": formattedToDate,
-            }),
-          )
-          .timeout(const Duration(seconds: 15));
+      final response = await http.post(
+        Uri.parse('http://114.143.140.28:8020/api/InOut/InOutDetails'),
+        headers: {"Content-Type": "application/json",
+          'Authorization': 'Bearer $Auth_Token'},
+        body: jsonEncode({
+          "staffCode": staffCode,
+          "fromDate": formattedFromDate,
+          "toDate": formattedToDate,
 
-      print("home inout details statuscode: ${response.statusCode}");
-      print("home inout details body: ${response.body}");
+        }),
+      ).timeout(const Duration(seconds: 15));
+
+       print("home inout details statuscode: ${response.statusCode}");
+       print("home inout details body: ${response.body}");
       final Map<String, dynamic> decoded = jsonDecode(response.body);
       if (response.statusCode == 201 || response.statusCode == 200) {
+
         List<dynamic> data = decoded['data'] ?? [];
 
         List<InOutDetail> details =
-            data.map((item) => InOutDetail.fromJson(item)).toList();
+        data.map((item) => InOutDetail.fromJson(item)).toList();
 
         setState(() {
           isLoading = false;
         });
-
         /// In-Out Button UI update Logic using booleans
         if (details.isNotEmpty) {
           lastInOutTime = details[0].transactionTime!.substring(11, 19);
-          if (details.length > 1) {
-            lastInOutTime1 = details[1].transactionTime!.substring(11, 19);
-          }
+          if(details.length > 1) {lastInOutTime1 = details[1].transactionTime!.substring(11, 19);}
 
           if (details[0].inOut == "IN") {
             setState(() {
@@ -323,7 +303,7 @@ class _HomeScreenState extends State<HomeScreen> {
         setState(() {
           isLoading = false;
         });
-        if (decoded['message'] == "No Records Found.") {
+        if(decoded['message'] == "No Records Found."){
           setState(() {
             isButtonDisabledIn = false;
             isButtonDisabledOut = true;
@@ -334,7 +314,8 @@ class _HomeScreenState extends State<HomeScreen> {
             showGradientSnackBar(context);
           });
         }
-      } else {
+      }
+      else {
         setState(() {
           isLoading = false;
         });
@@ -359,6 +340,7 @@ class _HomeScreenState extends State<HomeScreen> {
           isButtonDisabledOut = true;
         });
       }
+
     } on TimeoutException catch (_) {
       setState(() {
         isLoading = false;
@@ -367,7 +349,8 @@ class _HomeScreenState extends State<HomeScreen> {
       });
 
       _showRetryBanner();
-    } catch (e) {
+    }
+    catch (e) {
       setState(() {
         isLoading = false;
       });
@@ -398,22 +381,21 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<Position> getCurrentLocaiton() async {
     Position? lastKnownPosition = await Geolocator.getLastKnownPosition();
-    if (lastKnownPosition != null) {
+    if(lastKnownPosition != null){
       _currentPosition = lastKnownPosition;
-      print(
-          "start location lat long : ${_currentPosition!.latitude}, ${_currentPosition!.longitude}");
+      print("start location lat long : ${_currentPosition!.latitude}, ${_currentPosition!.longitude}");
       return _currentPosition!;
     } else {
-      _currentPosition = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.medium);
-      print(
-          "start location lat long : ${_currentPosition!.latitude}, ${_currentPosition!.longitude}");
+      _currentPosition = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.medium);
+      print("start location lat long : ${_currentPosition!.latitude}, ${_currentPosition!.longitude}");
       return _currentPosition!;
     }
+
   }
 
   void showGradientSnackBar(BuildContext context) {
     // if (!context.mounted) return; // ✅ prevents crash if widget is disposed
+
     final snackBar = SnackBar(
       content: Container(
         decoration: BoxDecoration(
@@ -422,8 +404,7 @@ class _HomeScreenState extends State<HomeScreen> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
-          borderRadius:
-              BorderRadius.circular(8), // ✅ rounded gradient background
+          borderRadius: BorderRadius.circular(8), // ✅ rounded gradient background
         ),
         padding: EdgeInsets.all(16),
         child: Text(
@@ -442,8 +423,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ScaffoldMessenger.of(context).hideCurrentSnackBar();
         },
       ),
-      backgroundColor: Colors.transparent,
-      // Use transparent background
+      backgroundColor: Colors.transparent, // Use transparent background
       behavior: SnackBarBehavior.floating,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
@@ -452,7 +432,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     // ScaffoldMessenger.of(context).showSnackBar(snackBar);
     // ✅ Always hide previous snackbar before showing new one
-    /*  ScaffoldMessenger.of(context)
+  /*  ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(snackBar);*/
   }
@@ -502,40 +482,44 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void startBannerAutoScroll() {
     _bannerTimer = Timer.periodic(const Duration(seconds: 4), (timer) {
+
       if (_pageController.hasClients) {
+
         if (_currentPage < attendanceBanners.length - 1) {
           _currentPage++;
         } else {
           _currentPage = 0;
         }
+
         _pageController.animateToPage(
           _currentPage,
           duration: const Duration(milliseconds: 400),
           curve: Curves.easeInOut,
         );
       }
+
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    mainBloc = BlocProvider.of(context);
+    mainBloc=BlocProvider.of(context);
     isTablet = MediaQuery.of(context).size.width >= 600;
     return Scaffold(
       appBar: AppBar(
-        actions: <Widget>[
-          Padding(
-              padding: EdgeInsets.symmetric(horizontal: 12),
-              child: GestureDetector(
-                onTap: () {
-                  Fluttertoast.showToast(
-                    msg: "No Notification Found",
-                    toastLength: Toast.LENGTH_SHORT,
-                    gravity: ToastGravity.BOTTOM,
-                  );
-                },
-                child: Icon(Icons.notifications),
-              )),
+        actions:  <Widget>[
+          Padding(padding: EdgeInsets.symmetric(horizontal: 12),
+            child: GestureDetector(
+              onTap: () {
+                Fluttertoast.showToast(
+                  msg: "No Notification Found",
+                  toastLength: Toast.LENGTH_SHORT,
+                  gravity: ToastGravity.BOTTOM,
+                );
+              },
+              child: Icon(Icons.notifications),
+            )
+          ),
         ],
         iconTheme: const IconThemeData(
           color: Colors.white,
@@ -553,56 +537,53 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
 
       drawer: Drawer(
-        child: ListView(
+        child:
+        ListView(
           padding: EdgeInsets.zero,
           children: [
             Container(
                 color: MyColors.lightBlue,
-                child: Column(children: [
-                  const Padding(padding: EdgeInsets.symmetric(vertical: 8)),
-                  const Text(
-                    "Attendance",
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 20.0,
-                        fontWeight: FontWeight.bold),
-                  ),
-                  const Padding(padding: EdgeInsets.symmetric(vertical: 3)),
-                  GestureDetector(
-                    onTap: () async {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => BlocProvider(
-                            create: (context) =>
-                                MainBloc(webService: WebService()),
-                            child: Profile(),
-                          ),
+                child: Column(
+                    children: [
+                      const Padding(padding: EdgeInsets.symmetric(vertical: 8)),
+                      const Text("Attendance", style: TextStyle(color: Colors.white, fontSize: 20.0, fontWeight: FontWeight.bold),),
+                      const Padding(padding: EdgeInsets.symmetric(vertical: 3)),
+
+                      GestureDetector(
+                        onTap: () async{
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => BlocProvider(
+                                create: (context) => MainBloc(webService: WebService()),
+                                child: Profile(),
+                              ),
+                            ),
+                          );
+                        },
+                        child:  Column(
+                          children: [
+                            CircleAvatar(
+                              radius: 52,
+                              backgroundImage: AssetImage("assets/icons/profile.png"),
+                            ),
+                            Text(
+                              "${staffName!}",
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.white,
+                              ),
+                            ),
+                            Text(
+                              " ${staffCode!}",
+                              style: TextStyle(fontSize: 16, color: Colors.white),
+                            ),
+                          ],
                         ),
-                      );
-                    },
-                    child: Column(
-                      children: [
-                        CircleAvatar(
-                          radius: 52,
-                          backgroundImage:
-                              AssetImage("assets/icons/profile.png"),
-                        ),
-                        Text(
-                          "${staffName!}",
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.white,
-                          ),
-                        ),
-                        Text(
-                          " ${staffCode!}",
-                          style: TextStyle(fontSize: 16, color: Colors.white),
-                        ),
-                      ],
-                    ),
-                  ),
-                ])),
+                      ),
+                    ]
+                )
+            ),
 
             ListTile(
               leading: const Icon(Icons.home_outlined),
@@ -622,7 +603,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ListTile(
               leading: const Icon(Icons.backpack_outlined),
               title: const Text('Leave'),
-              onTap: () {
+              onTap: (){
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -637,13 +618,14 @@ class _HomeScreenState extends State<HomeScreen> {
             ListTile(
               leading: const Icon(Icons.book_outlined),
               title: const Text('Gate Pass'),
-              onTap: () {
-                Navigator.push(
+              onTap: (){
+                Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
                         builder: (_) => BlocProvider(
                             create: (context) {
-                              return MainBloc(webService: WebService());
+                              return MainBloc(
+                                  webService: WebService());
                             },
                             child: GatePass())));
                 //    Navigator.push(context, MaterialPageRoute(builder: (context) => const GatePass()));
@@ -652,13 +634,14 @@ class _HomeScreenState extends State<HomeScreen> {
             ListTile(
               leading: const Icon(Icons.book_outlined),
               title: const Text('COff Credit'),
-              onTap: () {
-                Navigator.push(
+              onTap: (){
+                Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
                         builder: (_) => BlocProvider(
                             create: (context) {
-                              return MainBloc(webService: WebService());
+                              return MainBloc(
+                                  webService: WebService());
                             },
                             child: Coffcreditscreen())));
                 //    Navigator.push(context, MaterialPageRoute(builder: (context) => const GatePass()));
@@ -667,13 +650,14 @@ class _HomeScreenState extends State<HomeScreen> {
             ListTile(
               leading: const Icon(Icons.book_outlined),
               title: const Text('COff Debit'),
-              onTap: () {
-                Navigator.push(
+              onTap: (){
+                Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
                         builder: (_) => BlocProvider(
                             create: (context) {
-                              return MainBloc(webService: WebService());
+                              return MainBloc(
+                                  webService: WebService());
                             },
                             child: CoffDebitscreen())));
                 //    Navigator.push(context, MaterialPageRoute(builder: (context) => const GatePass()));
@@ -698,7 +682,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ListTile(
               leading: const Icon(Icons.money_off_outlined),
               title: const Text('Expense Management'),
-              onTap: () {
+              onTap: (){
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -713,7 +697,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ListTile(
               leading: const Icon(Icons.tour_outlined),
               title: const Text('Tour Details'),
-              onTap: () {
+              onTap: (){
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -728,8 +712,8 @@ class _HomeScreenState extends State<HomeScreen> {
             ListTile(
               leading: const Icon(Icons.location_city_outlined),
               title: const Text('Change to Remote Location'),
-              onTap: () {
-                // Navigator.push(context, MaterialPageRoute(builder: (context) => const RemoteLocation()));
+              onTap: (){
+               // Navigator.push(context, MaterialPageRoute(builder: (context) => const RemoteLocation()));
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -741,47 +725,42 @@ class _HomeScreenState extends State<HomeScreen> {
                 );
               },
             ),
-            const Divider(
-              color: Colors.black45,
-            ),
+            const Divider(color: Colors.black45,),
             ListTile(
               leading: const Icon(Icons.add_location_alt_outlined),
               title: const Text('Visit Outside'),
-              onTap: () {
-                Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => VisitOutside()));
+              onTap: (){
+                Navigator.push(context, MaterialPageRoute(builder: (context) =>  VisitOutside()));
               },
             ),
             ListTile(
               leading: const Icon(Icons.location_on_outlined),
               title: const Text('Start/Stop Visit'),
-              onTap: () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => VisitStartStopScreen(
-                              visit: null,
-                            )));
-                //  mainBloc.add(GetMinutesOfMeetingFormNoEvents(UserId: "cd03080",SrNo: "844",token: Auth_Token!));
+              onTap: (){
+                Navigator.push(context, MaterialPageRoute(builder: (context) =>  VisitStartStopScreen(visit: null,)));
+              //  mainBloc.add(GetMinutesOfMeetingFormNoEvents(UserId: "cd03080",SrNo: "844",token: Auth_Token!));
+
+
               },
             ),
-            /* ListTile(
+           /* ListTile(
               leading: const Icon(Icons.location_searching_outlined),
               title: const Text('Track Visit Location'),
               onTap: (){
-                Navigator.push(context, MaterialPageRoute(builder: (context) =>  */ /*TrackVisitLocation()*/ /*TrackVisitScreen()));
+                Navigator.push(context, MaterialPageRoute(builder: (context) =>  *//*TrackVisitLocation()*//*TrackVisitScreen()));
               },
             ),*/
             ListTile(
               leading: const Icon(Icons.location_history_outlined),
               title: const Text('Visit History'),
-              onTap: () {
+              onTap: (){
                 Navigator.push(
                     context,
                     MaterialPageRoute(
                         builder: (_) => BlocProvider(
                             create: (context) {
-                              return MainBloc(webService: WebService());
+                              return MainBloc(
+                                  webService: WebService());
                             },
                             child: VisitHistoryScreen())));
               },
@@ -789,7 +768,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ListTile(
               leading: const Icon(Icons.settings),
               title: const Text('Settings'),
-              onTap: () {
+              onTap: (){
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -802,15 +781,9 @@ class _HomeScreenState extends State<HomeScreen> {
               },
             ),
             ListTile(
-              leading: const Icon(
-                Icons.logout_sharp,
-                color: MyColors.darkBlue,
-              ),
-              title: const Text(
-                'Logout',
-                style: TextStyle(color: MyColors.darkBlue),
-              ),
-              onTap: () {
+              leading: const Icon(Icons.logout_sharp, color: MyColors.darkBlue,),
+              title: const Text('Logout', style: TextStyle(color: MyColors.darkBlue),),
+              onTap: (){
                 print("Logout Clicked...");
                 showDialog(
                     context: context,
@@ -818,6 +791,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         _buildPopupDialogforLogout(context));
               },
             ),
+
           ],
         ),
       ),
@@ -840,8 +814,11 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       // backgroundColor: Theme.of(context).primaryColor,
 
+
       // Implement Screens of Bottom Navigation bar Home and Report
       body: _homescreen(),
+
+
     );
   }
 
@@ -885,6 +862,7 @@ class _HomeScreenState extends State<HomeScreen> {
         new TextButton(
           onPressed: () {
             onLogout();
+
           },
           // textColor: Theme.of(context).primaryColor,
           child: const Text(
@@ -911,11 +889,14 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       child: BlocListener<MainBloc, MainState>(
         listener: (context, state) async {
+
           if (state is GetStaffDetailsLoadingState) {
             setState(() {
               _isLoading = true;
             });
-          } else if (state is GetStaffDetailsLoadedState) {
+          }
+          else if (state is GetStaffDetailsLoadedState)
+          {
             setState(() {
               _isLoading = false;
             });
@@ -932,7 +913,9 @@ class _HomeScreenState extends State<HomeScreen> {
             //       ),
             //     );
             // }
-          } else if (state is GetStaffDetailsErrorState) {
+          }
+          else if (state is GetStaffDetailsErrorState)
+          {
             setState(() {
               _isLoading = false;
             });
@@ -960,6 +943,7 @@ class _HomeScreenState extends State<HomeScreen> {
               addressflag = user.addressapproveFlag;
               atsflag = user.atsCheckflag;
               plantcode = user.plantCode;
+
             });
 
             REMOTELOCATION = remotelocation.toString();
@@ -968,9 +952,11 @@ class _HomeScreenState extends State<HomeScreen> {
             DISTANCEFLAG = distancecheckglag.toString();
             ADDRESSFLAG = addressflag.toString();
 
-            print("hellooo" + REMOTELOCATION);
-            print("plantcodee" + plantcode.toString());
-          } else if (state is GetUserinfoErrorState) {
+            print("hellooo"+REMOTELOCATION);
+            print("plantcodee"+plantcode.toString());
+          }
+
+          else if (state is GetUserinfoErrorState) {
             setState(() {
               _isLoading = false;
             });
@@ -993,8 +979,9 @@ class _HomeScreenState extends State<HomeScreen> {
               );
             }
           }
+
         },
-        child: <Widget>[
+        child:  <Widget>[
           //Home Screen
           SingleChildScrollView(
             child: Stack(
@@ -1004,8 +991,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     color: Colors.black54, // Add a semi-transparent background
                     child: const Center(
                       child: CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                            Colors.white), // Customize the color
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white), // Customize the color
                       ),
                     ),
                   ),
@@ -1014,8 +1000,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 12),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       child: Row(
                         children: [
                           Expanded(
@@ -1041,12 +1026,12 @@ class _HomeScreenState extends State<HomeScreen> {
                               ],
                             ),
                           ),
+
                           GestureDetector(
-                            onTap: () {
-                              Navigator.of(context).push(MaterialPageRoute(
-                                  builder: (context) => const Profile()));
+                            onTap: (){
+                              Navigator.of(context).push(MaterialPageRoute(builder: (context) => const Profile()));
                             },
-                            child: CircleAvatar(
+                            child:   CircleAvatar(
                               radius: 22,
                               backgroundColor: Colors.blue.shade100,
                               child: const Icon(
@@ -1056,11 +1041,11 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                             ),
                           ),
+
                         ],
                       ),
                     ),
-
-                    ///old
+///old
 /*
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1117,6 +1102,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           _currentPage = index;
                         },
                         itemBuilder: (context, index) {
+
                           final banner = attendanceBanners[index];
 
                           return Card(
@@ -1124,11 +1110,11 @@ class _HomeScreenState extends State<HomeScreen> {
                               borderRadius: BorderRadius.circular(16),
                             ),
                             clipBehavior: Clip.antiAlias,
-                            margin: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 6),
+                            margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                             elevation: 5,
                             child: Stack(
                               children: [
+
                                 /// Banner Image
                                 Image.asset(
                                   banner.image,
@@ -1136,7 +1122,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                   width: double.infinity,
                                   fit: BoxFit.fill,
                                 ),
-
                                 /// Dark overlay
                                 Positioned.fill(
                                   child: Container(
@@ -1149,7 +1134,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         },
                       ),
                     ),
-
                     ///old
                     /*Card(
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -1211,16 +1195,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),*/
                     // ),
 
-                    const SizedBox(
-                      height: 10,
-                    ),
+                    const SizedBox(height: 10,),
 
                     /// Mark your attendance
-                    if (addressflag == 'Y') markYourAttendance(),
+                    if(addressflag == 'Y')
+                    markYourAttendance(),
 
-                    const SizedBox(
-                      height: 10,
-                    ),
+                    const SizedBox(height: 10,),
 
                     /// visit management
                     visitManagementUI(),
@@ -1233,19 +1214,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Padding(
-                            padding: EdgeInsets.symmetric(
-                                horizontal: 15, vertical: 8),
-                            child: Text(
-                              "Other ",
-                              style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.black87 /*fontFamily:'Dubai'*/),
-                            ),
+                          const Padding(padding: EdgeInsets.symmetric(horizontal: 15, vertical: 8),
+                            child: Text("Other ", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.black87 /*fontFamily:'Dubai'*/),),
                           ),
+
                           GestureDetector(
-                            onTap: () {
+                            onTap: (){
                               Navigator.pushReplacement(
                                   context,
                                   MaterialPageRoute(
@@ -1270,59 +1244,44 @@ class _HomeScreenState extends State<HomeScreen> {
                                     Container(
                                         padding: const EdgeInsets.all(12),
                                         decoration: BoxDecoration(
-                                          color: Colors.blueAccent
-                                              .withOpacity(0.1),
-                                          borderRadius:
-                                              BorderRadius.circular(8),
+                                          color: Colors.blueAccent.withOpacity(0.1),
+                                          borderRadius: BorderRadius.circular(8),
                                         ),
                                         child: const Icon(
                                           Icons.backpack_outlined,
                                           size: 28,
                                           color: Colors.blueAccent,
-                                        )),
-                                    const SizedBox(
-                                      width: 16,
+                                        )
                                     ),
+                                    const SizedBox(width: 16,),
                                     const Expanded(
                                       child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
+                                        crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          Text(
-                                            "Leave",
-                                            style: TextStyle(
-                                                fontSize: 16,
-                                                color: Colors.black87,
-                                                fontWeight: FontWeight.w600),
-                                          ),
+                                          Text("Leave", style: TextStyle(fontSize: 16, color: Colors.black87, fontWeight: FontWeight.w600),),
                                           SizedBox(height: 4),
-                                          Text(
-                                            'Check status and apply for leave',
-                                            style: TextStyle(
-                                                fontSize: 14,
-                                                color: Colors.black54),
-                                          ),
-                                        ],
-                                      ),
+                                          Text('Check status and apply for leave', style: TextStyle(fontSize: 14, color: Colors.black54),),
+                                        ],),
                                     ),
-                                    const Icon(Icons.arrow_forward_ios_rounded,
-                                        color: MyColors.lighterBlue),
+                                    const Icon(Icons.arrow_forward_ios_rounded, color: MyColors.lighterBlue),
                                   ],
                                 ),
                               ),
                             ),
                           ),
+
                           GestureDetector(
-                            onTap: () {
-                              Navigator.pushReplacement(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (_) => BlocProvider(
-                                          create: (context) {
-                                            return MainBloc(
-                                                webService: WebService());
-                                          },
-                                          child: const GatePass())));
+                            onTap: (){
+
+                    Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                    builder: (_) => BlocProvider(
+                    create: (context) {
+                    return MainBloc(
+                    webService: WebService());
+                    },
+                    child: const GatePass())));
                             },
                             child: Card.filled(
                               color: Colors.white,
@@ -1338,79 +1297,67 @@ class _HomeScreenState extends State<HomeScreen> {
                                     Container(
                                         padding: const EdgeInsets.all(12),
                                         decoration: BoxDecoration(
-                                          color: Colors.blueAccent
-                                              .withOpacity(0.1),
-                                          borderRadius:
-                                              BorderRadius.circular(8),
+                                          color: Colors.blueAccent.withOpacity(0.1),
+                                          borderRadius: BorderRadius.circular(8),
                                         ),
                                         child: const Icon(
                                           Icons.book_outlined,
                                           size: 28,
                                           color: Colors.blueAccent,
-                                        )),
-                                    const SizedBox(
-                                      width: 16,
+                                        )
                                     ),
+                                    const SizedBox(width: 16,),
                                     const Expanded(
                                       child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
+                                        crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          Text(
-                                            "Gate Pass",
-                                            style: TextStyle(
-                                                fontSize: 16,
-                                                color: Colors.black87,
-                                                fontWeight: FontWeight.w600),
-                                          ),
+                                          Text("Gate Pass", style: TextStyle(fontSize: 16, color: Colors.black87, fontWeight: FontWeight.w600),),
                                           SizedBox(height: 4),
-                                          Text(
-                                            'Check status and apply for gate pass',
-                                            style: TextStyle(
-                                                fontSize: 14,
-                                                color: Colors.black54),
-                                          ),
-                                        ],
-                                      ),
+                                          Text('Check status and apply for gate pass', style: TextStyle(fontSize: 14, color: Colors.black54),),
+                                        ],),
                                     ),
-                                    const Icon(Icons.arrow_forward_ios_rounded,
-                                        color: MyColors.lighterBlue),
+                                    const Icon(Icons.arrow_forward_ios_rounded, color: MyColors.lighterBlue),
                                   ],
                                 ),
                               ),
                             ),
                           ),
+
                         ],
                       ),
                     ),
+
                   ],
                 ),
+
               ],
             ),
           ),
 
+
           /// Report Screen..   Report Screen..   Report Screen..
-          const Center(child: AttendanceReport())
+          const Center(
+              child: AttendanceReport()
+          )
+
         ][_selectedIndex],
+
       ),
     );
   }
 
-  Widget markYourAttendance() {
+  Widget markYourAttendance(){
     return Card.outlined(
-      color: Colors.blue[50],
+      color: Colors.blue[50] ,
       margin: const EdgeInsets.all(15),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 15, vertical: 8),
-            child: Text(
-              "Mark Your Attendance",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-            ),
+          const Padding(padding: EdgeInsets.symmetric(horizontal: 15,vertical: 8),
+            child: Text("Mark Your Attendance", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),),
           ),
+
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -1420,24 +1367,17 @@ class _HomeScreenState extends State<HomeScreen> {
                   GestureDetector(
                     onTap: () {
                       Dialog errorDialog = Dialog(
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30.0)),
-                        //this right here
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.0)), //this right here
                         child: Container(
                           height: 230.0,
                           width: 230.0,
+
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: <Widget>[
                               const Padding(
-                                padding: EdgeInsets.all(5.0),
-                                child: Text(
-                                  'Marking Your Attendance',
-                                  style: TextStyle(
-                                      color: Colors.black,
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold),
-                                ),
+                                padding:  EdgeInsets.all(5.0),
+                                child: Text('Marking Your Attendance', style: TextStyle(color: Colors.black, fontSize: 18,fontWeight: FontWeight.bold),),
                               ),
                               Padding(
                                 padding: const EdgeInsets.all(0.0),
@@ -1445,48 +1385,56 @@ class _HomeScreenState extends State<HomeScreen> {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
-                                    Image.asset(
-                                      "assets/icons/In01.png",
+                                    Image.asset("assets/icons/In01.png",
                                       // height: 240,
                                       width: 80,
                                     ),
-                                    const Text(
-                                      "Punch IN",
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 17),
-                                    ),
+                                    const Text("Punch IN", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),),
                                   ],
                                 ),
                               ),
-                              const Padding(
-                                  padding: EdgeInsets.only(top: 10.0)),
+                              const Padding(padding: EdgeInsets.only(top: 10.0)),
+
                               ElevatedButton(
                                 style: raisedButtonStyle,
-                                onPressed: isButtonDisabledIn
-                                    ? null
+                                onPressed: isButtonDisabledIn ? null
                                     : () async {
-                                        Navigator.of(context).pop();
-                                        setState(() {
-                                          isLoading =
-                                              true; // Show progress indicator
-                                        });
-                                        await checkBiometrics();
-                                        //await punchIn();
-                                        setState(() {
-                                          isLoading =
-                                              false; // Show progress indicator
-                                        });
-                                      },
+                                  Navigator.of(context).pop();
+                                  setState(() {
+                                    isLoading = true; // Show progress indicator
+                                  });
+                                  await  checkBiometrics();
+                                  //await punchIn();
+                                  setState(() {
+                                    isLoading = false; // Show progress indicator
+                                  });
+                                },
                                 child: const Text("OK"),
+                                /* isLoading
+                                          ? CircularProgressIndicator()
+                                          : Text("OK"),*/
+
                               ),
+                              /*  if (isLoading)
+                                           Container(
+                                             color: Colors.black54, // Add a semi-transparent background
+                                             child: Center(
+                                               child: CircularProgressIndicator(
+                                                 valueColor: AlwaysStoppedAnimation<Color>(Colors.white), // Customize the color
+                                               ),
+                                             ),
+                                           ),*/
+                              /*   TextButton(onPressed: () {
+                                  Navigator.of(context).pop();
+                                  },
+                                  child: const Text('OK', style: TextStyle(color: MyColors.darkBlue, fontSize: 16.0),),),*/
+
                             ],
                           ),
                         ),
                       );
-                      showDialog(
-                          context: context,
-                          builder: (BuildContext context) => errorDialog);
+                      showDialog(context: context, builder: (BuildContext context) => errorDialog);
+
                     }, //onTap
                     child: Container(
                       width: 130,
@@ -1503,70 +1451,43 @@ class _HomeScreenState extends State<HomeScreen> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            Image.asset(
-                              "assets/icons/In01.png",
+                            Image.asset("assets/icons/In01.png",
                               // height: 240,
                               width: 80,
                             ),
-                            const Text(
-                              "IN",
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 17),
-                            ),
+                            const Text("IN", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),),
                           ],
                         ),
                       ),
                     ),
                   ),
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 10),
-                    child: Row(
-                      children: [
-                        Text(
-                          "Last IN: ",
-                          style: TextStyle(
-                              color: Colors.blueGrey,
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold),
-                        ),
-                        Text(
-                          "${lastInTime ?? '-'}",
-                          style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: lastPunchIn
-                                  ? Colors.blueGrey
-                                  : Colors.greenAccent[400]),
-                        )
-                      ],
-                    ),
+                  Padding(padding: EdgeInsets.symmetric(horizontal: 10),
+                    child: Row(children: [
+                      Text("Last IN: ", style: TextStyle(color: Colors.blueGrey, fontSize: 14, fontWeight: FontWeight.bold),),
+                      Text("${lastInTime??'-'}", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: lastPunchIn ? Colors.blueGrey : Colors.greenAccent[400]),)
+                    ], ),
                   ),
                 ],
               ),
+
               const SizedBox(width: 25),
+
               Column(
                 children: [
                   GestureDetector(
                     onTap: () {
                       Dialog errorDialog = Dialog(
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30.0)),
-                        //this right here
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.0)), //this right here
                         child: Container(
                           height: 230.0,
                           width: 230.0,
+
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: <Widget>[
                               const Padding(
-                                padding: EdgeInsets.all(5.0),
-                                child: Text(
-                                  'Marking Your Attendance',
-                                  style: TextStyle(
-                                      color: Colors.black,
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold),
-                                ),
+                                padding:  EdgeInsets.all(5.0),
+                                child: Text('Marking Your Attendance', style: TextStyle(color: Colors.black, fontSize: 18,fontWeight: FontWeight.bold),),
                               ),
                               Padding(
                                 padding: const EdgeInsets.all(0.0),
@@ -1574,52 +1495,41 @@ class _HomeScreenState extends State<HomeScreen> {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
-                                    Image.asset(
-                                      "assets/icons/out01.png",
+                                    Image.asset("assets/icons/out01.png",
                                       // height: 240,
                                       width: 80,
                                     ),
-                                    const Text(
-                                      "Punch OUT",
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 17),
-                                    ),
+                                    const Text("Punch OUT", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),),
                                   ],
                                 ),
                               ),
-                              const Padding(
-                                  padding: EdgeInsets.only(top: 10.0)),
+                              const Padding(padding: EdgeInsets.only(top: 10.0)),
                               ElevatedButton(
                                 style: raisedButtonStyle,
-                                onPressed: isButtonDisabledOut
-                                    ? null
-                                    : () async {
-                                        Navigator.of(context).pop();
-                                        setState(() {
-                                          isLoading =
-                                              true; // Show progress indicator
-                                        });
-                                        await checkbiometricspunchout();
-                                        //await punchOut();
-                                        setState(() {
-                                          isLoading =
-                                              false; // Show progress indicator
-                                        });
-                                      },
+                                onPressed: isButtonDisabledOut? null : () async{
+                                  Navigator.of(context).pop();
+                                  setState(() {
+                                    isLoading = true; // Show progress indicator
+                                  });
+                                  await checkbiometricspunchout();
+                                  //await punchOut();
+                                  setState(() {
+                                    isLoading = false; // Show progress indicator
+                                  });
+                                },
                                 child: const Text("OK"),
                               ),
                               /*   TextButton(onPressed: () {
                                   Navigator.of(context).pop();
                                   },
                                   child: const Text('OK', style: TextStyle(color: MyColors.darkBlue, fontSize: 16.0),),),*/
+
                             ],
                           ),
                         ),
                       );
-                      showDialog(
-                          context: context,
-                          builder: (BuildContext context) => errorDialog);
+                      showDialog(context: context, builder: (BuildContext context) => errorDialog);
+
                     },
                     child: Container(
                       width: 130,
@@ -1636,76 +1546,48 @@ class _HomeScreenState extends State<HomeScreen> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            Image.asset(
-                              "assets/icons/out01.png",
+                            Image.asset("assets/icons/out01.png",
                               // height: 240,
                               width: 80,
                             ),
-                            const Text(
-                              "OUT",
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 17),
-                            ),
+                            const Text("OUT", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),),
                           ],
                         ),
                       ),
                     ),
                   ),
-                  Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 10),
-                      child: Row(
-                        children: [
-                          Text(
-                            "Last OUT: ",
-                            style: TextStyle(
-                                color: Colors.blueGrey,
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold),
-                          ),
-                          Text(
-                            "${lastOutTime ?? '-'}",
-                            style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: lastPunchOut
-                                    ? Colors.blueGrey
-                                    : Colors.greenAccent[400]),
-                          )
-                        ],
-                      )),
+                  Padding(padding: EdgeInsets.symmetric(horizontal: 10),
+                      child: Row(children: [
+                        Text("Last OUT: ", style: TextStyle(color: Colors.blueGrey, fontSize: 14, fontWeight: FontWeight.bold),),
+                        Text("${lastOutTime??'-'}", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: lastPunchOut ? Colors.blueGrey : Colors.greenAccent[400]),)
+
+
+                      ],)
+                  ),
                 ],
               ),
+
+
             ],
           ),
+
           Expanded(
             flex: 0,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               // mainAxisSize: MainAxisSize.min,
               children: [
-                const Text(
-                  "Check attendance report here  ",
-                  style: TextStyle(
-                      color: MyColors.fontBlue,
-                      fontFamily: 'Dubai',
-                      fontWeight: FontWeight.bold,
-                      fontSize: 13),
-                ),
-                Padding(
-                  padding: EdgeInsets.all(0.1),
+                const Text("Check attendance report here  ", style: TextStyle(color: MyColors.fontBlue, fontFamily: 'Dubai', fontWeight: FontWeight.bold, fontSize: 13),),
+                Padding(padding: EdgeInsets.all(0.1),
+
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                        backgroundColor: MyColors.fontBlue),
-                    onPressed: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const AttendanceReport()));
-                    },
-                    child: const Text(
-                      "Report",
-                      style: TextStyle(fontSize: 13, color: Colors.white),
+                        backgroundColor: MyColors.fontBlue
                     ),
+                    onPressed: (){
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => const AttendanceReport()));
+                    },
+                    child: const Text("Report", style: TextStyle(fontSize: 13, color: Colors.white),),
                   ),
                 ),
               ],
@@ -1717,18 +1599,16 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget visitManagementUI() {
-    return Card.outlined(
+  Widget visitManagementUI(){
+    return   Card.outlined(
       color: Colors.blue[50],
       // elevation: 5,
       margin: const EdgeInsets.all(15),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 15, vertical: 8),
-            child: Text(
-              "Visit Management",
+          const Padding(padding: EdgeInsets.symmetric(horizontal: 15, vertical: 8),
+            child: Text("Visit Management",
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
@@ -1736,12 +1616,10 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
+
           GestureDetector(
-            onTap: () {
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const VisitOutside()));
+            onTap: (){
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const VisitOutside()));
             },
             child: Card.filled(
               color: Colors.white,
@@ -1764,50 +1642,35 @@ class _HomeScreenState extends State<HomeScreen> {
                           Icons.add_location_alt_outlined,
                           size: 28,
                           color: Colors.blueAccent,
-                        )),
+                        )
+                    ),
                     // const SizedBox(width: 8,),
 
-                    const SizedBox(
-                      width: 16,
-                    ),
+                    const SizedBox(width: 16,),
                     const Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            "Visit Outside",
-                            style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.black87,
-                                fontWeight: FontWeight.w600),
-                          ),
+                          Text("Visit Outside", style: TextStyle(fontSize: 16, color: Colors.black87, fontWeight: FontWeight.w600),),
                           SizedBox(height: 4),
-                          Text(
-                            'Schedule your visit',
-                            style:
-                                TextStyle(fontSize: 14, color: Colors.black54),
-                          ),
-                        ],
-                      ),
+                          Text('Schedule your visit', style: TextStyle(fontSize: 14, color: Colors.black54),),
+                        ],),
                     ),
 
                     // const Spacer(),
                     // const Padding(padding: EdgeInsets.symmetric(horizontal: 10),
-                    /*child:*/
-                    Icon(Icons.arrow_forward_ios_rounded,
-                        color: MyColors.lighterBlue),
+                    /*child:*/ Icon(Icons.arrow_forward_ios_rounded, color: MyColors.lighterBlue),
                     // ),
                   ],
                 ),
               ),
+
             ),
           ),
+
           GestureDetector(
-            onTap: () {
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => VisitStartStopScreen(visit: null)));
+            onTap: (){
+              Navigator.push(context, MaterialPageRoute(builder: (context) => VisitStartStopScreen(visit: null)));
             },
             child: Card.filled(
               color: Colors.white,
@@ -1830,52 +1693,41 @@ class _HomeScreenState extends State<HomeScreen> {
                           Icons.location_on_outlined,
                           size: 28,
                           color: Colors.blueAccent,
-                        )),
+                        )
+                    ),
                     // const SizedBox(width: 8,),
 
-                    const SizedBox(
-                      width: 16,
-                    ),
+                    const SizedBox(width: 16,),
                     const Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            "Start-Stop Visit",
-                            style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.black87,
-                                fontWeight: FontWeight.w600),
-                          ),
+                          Text("Start-Stop Visit", style: TextStyle(fontSize: 16, color: Colors.black87, fontWeight: FontWeight.w600),),
                           SizedBox(height: 4),
-                          Text(
-                            'Start and Stop your active visit',
-                            style:
-                                TextStyle(fontSize: 14, color: Colors.black54),
-                          ),
-                        ],
-                      ),
+                          Text('Start and Stop your active visit', style: TextStyle(fontSize: 14, color: Colors.black54),),
+                        ],),
                     ),
 
                     // const Spacer(),
                     // const Padding(padding: EdgeInsets.symmetric(horizontal: 10),
-                    /*child:*/
-                    Icon(Icons.arrow_forward_ios_rounded,
-                        color: MyColors.lighterBlue),
+                    /*child:*/ Icon(Icons.arrow_forward_ios_rounded, color: MyColors.lighterBlue),
                     // ),
                   ],
                 ),
               ),
+
             ),
           ),
+
           GestureDetector(
-            onTap: () {
+            onTap: (){
               Navigator.push(
                   context,
                   MaterialPageRoute(
                       builder: (_) => BlocProvider(
                           create: (context) {
-                            return MainBloc(webService: WebService());
+                            return MainBloc(
+                                webService: WebService());
                           },
                           child: const VisitHistoryScreen())));
             },
@@ -1900,37 +1752,25 @@ class _HomeScreenState extends State<HomeScreen> {
                           Icons.location_history_outlined,
                           size: 28,
                           color: Colors.blueAccent,
-                        )),
-                    const SizedBox(
-                      width: 16,
+                        )
                     ),
+                    const SizedBox(width: 16,),
                     const Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            "Visit History",
-                            style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.black87,
-                                fontWeight: FontWeight.w600),
-                          ),
+                          Text("Visit History", style: TextStyle(fontSize: 16, color: Colors.black87, fontWeight: FontWeight.w600),),
                           SizedBox(height: 4),
-                          Text(
-                            'Track your visit history location',
-                            style:
-                                TextStyle(fontSize: 14, color: Colors.black54),
-                          ),
-                        ],
-                      ),
+                          Text('Track your visit history location', style: TextStyle(fontSize: 14, color: Colors.black54),),
+                        ],),
                     ),
-                    const Icon(Icons.arrow_forward_ios_rounded,
-                        color: MyColors.lighterBlue),
+                    const Icon(Icons.arrow_forward_ios_rounded, color: MyColors.lighterBlue),
                   ],
                 ),
               ),
             ),
           ),
+
         ],
       ),
     );
@@ -1958,7 +1798,7 @@ class _HomeScreenState extends State<HomeScreen> {
         duration: Duration(seconds: 3),
         action: SnackBarAction(
           label: 'OK',
-          onPressed: () {},
+          onPressed: (){},
         ),
       ),
     );
@@ -1968,137 +1808,104 @@ class _HomeScreenState extends State<HomeScreen> {
     bool hasPermission = await handleLocationPermission();
 
     if (!hasPermission) {
-      _showSnackbar(
-          "Location permission required for Punch In!.Please allow from settings");
+      _showSnackbar("Location permission required for Punch In!.Please allow from settings");
       return;
     }
 
-    if (DISTANCEFLAG == 'Y') {
-      try {
-        await LocationHandler.checkIfInZone();
-        _currentLat = LocationHandler.currentLat.toString();
-        _currentLon = LocationHandler.currentLon.toString();
-        _currentAddress = LocationHandler.currentAddress;
-        LogFileManager.writeLog("punch in N y else" +
-            _currentLat! +
-            _currentLon! +
-            _currentAddress!);
+    if(DISTANCEFLAG == 'Y'){
 
-        String currentDate = DateFormat('dd-MM-yyyy HH:mm:ss')
-            .format(DateTime.now())
-            .substring(0, 19);
-        String currentTime = DateFormat('dd-MM-yyyy HH:mm:ss')
-            .format(DateTime.now())
-            .substring(11, 19);
-        String currentDateTime = DateFormat('dd-MM-yyyy HH:mm:ss')
-            .format(DateTime.now())
-            .substring(0, 19);
-        // await retorepunchdata();
-        if (await getInEntryFromDataBase(
-            currentDate, currentTime, staffCode!)) {
-          String? result = await storeInEntry(
-              currentDate,
-              currentDateTime,
-              staffCode!,
-              "001",
-              _currentAddress!,
-              _currentLat!,
-              _currentLon!,
-              plantcode?.toString() ?? "01");
+        try {
+          await LocationHandler.checkIfInZone();
+          _currentLat = LocationHandler.currentLat.toString();
+          _currentLon = LocationHandler.currentLon.toString();
+          _currentAddress = LocationHandler.currentAddress;
+          LogFileManager.writeLog("punch in N y else"+_currentLat! + _currentLon! + _currentAddress!);
 
-          print("result $result");
+          String currentDate = DateFormat('dd-MM-yyyy HH:mm:ss').format(DateTime.now()).substring(0, 19);
+          String currentTime = DateFormat('dd-MM-yyyy HH:mm:ss').format(DateTime.now()).substring(11, 19);
+          String currentDateTime = DateFormat('dd-MM-yyyy HH:mm:ss').format(DateTime.now()).substring(0, 19);
+          // await retorepunchdata();
+          if (await getInEntryFromDataBase(currentDate, currentTime, staffCode!)) {
+            String? result = await storeInEntry(currentDate, currentDateTime, staffCode!, "001", _currentAddress!, _currentLat!, _currentLon!,
+                plantcode?.toString() ?? "01"
 
-          // After successful operation, show a SnackBar
+            );
+
+            print("result $result");
+
+            // After successful operation, show a SnackBar
+            setState(() {
+              isButtonDisabledIn = true;
+              isButtonDisabledOut = false;
+              _updateButtonInitialState();
+            });
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                  content: const Text('Punch-in Successful!'),
+                  action: SnackBarAction(label: 'OK', onPressed: (){ScaffoldMessenger.of(context).hideCurrentSnackBar();}),
+                  backgroundColor: Colors.green,
+                  duration: const Duration(seconds: 3)
+              ),
+            );
+            LogFileManager.writeLog("punch in flag Y try if: $result");
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                  content: const Text('Already Marked!! or First Punch Out!!'),
+                  action: SnackBarAction(label: 'X', onPressed: (){ScaffoldMessenger.of(context).hideCurrentSnackBar();}),
+                  backgroundColor: Colors.redAccent,
+                  duration: const Duration(seconds: 3)
+              ),
+            );
+            LogFileManager.writeLog("punch in flag Y try else ");
+          }
+        } catch (e) {
+          print("Error: $e");
+
+          // If there is an error, show a SnackBar with the error message
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                content: Text('Punch-in failed! Please try again.'),
+                duration: const Duration(seconds: 3)
+            ),
+          );
+          print(_currentLat);
+          print(_currentLon);
+          print(_currentAddress);
+          print(staffCode);
+          print("actual location flag N catch $e");
+          LogFileManager.writeLog("actual location flag N catch $e");
+        } finally{
           setState(() {
-            isButtonDisabledIn = true;
-            isButtonDisabledOut = false;
-            _updateButtonInitialState();
+            isLoading = false;
           });
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content: const Text('Punch-in Successful!'),
-                action: SnackBarAction(
-                    label: 'OK',
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                    }),
-                backgroundColor: Colors.green,
-                duration: const Duration(seconds: 3)),
-          );
-          LogFileManager.writeLog("punch in flag Y try if: $result");
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content: const Text('Already Marked!! or First Punch Out!!'),
-                action: SnackBarAction(
-                    label: 'X',
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                    }),
-                backgroundColor: Colors.redAccent,
-                duration: const Duration(seconds: 3)),
-          );
-          LogFileManager.writeLog("punch in flag Y try else ");
         }
-      } catch (e) {
-        print("Error: $e");
 
-        // If there is an error, show a SnackBar with the error message
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('Punch-in failed! Please try again.'),
-              duration: const Duration(seconds: 3)),
-        );
-        print(_currentLat);
-        print(_currentLon);
-        print(_currentAddress);
-        print(staffCode);
-        print("actual location flag N catch $e");
-        LogFileManager.writeLog("actual location flag N catch $e");
-      } finally {
-        setState(() {
-          isLoading = false;
-        });
-      }
-    } else {
-      if (ADDRESSFLAG == 'Y') {
+    }
+    else{
+      if(ADDRESSFLAG == 'Y'){
         LocationHandler.changeToRemoteLocation();
         LocationHandler.remoteZoneLat = double.parse(REMOTELAT);
         LocationHandler.remoteZoneLon = double.parse(REMOTELONG);
         // _currentAddress = REMOTELOCATION.toString();
         bool ifInZone = await LocationHandler.checkIfInZone();
         print(ifInZone);
-        if (!ifInZone) {
+        if(ifInZone) {
           // Simulate API calls
           try {
             _currentLat = LocationHandler.currentLat.toString();
             _currentLon = LocationHandler.currentLon.toString();
             _currentAddress = LocationHandler.currentAddress;
-            LogFileManager.writeLog(
-                "punch in Y" + _currentLat! + _currentLon! + _currentAddress!);
+            LogFileManager.writeLog("punch in Y"+_currentLat! + _currentLon! + _currentAddress!);
 
-            String currentDate = DateFormat('dd-MM-yyyy HH:mm:ss')
-                .format(DateTime.now())
-                .substring(0, 19);
-            String currentTime = DateFormat('dd-MM-yyyy HH:mm:ss')
-                .format(DateTime.now())
-                .substring(11, 19);
-            String currentDateTime = DateFormat('dd-MM-yyyy HH:mm:ss')
-                .format(DateTime.now())
-                .substring(0, 19);
+            String currentDate = DateFormat('dd-MM-yyyy HH:mm:ss').format(DateTime.now()).substring(0, 19);
+            String currentTime = DateFormat('dd-MM-yyyy HH:mm:ss').format(DateTime.now()).substring(11, 19);
+            String currentDateTime = DateFormat('dd-MM-yyyy HH:mm:ss').format(DateTime.now()).substring(0, 19);
 //if (await getOutEntryFromDataBase(currentDate, currentTime, staffCode!))
 //             await retorepunchdata();
-            if (await getInEntryFromDataBase(
-                currentDate, currentTime, staffCode!)) {
-              String? result = await storeInEntry(
-                  currentDate,
-                  currentDateTime,
-                  staffCode!,
-                  "001",
-                  _currentAddress!,
-                  _currentLat!,
-                  _currentLon!,
-                  plantcode?.toString() ?? "01");
+            if (await getInEntryFromDataBase(currentDate, currentTime, staffCode!)) {
+              String? result = await storeInEntry(currentDate, currentDateTime, staffCode!, "001", _currentAddress!, _currentLat!, _currentLon!,plantcode?.toString() ?? "01"
+              );
               print(currentDate);
               print(currentTime);
               print(currentDateTime);
@@ -2112,27 +1919,20 @@ class _HomeScreenState extends State<HomeScreen> {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                     content: const Text('Punch-in Successful!'),
-                    action: SnackBarAction(
-                        label: 'OK',
-                        onPressed: () {
-                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                        }),
+                    action: SnackBarAction(label: 'OK', onPressed: (){ScaffoldMessenger.of(context).hideCurrentSnackBar();}),
                     backgroundColor: Colors.green,
-                    duration: const Duration(seconds: 3)),
+                    duration: const Duration(seconds: 3)
+                ),
               );
               LogFileManager.writeLog("punch-in marked: $result");
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                    content:
-                        const Text('Already Marked!! or First Punch Out!!'),
-                    action: SnackBarAction(
-                        label: 'X',
-                        onPressed: () {
-                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                        }),
+                    content: const Text('Already Marked!! or First Punch Out!!'),
+                    action: SnackBarAction(label: 'X', onPressed: (){ScaffoldMessenger.of(context).hideCurrentSnackBar();}),
                     backgroundColor: Colors.redAccent,
-                    duration: const Duration(seconds: 3)),
+                    duration: const Duration(seconds: 3)
+                ),
               );
             }
             LogFileManager.writeLog("punch in flag N else if else");
@@ -2143,182 +1943,145 @@ class _HomeScreenState extends State<HomeScreen> {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                   content: Text('Punch-in failed! Please try again.'),
-                  duration: const Duration(seconds: 3)),
+                  duration: const Duration(seconds: 3)
+              ),
             );
             LogFileManager.writeLog("punch in flag N else catch Error: $e");
-          } finally {
+          } finally{
             setState(() {
               isLoading = false;
             });
           }
-        } else {
+        } else{
           _currentLat = LocationHandler.currentLat.toString();
           _currentLon = LocationHandler.currentLon.toString();
           _currentAddress = LocationHandler.currentAddress;
-          String currentDate = DateFormat('dd-MM-yyyy HH:mm:ss')
-              .format(DateTime.now())
-              .substring(0, 19);
-          String currentDateTime = DateFormat('dd-MM-yyyy HH:mm:ss')
-              .format(DateTime.now())
-              .substring(0, 19);
-          String? result = await storeNotInZoneEntry(
-              currentDate,
-              currentDateTime,
-              staffCode!,
-              "002",
-              _currentAddress!,
-              _currentLat!,
-              _currentLon!,
-              plantcode?.toString() ?? "01");
+          String currentDate = DateFormat('dd-MM-yyyy HH:mm:ss').format(DateTime.now()).substring(0, 19);
+          String currentDateTime = DateFormat('dd-MM-yyyy HH:mm:ss').format(DateTime.now()).substring(0, 19);
+          String? result = await storeNotInZoneEntry(currentDate, currentDateTime, staffCode!, "002", _currentAddress!, _currentLat!, _currentLon!,plantcode?.toString() ?? "01"
+          );
           Fluttertoast.showToast(
               msg: "Not in zone!!",
               toastLength: Toast.LENGTH_SHORT,
               gravity: ToastGravity.BOTTOM,
               timeInSecForIosWeb: 1,
               // textColor: Colors.white,
-              fontSize: 12.0);
+              fontSize: 12.0
+          );
           LogFileManager.writeLog("Not-in-zone entry marked: $result");
           print("Not in zone");
         }
-      } else {
+      }
+      else{
         Fluttertoast.showToast(
             msg: "Admin approval to mark attendance is pending!!",
             toastLength: Toast.LENGTH_SHORT,
             gravity: ToastGravity.BOTTOM,
             timeInSecForIosWeb: 1,
             // textColor: Colors.white,
-            fontSize: 12.0);
+            fontSize: 12.0
+        );
         print("Admin approval to mark attendance is pending!!");
-        LogFileManager.writeLog(
-            "Admin approval to mark attendance is pending!!");
+        LogFileManager.writeLog("Admin approval to mark attendance is pending!!");
       }
     }
+
   }
 
   Future<void> punchOut() async {
     bool hasPermission = await handleLocationPermission();
     if (!hasPermission) {
-      _showSnackbar(
-          "Location permission required for Punch In!.Please allow from settings");
+      _showSnackbar("Location permission required for Punch In!.Please allow from settings");
       return;
     }
 
-    if (DISTANCEFLAG == 'Y') {
-      try {
-        await LocationHandler.checkIfInZone();
-        _currentLat = LocationHandler.currentLat.toString() ?? '';
-        _currentLon = LocationHandler.currentLon.toString();
-        _currentAddress = LocationHandler.currentAddress;
-        LogFileManager.writeLog("punch out N y else" +
-            _currentLat! +
-            _currentLon! +
-            _currentAddress!);
+    if(DISTANCEFLAG =='Y'){
+        try {
+          await LocationHandler.checkIfInZone();
+          _currentLat = LocationHandler.currentLat.toString()??'';
+          _currentLon = LocationHandler.currentLon.toString();
+          _currentAddress = LocationHandler.currentAddress;
+          LogFileManager.writeLog("punch out N y else"+_currentLat! + _currentLon! + _currentAddress!);
 
-        String currentDate = DateFormat('dd-MM-yyyy HH:mm:ss')
-            .format(DateTime.now())
-            .substring(0, 19);
-        String currentTime = DateFormat('dd-MM-yyyy HH:mm:ss')
-            .format(DateTime.now())
-            .substring(11, 19);
-        String currentDateTime = DateFormat('dd-MM-yyyy HH:mm:ss')
-            .format(DateTime.now())
-            .substring(0, 19);
-        // await retorepunchoutdata();
+          String currentDate = DateFormat('dd-MM-yyyy HH:mm:ss').format(DateTime.now()).substring(0, 19);
+          String currentTime = DateFormat('dd-MM-yyyy HH:mm:ss').format(DateTime.now()).substring(11, 19);
+          String currentDateTime = DateFormat('dd-MM-yyyy HH:mm:ss').format(DateTime.now()).substring(0, 19);
+          // await retorepunchoutdata();
 
-        if (await getOutEntryFromDataBase(
-            currentDate, currentTime, staffCode!)) {
-          String? result = await storeOutEntry(
-              currentDate,
-              currentDateTime,
-              staffCode!,
-              "000",
-              _currentAddress!,
-              _currentLat!,
-              _currentLon!,
-              plantcode?.toString() ?? "01");
+          if (await getOutEntryFromDataBase(currentDate, currentTime, staffCode!)) {
+            String? result = await storeOutEntry(currentDate, currentDateTime, staffCode!, "000", _currentAddress!, _currentLat!, _currentLon!,plantcode?.toString() ?? "01"
+            );
 
-          print("result $result");
+            print("result $result");
 
-          // After successful operation, show a SnackBar
+            // After successful operation, show a SnackBar
+            setState(() {
+              isButtonDisabledIn = true;
+              isButtonDisabledOut = false;
+              _updateButtonInitialState();
+            });
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                  content: const Text('Punch-out Successful!'),
+                  action: SnackBarAction(label: 'OK', onPressed: (){ScaffoldMessenger.of(context).hideCurrentSnackBar();}),
+                  backgroundColor: Colors.green,
+                  duration: const Duration(seconds: 3)
+              ),
+            );
+            LogFileManager.writeLog("punch out acual location try: $result");
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                  content: const Text('Already Marked!! or First Punch Out!!'),
+                  action: SnackBarAction(label: 'X', onPressed: (){ScaffoldMessenger.of(context).hideCurrentSnackBar();}),
+                  backgroundColor: Colors.redAccent,
+                  duration: const Duration(seconds: 3)
+              ),
+            );
+            LogFileManager.writeLog("punch out actual location try else");
+          }
+
+        } catch (e) {
+          print("Error: $e");
+
+          // If there is an error, show a SnackBar with the error message
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                content: Text('Punch-out failed! Please try again.'),
+                duration: const Duration(seconds: 3)
+            ),
+          );
+          LogFileManager.writeLog("punch out actual location catch: $e");
+        } finally {
           setState(() {
-            isButtonDisabledIn = true;
-            isButtonDisabledOut = false;
-            _updateButtonInitialState();
+            isLoading = false;
           });
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content: const Text('Punch-out Successful!'),
-                action: SnackBarAction(
-                    label: 'OK',
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                    }),
-                backgroundColor: Colors.green,
-                duration: const Duration(seconds: 3)),
-          );
-          LogFileManager.writeLog("punch out acual location try: $result");
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content: const Text('Already Marked!! or First Punch Out!!'),
-                action: SnackBarAction(
-                    label: 'X',
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                    }),
-                backgroundColor: Colors.redAccent,
-                duration: const Duration(seconds: 3)),
-          );
-          LogFileManager.writeLog("punch out actual location try else");
         }
-      } catch (e) {
-        print("Error: $e");
 
-        // If there is an error, show a SnackBar with the error message
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('Punch-out failed! Please try again.'),
-              duration: const Duration(seconds: 3)),
-        );
-        LogFileManager.writeLog("punch out actual location catch: $e");
-      } finally {
-        setState(() {
-          isLoading = false;
-        });
-      }
-    } else {
-      if (ADDRESSFLAG == 'Y') {
+    }
+    else{
+      if(ADDRESSFLAG == 'Y'){
         LocationHandler.changeToRemoteLocation();
         LocationHandler.remoteZoneLat = double.parse(REMOTELAT);
         LocationHandler.remoteZoneLon = double.parse(REMOTELONG);
         // _currentAddress = REMOTELOCATION.toString();
         bool ifInZone = await LocationHandler.checkIfInZone();
-        if (ifInZone) {
+        if(ifInZone) {
           try {
             _currentLat = LocationHandler.currentLat.toString();
             _currentLon = LocationHandler.currentLon.toString();
             _currentAddress = LocationHandler.currentAddress;
-            LogFileManager.writeLog("punch out else y" +
-                _currentLat! +
-                _currentLon! +
-                _currentAddress!);
+            LogFileManager.writeLog("punch out else y"+_currentLat! + _currentLon! + _currentAddress!);
 
-            String currentDate = DateFormat('dd-MM-yyyy HH:mm:ss')
-                .format(DateTime.now())
-                .toString()
-                .substring(0, 19);
-            String currentTime = DateFormat('dd-MM-yyyy HH:mm:ss')
-                .format(DateTime.now())
-                .toString()
-                .substring(11, 19);
-            String currentDateTime = DateFormat('dd-MM-yyyy HH:mm:ss')
-                .format(DateTime.now())
-                .toString()
-                .substring(0, 19);
+            String currentDate = DateFormat('dd-MM-yyyy HH:mm:ss').format(
+                DateTime.now()).toString().substring(0, 19);
+            String currentTime = DateFormat('dd-MM-yyyy HH:mm:ss').format(
+                DateTime.now()).toString().substring(11, 19);
+            String currentDateTime = DateFormat('dd-MM-yyyy HH:mm:ss').format(
+                DateTime.now()).toString().substring(0, 19);
             // await retorepunchoutdata();
 
-            if (await getOutEntryFromDataBase(
-                currentDate, currentTime, staffCode!)) {
+            if (await getOutEntryFromDataBase(currentDate, currentTime, staffCode!)) {
               String? result = await storeOutEntry(
                   currentDate,
                   currentDateTime,
@@ -2327,7 +2090,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   _currentAddress!,
                   _currentLat!,
                   _currentLon!,
-                  plantcode?.toString() ?? "01");
+                  plantcode?.toString() ?? "01"
+              );
 
               setState(() {
                 isButtonDisabledOut = true;
@@ -2337,30 +2101,25 @@ class _HomeScreenState extends State<HomeScreen> {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: const Text('Punch-out Successful!'),
-                  action: SnackBarAction(
-                      label: 'OK',
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                      }),
+                  action: SnackBarAction(label: 'OK', onPressed: () {
+                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                  }),
                   backgroundColor: Colors.green,
                 ),
               );
-              LogFileManager.writeLog(
-                  "punch out remote location flagN else  try: $result");
+              LogFileManager.writeLog("punch out remote location flagN else  try: $result");
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                     content: const Text('Already Marked!! or First Punch In!!'),
-                    action: SnackBarAction(
-                        label: 'X',
-                        onPressed: () {
-                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                        }),
+                    action: SnackBarAction(label: 'X', onPressed: () {
+                      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                    }),
                     backgroundColor: Colors.redAccent,
-                    duration: const Duration(seconds: 3)),
+                    duration: const Duration(seconds: 3)
+                ),
               );
-              LogFileManager.writeLog(
-                  "punch out remote location fllag N else else");
+              LogFileManager.writeLog("punch out remote location fllag N else else");
             }
           } catch (e) {
             print("Error: $e");
@@ -2369,69 +2128,61 @@ class _HomeScreenState extends State<HomeScreen> {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                   content: Text('Punch-out failed! Please try again.'),
-                  duration: const Duration(seconds: 3)),
+                  duration: const Duration(seconds: 3)
+              ),
             );
-            LogFileManager.writeLog(
-                "punch out remote location flagN else  catch: $e");
-          } finally {
+            LogFileManager.writeLog("punch out remote location flagN else  catch: $e");
+          } finally{
             setState(() {
               isLoading = false;
             });
           }
-        } else {
+        } else{
           _currentLat = LocationHandler.currentLat.toString();
           _currentLon = LocationHandler.currentLon.toString();
           _currentAddress = LocationHandler.currentAddress;
-          String currentDate = DateFormat('dd-MM-yyyy HH:mm:ss')
-              .format(DateTime.now())
-              .substring(0, 19);
-          String currentDateTime = DateFormat('dd-MM-yyyy HH:mm:ss')
-              .format(DateTime.now())
-              .substring(0, 19);
-          String? result = await storeNotInZoneEntry(
-              currentDate,
-              currentDateTime,
-              staffCode!,
-              "002",
-              _currentAddress!,
-              _currentLat!,
-              _currentLon!,
-              plantcode?.toString() ?? "01");
+          String currentDate = DateFormat('dd-MM-yyyy HH:mm:ss').format(DateTime.now()).substring(0, 19);
+          String currentDateTime = DateFormat('dd-MM-yyyy HH:mm:ss').format(DateTime.now()).substring(0, 19);
+          String? result = await storeNotInZoneEntry(currentDate, currentDateTime, staffCode!, "002", _currentAddress!, _currentLat!, _currentLon!,plantcode?.toString() ?? "01"
+          );
           Fluttertoast.showToast(
               msg: "Not in zone!!",
               toastLength: Toast.LENGTH_SHORT,
               gravity: ToastGravity.BOTTOM,
               timeInSecForIosWeb: 1,
               // textColor: Colors.white,
-              fontSize: 12.0);
+              fontSize: 12.0
+          );
           print("Not in zone");
           LogFileManager.writeLog("NotInZone Entry is marked: $result");
         }
-      } else {
+      }
+      else{
         Fluttertoast.showToast(
             msg: "Admin approval to mark attendance is pending!!",
             toastLength: Toast.LENGTH_SHORT,
             gravity: ToastGravity.BOTTOM,
             timeInSecForIosWeb: 1,
             // textColor: Colors.white,
-            fontSize: 12.0);
+            fontSize: 12.0
+        );
         print("Admin approval to mark attendance is pending!!");
-        LogFileManager.writeLog(
-            "Admin approval to mark attendance is pending!!");
+        LogFileManager.writeLog("Admin approval to mark attendance is pending!!");
       }
     }
   }
 
   Future<bool> getInEntryFromDataBase(
-      String TransactionDate, String TransactionTime, String StaffCode) async {
-    try {
+      String TransactionDate, String TransactionTime, String StaffCode)
+  async {
+    try{
       final response = await http.post(
         Uri.parse("http://114.143.140.28:8020/api/InOut/InOutLastFlag"),
-        headers: <String, String>{
+        headers: <String, String> {
           'Content-Type': 'application/json; charset=UTF-8',
           'Authorization': 'Bearer $Auth_Token',
         },
-        body: jsonEncode(<String, String>{
+        body: jsonEncode(<String, String> {
           'TransactionDate': TransactionDate,
           'StaffCode': StaffCode,
           // 'TransactionTime': TransactionTime,
@@ -2441,42 +2192,43 @@ class _HomeScreenState extends State<HomeScreen> {
       final Map<String, dynamic> res = json.decode(response.body);
       print("res getInEntryFromDataBase $res");
       if (response.statusCode == 200 || response.statusCode == 201) {
-        if (res['data'] == "000") {
+        if(res['data'] == "000"){
           // LogFileManager.writeLog("get in entry $res");
           return true;
-        } else {
+        }else {
           LogFileManager.writeLog("Last punch entry already present $response");
           return false;
         }
       } else if (response.statusCode == 400) {
-        if (res['message'] == "No Record Found.") {
+        if(res['message'] == "No Record Found."){
           // LogFileManager.writeLog("get in entry $res");
           return true;
         }
-        print(
-            'Api failed last Punch-in entry ${response.statusCode}, ${response.body}');
-        return false;
-      } else {
-        LogFileManager.writeLog(
-            "Failed to fetch last Punch-in entry ${response.statusCode}, ${response.body}");
+        print('Api failed last Punch-in entry ${response.statusCode}, ${response.body}');
         return false;
       }
-    } catch (e) {
+      else {
+        LogFileManager.writeLog("Failed to fetch last Punch-in entry ${response.statusCode}, ${response.body}");
+        return false;
+      }
+
+    } catch(e){
       LogFileManager.writeLog("Error in getInEntryFrom Database: $e");
       print("Error in getInEntryFrom Database: $e");
       return false;
     }
+
   }
 
-  Future<bool> getOutEntryFromDataBase(
-      String TransactionDate, String TransactionTime, String StaffCode) async {
+  Future<bool> getOutEntryFromDataBase(String TransactionDate, String TransactionTime, String StaffCode)
+  async {
     final response = await http.post(
       Uri.parse("http://114.143.140.28:8020/api/InOut/InOutLastFlag"),
-      headers: <String, String>{
+      headers: <String, String> {
         'Content-Type': 'application/json; charset=UTF-8',
         'Authorization': 'Bearer $Auth_Token',
       },
-      body: jsonEncode(<String, String>{
+      body: jsonEncode(<String, String> {
         'TransactionDate': TransactionDate,
         'StaffCode': StaffCode,
         // 'TransactionTime': TransactionTime,
@@ -2486,10 +2238,10 @@ class _HomeScreenState extends State<HomeScreen> {
     final Map<String, dynamic> res = json.decode(response.body);
     print("res getOutEntryFromDataBase $res");
     if (response.statusCode == 201 || response.statusCode == 200) {
-      if (res['data'] == "001") {
+      if(res['data'] == "001"){
         // LogFileManager.writeLog("get in entry $res");
         return true;
-      } else {
+      }else {
         LogFileManager.writeLog("Last punch entry already present $response");
         return false;
       }
@@ -2500,23 +2252,17 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<String?> storeInEntry(
-      String TransactionDate,
-      String TransactionTime,
-      String StaffCode,
-      String FlagValue,
-      String Address,
-      String Latitude,
-      String Longitude,
-      String plantcode) async {
-    try {
-      print("plantcode" + plantcode);
+      String TransactionDate, String TransactionTime, String StaffCode, String FlagValue, String Address, String Latitude, String Longitude,String plantcode)
+  async {
+    try{
+      print("plantcode"+plantcode);
       final response = await http.post(
         Uri.parse("http://114.143.140.28:8020/api/InOut/InOutSaveData"),
-        headers: <String, String>{
+        headers: <String, String> {
           'Content-Type': 'application/json; charset=UTF-8',
           'Authorization': 'Bearer $Auth_Token',
         },
-        body: jsonEncode(<String, String>{
+        body: jsonEncode(<String, String> {
           'TransactionDate': TransactionDate,
           'TransactionTime': TransactionTime,
           'StaffCode': StaffCode,
@@ -2524,23 +2270,22 @@ class _HomeScreenState extends State<HomeScreen> {
           'address': Address,
           'latitude': Latitude,
           'longitude': Longitude,
-          "plantCode": plantcode
+          "plantCode":plantcode
         }),
       );
-      print("punch-in response body" + response.body);
-      print("punch-in response status code" + response.statusCode.toString());
+      print("punch-in response body"+response.body);
+      print("punch-in response status code"+response.statusCode.toString());
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         LogFileManager.writeLog("storeinentry $response");
-        if (atsflag == 'Y') {
-          try {
+        if(atsflag=='Y'){
+          try{
             final response = await http.post(
-              Uri.parse(
-                  "https://m-techinnovations.co.in/PersonTrackingAPI/API/SaveDetailsTLS"),
-              headers: <String, String>{
+              Uri.parse("https://m-techinnovations.co.in/PersonTrackingAPI/API/SaveDetailsTLS"),
+              headers: <String, String> {
                 'Content-Type': 'application/json; charset=UTF-8',
               },
-              body: jsonEncode(<String, String>{
+              body: jsonEncode(<String, String> {
                 'TransactionDate': TransactionDate,
                 'TransactionTime': TransactionTime,
                 'StaffCode': StaffCode,
@@ -2560,42 +2305,37 @@ class _HomeScreenState extends State<HomeScreen> {
               return json.decode(response.body).toString();
               //throw Exception('Failed to store entry');
             }
-          } catch (e) {
+          }catch(e){
             //sqlitePunchIN(TransactionDate,TransactionTime,StaffCode,FlagValue,Address,Latitude,Longitude);
             LogFileManager.writeLog('Error in Store InEntry: $e');
           }
         }
         return json.decode(response.body).toString();
+
       } else {
         LogFileManager.writeLog("storeinentry else");
         // sqlitePunchIN(TransactionDate,TransactionTime,StaffCode,FlagValue,Address,Latitude,Longitude);
         return json.decode(response.body).toString();
         //throw Exception('Failed to store entry');
       }
-    } catch (e) {
+    } catch(e){
       // sqlitePunchIN(TransactionDate,TransactionTime,StaffCode,FlagValue,Address,Latitude,Longitude);
       LogFileManager.writeLog('Error in Store Punch-In Entry: $e');
     }
   }
 
   Future<String?> storeOutEntry(
-      String TransactionDate,
-      String TransactionTime,
-      String StaffCode,
-      String FlagValue,
-      String Address,
-      String Latitude,
-      String Longitude,
-      String plantcode) async {
-    try {
-      print("plantcodeout" + plantcode);
+      String TransactionDate, String TransactionTime, String StaffCode, String FlagValue, String Address, String Latitude, String Longitude,String plantcode)
+  async {
+    try{
+      print("plantcodeout"+plantcode);
       final response = await http.post(
         Uri.parse("http://114.143.140.28:8020/api/InOut/InOutSaveData"),
-        headers: <String, String>{
+        headers: <String, String> {
           'Content-Type': 'application/json; charset=UTF-8',
           'Authorization': 'Bearer $Auth_Token',
         },
-        body: jsonEncode(<String, String>{
+        body: jsonEncode(<String, String> {
           'TransactionDate': TransactionDate,
           'TransactionTime': TransactionTime,
           'StaffCode': StaffCode,
@@ -2603,22 +2343,21 @@ class _HomeScreenState extends State<HomeScreen> {
           'address': Address,
           'latitude': Latitude,
           'longitude': Longitude,
-          "plantCode": plantcode
+          "plantCode":plantcode
         }),
       );
-      print("punch-out response body" + response.body);
-      print("punch-out response status code" + response.statusCode.toString());
+      print("punch-out response body"+response.body);
+      print("punch-out response status code"+response.statusCode.toString());
       if (response.statusCode == 201 || response.statusCode == 200) {
         LogFileManager.writeLog("storeoutentry $response");
-        if (atsflag == 'Y') {
-          try {
+        if(atsflag=='Y'){
+          try{
             final response = await http.post(
-              Uri.parse(
-                  "https://m-techinnovations.co.in/PersonTrackingAPI/API/SaveDetailsTLS"),
-              headers: <String, String>{
+              Uri.parse("https://m-techinnovations.co.in/PersonTrackingAPI/API/SaveDetailsTLS"),
+              headers: <String, String> {
                 'Content-Type': 'application/json; charset=UTF-8',
               },
-              body: jsonEncode(<String, String>{
+              body: jsonEncode(<String, String> {
                 'TransactionDate': TransactionDate,
                 'TransactionTime': TransactionTime,
                 'StaffCode': StaffCode,
@@ -2634,12 +2373,11 @@ class _HomeScreenState extends State<HomeScreen> {
               return json.decode(response.body).toString();
             } else {
               LogFileManager.writeLog("storeinentry else");
-              sqlitePunchIN(TransactionDate, TransactionTime, StaffCode,
-                  FlagValue, Address, Latitude, Longitude);
+              sqlitePunchIN(TransactionDate,TransactionTime,StaffCode,FlagValue,Address,Latitude,Longitude);
               return json.decode(response.body).toString();
               //throw Exception('Failed to store entry');
             }
-          } catch (e) {
+          }catch(e){
             //sqlitePunchIN(TransactionDate,TransactionTime,StaffCode,FlagValue,Address,Latitude,Longitude);
             LogFileManager.writeLog('Error in Store InEntry: $e');
           }
@@ -2650,7 +2388,8 @@ class _HomeScreenState extends State<HomeScreen> {
         // sqlitePunchOUT(TransactionDate,TransactionTime,StaffCode,"000",Address,Latitude,Longitude);
         throw Exception('Failed to store entry');
       }
-    } catch (e) {
+
+    } catch(e){
       LogFileManager.writeLog("Error in Store Punch-Out Entry: $e");
       // sqlitePunchOUT(TransactionDate,TransactionTime,StaffCode,"000",Address,Latitude,Longitude);
       print("Error in Store Punch-Out Entry: $e");
@@ -2658,22 +2397,16 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<String?> storeNotInZoneEntry(
-      String TransactionDate,
-      String TransactionTime,
-      String StaffCode,
-      String FlagValue,
-      String Address,
-      String Latitude,
-      String Longitude,
-      String plantcode) async {
-    try {
+      String TransactionDate, String TransactionTime, String StaffCode, String FlagValue, String Address, String Latitude, String Longitude,String plantcode)
+  async {
+    try{
       final response = await http.post(
         Uri.parse("http://114.143.140.28:8020/api/InOut/InOutSaveData"),
-        headers: <String, String>{
+        headers: <String, String> {
           'Content-Type': 'application/json; charset=UTF-8',
           'Authorization': 'Bearer $Auth_Token',
         },
-        body: jsonEncode(<String, String>{
+        body: jsonEncode(<String, String> {
           'TransactionDate': TransactionDate,
           'TransactionTime': TransactionTime,
           'StaffCode': StaffCode,
@@ -2681,36 +2414,39 @@ class _HomeScreenState extends State<HomeScreen> {
           'address': Address,
           'latitude': Latitude,
           'longitude': Longitude,
-          "plantCode": plantcode
+          "plantCode":plantcode
         }),
       );
-      print("storeNotInZoneEntry response body" + response.body);
-      print("storeNotInZoneEntry response status code" +
-          response.statusCode.toString());
+      print("storeNotInZoneEntry response body"+response.body);
+      print("storeNotInZoneEntry response status code"+response.statusCode.toString());
       if (response.statusCode == 201 || response.statusCode == 200) {
         LogFileManager.writeLog("storeNotInZoneEntry $response");
         return json.decode(response.body).toString();
       } else {
-        LogFileManager.writeLog(
-            "storeNotInZoneEntry is not stored, unexpected error");
+        LogFileManager.writeLog("storeNotInZoneEntry is not stored, unexpected error");
         // sqlitePunchOUT(TransactionDate,TransactionTime,StaffCode,"000",Address,Latitude,Longitude);
         throw Exception('Failed to store entry');
       }
-    } catch (e) {
+
+    } catch(e){
       LogFileManager.writeLog("Error in Store storeNotInZoneEntry Entry: $e");
       // sqlitePunchOUT(TransactionDate,TransactionTime,StaffCode,"000",Address,Latitude,Longitude);
       print("Error in Store storeNotInZoneEntry Entry: $e");
     }
   }
 
+
+
   /// ------------------------------ other functions -------------------------------------
+
+
 
   Future<void> stopVisit() async {
     // await service.stopSelf();
     // await locationStream?.cancel();
     // locationStream = null;
 
-    try {
+    try{
       await storage.delete(key: 'SelectedVisit');
       // ✅ Update global state only
       VisitState.isVisitRunning.value = false;
@@ -2718,16 +2454,15 @@ class _HomeScreenState extends State<HomeScreen> {
       BackgroundService backgroundService = BackgroundService();
       backgroundService.stopService();
       // ❗️ Manually cancel the notification (especially for iOS)
-      await FlutterLocalNotificationsPlugin()
-          .cancel(foregroundServiceNotificationId);
+      await FlutterLocalNotificationsPlugin().cancel(foregroundServiceNotificationId);
       if (Platform.isIOS) {
-        await NativeLocationBridge
-            .stopNativeTracking(); // 👈 Native ios stop tracking
+        await NativeLocationBridge.stopNativeTracking(); // 👈 Native ios stop tracking
       }
-    } catch (e) {
+    } catch (e){
       print("stop visit at Logout $e");
       LogFileManager.writeLog("stop visit at Logout $e");
     }
+
   }
 
   Future<bool> showStopVisitDialogBox(BuildContext context) async {
@@ -2736,8 +2471,7 @@ class _HomeScreenState extends State<HomeScreen> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text("Stop Visit Tracking"),
-          content:
-              const Text("Are you sure you want to stop tracking the visit?"),
+          content: const Text("Are you sure you want to stop tracking the visit?"),
           actions: [
             TextButton(
               onPressed: () {
@@ -2760,11 +2494,11 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void onLogout() async {
-    if (VisitState.isVisitRunning.value) {
-      bool result = await showStopVisitDialogBox(context);
-      if (!result) {
-        return;
-      }
+    if(VisitState.isVisitRunning.value){
+     bool result = await showStopVisitDialogBox(context);
+     if(!result){
+       return;
+     }
     }
 
     // Clear the secure storage
@@ -2782,35 +2516,31 @@ class _HomeScreenState extends State<HomeScreen> {
               },
               child: LoginScreen()),
         ),
-        (Route<dynamic> route) => false);
+            (Route<dynamic> route) => false);
   }
 
   // Function to clear specific keys
   Future<void> clearSecureStorage() async {
-    await storage.delete(key: 'Auth_Token'); // Delete auth token
-    await storage.delete(key: 'Staff_Code'); // Delete staff code
-    await storage.delete(key: 'Staff_Name'); // Delete staff name
-    await storage.delete(
-        key: 'username'); // Delete username (if used for remember me)
-    await storage.delete(
-        key: 'password'); // Delete password (if used for remember me)
+    await storage.delete(key: 'Auth_Token');  // Delete auth token
+    await storage.delete(key: 'Staff_Code');  // Delete staff code
+    await storage.delete(key: 'Staff_Name');  // Delete staff name
+    await storage.delete(key: 'username');   // Delete username (if used for remember me)
+    await storage.delete(key: 'password');   // Delete password (if used for remember me)
   }
 
 // Or to clear all stored data
   Future<void> clearAllSecureStorage() async {
-    await storage.deleteAll(); // Clear all stored data
+    await storage.deleteAll();  // Clear all stored data
   }
 
   Future<void> retorepunchdata() async {
     final dbHelper = DatabaseHelper();
-    List<Map<String, dynamic>> offlineEntries =
-        await dbHelper.getOfflinePunchEntries();
+    List<Map<String, dynamic>> offlineEntries = await dbHelper.getOfflinePunchEntries();
 
     for (var entry in offlineEntries) {
       try {
         final response = await http.post(
-          Uri.parse(
-              "https://m-techinnovations.co.in/PersonTrackingAPI/API/SaveDetails"),
+          Uri.parse("https://m-techinnovations.co.in/PersonTrackingAPI/API/SaveDetails"),
           headers: <String, String>{
             'Content-Type': 'application/json; charset=UTF-8',
           },
@@ -2830,8 +2560,7 @@ class _HomeScreenState extends State<HomeScreen> {
           print("Restored and deleted offline punch entry");
 
           // Only update UI if this was the most recent operation
-          final lastEntry =
-              await dbHelper.getLastPunchEntry(entry['staff_code']);
+          final lastEntry = await dbHelper.getLastPunchEntry(entry['staff_code']);
           if (lastEntry != null && lastEntry['id'] == entry['id']) {
             setState(() {
               if (entry['flag_value'] == "001") {
@@ -2852,14 +2581,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> retorepunchoutdata() async {
     final dbHelper = DatabaseHelperPunchout();
-    List<Map<String, dynamic>> offlineEntries =
-        await dbHelper.getOfflinePunchoutEntries();
+    List<Map<String, dynamic>> offlineEntries = await dbHelper.getOfflinePunchoutEntries();
 
     for (var entry in offlineEntries) {
       try {
         final response = await http.post(
-          Uri.parse(
-              "https://m-techinnovations.co.in/PersonTrackingAPI/API/SaveDetails"),
+          Uri.parse("https://m-techinnovations.co.in/PersonTrackingAPI/API/SaveDetails"),
           headers: <String, String>{
             'Content-Type': 'application/json; charset=UTF-8',
           },
@@ -2879,8 +2606,7 @@ class _HomeScreenState extends State<HomeScreen> {
           print("Restored and deleted offline punch entry");
 
           // Only update UI if this was the most recent operation
-          final lastEntry =
-              await dbHelper.getLastPunchoutEntry(entry['staff_code']);
+          final lastEntry = await dbHelper.getLastPunchoutEntry(entry['staff_code']);
           if (lastEntry != null && lastEntry['id'] == entry['id']) {
             setState(() {
               if (entry['flag_value'] == "001") {
@@ -2900,22 +2626,21 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> sqlitePunchIN(
-    String transactionDate,
-    String transactionTime,
-    String staffCode,
-    String flagvalue,
-    String address,
-    String latitude,
-    String longitude,
-  ) async {
+      String transactionDate,
+      String transactionTime,
+      String staffCode,
+      String flagvalue,
+      String address,
+      String latitude,
+      String longitude,
+      )
+  async {
     final dbHelper = DatabaseHelper();
 
     // Check if entry already exists
-    bool exists = await dbHelper.checkDuplicateEntry(
-        staffCode, transactionDate, flagvalue);
+    bool exists = await dbHelper.checkDuplicateEntry(staffCode, transactionDate, flagvalue);
     if (exists) {
-      LogFileManager.writeLog(
-          "Duplicate offline entry skipped for $staffCode on $transactionDate with flag $flagvalue");
+      LogFileManager.writeLog("Duplicate offline entry skipped for $staffCode on $transactionDate with flag $flagvalue");
       return;
     }
 
@@ -2946,22 +2671,14 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Future<void> sqlitePunchOUT(
-      String transactionDate,
-      String transactionTime,
-      String staffCode,
-      String s,
-      String address,
-      String latitude,
-      String longitude) async {
+  Future<void> sqlitePunchOUT(String transactionDate, String transactionTime, String staffCode, String s, String address, String latitude, String longitude) async {
+
     final dbHelper = DatabaseHelperPunchout();
 
     // Check if entry already exists
-    bool exists =
-        await dbHelper.checkDuplicatePunchOut(staffCode, transactionDate, s);
+    bool exists = await dbHelper.checkDuplicatePunchOut(staffCode, transactionDate, s);
     if (exists) {
-      LogFileManager.writeLog(
-          "Duplicate offline entry skipped for $staffCode on $transactionDate with flag $s");
+      LogFileManager.writeLog("Duplicate offline entry skipped for $staffCode on $transactionDate with flag $s");
       return;
     }
 
@@ -2990,19 +2707,23 @@ class _HomeScreenState extends State<HomeScreen> {
         duration: const Duration(seconds: 3),
       ),
     );
+
   }
 
   Future<void> checkBiometrics() async {
-    try {
+    try
+    {
       bool canCheckBiometrics = await auth.canCheckBiometrics;
-      if (canCheckBiometrics) {
-        List<BiometricType> availableBiometrics =
-            await auth.getAvailableBiometrics();
+      if (canCheckBiometrics)
+      {
+        List<BiometricType> availableBiometrics = await auth.getAvailableBiometrics();
         print("Available biometrics: $availableBiometrics");
         LogFileManager.writeLog("Available biometrics: $availableBiometrics");
         //LogFileManager.saveData("Available biometrics: $availableBiometrics","hereeeee");
         await authenticate();
-      } else {
+      }
+      else
+      {
         // Fluttertoast.showToast(
         //   msg: "  No biometrics available on this device...!   ",
         //   toastLength: Toast.LENGTH_SHORT,
@@ -3016,7 +2737,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
         await authenticate();
       }
-    } catch (e) {
+    }
+    catch (e)
+    {
       LogFileManager.writeLog('Error checking biometrics: $e');
       print("Error checking biometrics: $e");
     }
@@ -3038,7 +2761,9 @@ class _HomeScreenState extends State<HomeScreen> {
         //   timeInSecForIosWeb: 1,
         // );
         await punchIn();
-      } else {
+      }
+      else
+      {
         // Fluttertoast.showToast(
         //   msg: "Authentication failed. Please try again!",
         //   toastLength: Toast.LENGTH_LONG,
@@ -3047,13 +2772,15 @@ class _HomeScreenState extends State<HomeScreen> {
         print("Authentication failed.");
       }
     } catch (e) {
-      if (e is PlatformException) {
-        print("Authentication e.code----" + e.code);
-        LogFileManager.writeLog("Authentication e.code----" + e.code);
-        switch (e.code) {
+      if (e is PlatformException)
+      {
+
+        print ("Authentication e.code----"+e.code);
+        LogFileManager.writeLog("Authentication e.code----"+e.code);
+        switch (e.code)
+        {
           case 'NotAvailable':
-            LogFileManager.writeLog(
-                "Biometric authentication is not available on this device.");
+            LogFileManager.writeLog("Biometric authentication is not available on this device.");
             print("Biometric authentication is not available on this device.");
             // Fluttertoast.showToast(
             //   msg: "Biometric authentication is not available on this device.",
@@ -3064,10 +2791,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
             break;
           case 'NotEnrolled':
-            LogFileManager.writeLog(
-                "No biometrics enrolled. Please enroll your fingerprint or Face ID in device settings.");
-            print(
-                "No biometrics enrolled. Please enroll your fingerprint or Face ID in device settings.");
+            LogFileManager.writeLog("No biometrics enrolled. Please enroll your fingerprint or Face ID in device settings.");
+            print("No biometrics enrolled. Please enroll your fingerprint or Face ID in device settings.");
             // Fluttertoast.showToast(
             //   msg: "No biometrics enrolled. Please enroll your fingerprint or Face ID in device settings.",
             //   toastLength: Toast.LENGTH_LONG,
@@ -3075,10 +2800,8 @@ class _HomeScreenState extends State<HomeScreen> {
             // );
             break;
           case 'LockedOut':
-            print(
-                "Biometric authentication is temporarily locked. Please try again later.");
-            LogFileManager.writeLog(
-                "Biometric authentication is temporarily locked. Please try again later.");
+            print("Biometric authentication is temporarily locked. Please try again later.");
+            LogFileManager.writeLog("Biometric authentication is temporarily locked. Please try again later.");
             // Fluttertoast.showToast(
             //   msg: "Biometric authentication is temporarily locked. Please try again later.",
             //   toastLength: Toast.LENGTH_LONG,
@@ -3105,8 +2828,7 @@ class _HomeScreenState extends State<HomeScreen> {
             break;
           case 'PasscodeNotSet':
             print("A passcode must be set to use biometric authentication.");
-            LogFileManager.writeLog(
-                "A passcode must be set to use biometric authentication.");
+            LogFileManager.writeLog("A passcode must be set to use biometric authentication.");
             // Fluttertoast.showToast(
             //   msg: "A passcode must be set to use biometric authentication.",
             //   toastLength: Toast.LENGTH_LONG,
@@ -3115,29 +2837,31 @@ class _HomeScreenState extends State<HomeScreen> {
             break;
           default:
             print("An unexpected error occurred: ${e.message}");
-            LogFileManager.writeLog(
-                "An unexpected error occurred: ${e.message}");
-          // Fluttertoast.showToast(
-          //   msg: "An unexpected error occurred: ${e.message}",
-          //   toastLength: Toast.LENGTH_LONG,
-          //   timeInSecForIosWeb: 1,
-          // );
+            LogFileManager.writeLog("An unexpected error occurred: ${e.message}");
+        // Fluttertoast.showToast(
+        //   msg: "An unexpected error occurred: ${e.message}",
+        //   toastLength: Toast.LENGTH_LONG,
+        //   timeInSecForIosWeb: 1,
+        // );
         }
       }
     }
   }
 
   Future<void> checkbiometricspunchout() async {
-    try {
+    try
+    {
       bool canCheckBiometrics = await auth.canCheckBiometrics;
-      if (canCheckBiometrics) {
-        List<BiometricType> availableBiometrics =
-            await auth.getAvailableBiometrics();
+      if (canCheckBiometrics)
+      {
+        List<BiometricType> availableBiometrics = await auth.getAvailableBiometrics();
         print("Available biometrics: $availableBiometrics");
         LogFileManager.writeLog("Available biometrics: $availableBiometrics");
         //LogFileManager.saveData("Available biometrics: $availableBiometrics","hereeeee");
         await authenticatepunchout();
-      } else {
+      }
+      else
+      {
         // Fluttertoast.showToast(
         //   msg: "  No biometrics available on this device...!   ",
         //   toastLength: Toast.LENGTH_SHORT,
@@ -3151,11 +2875,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
         await authenticatepunchout();
       }
-    } catch (e) {
+    }
+    catch (e)
+    {
       LogFileManager.writeLog('Error checking biometrics: $e');
       print("Error checking biometrics: $e");
     }
   }
+
 
   Future<void> authenticatepunchout() async {
     try {
@@ -3173,7 +2900,9 @@ class _HomeScreenState extends State<HomeScreen> {
         //   timeInSecForIosWeb: 1,
         // );
         await punchOut();
-      } else {
+      }
+      else
+      {
         Fluttertoast.showToast(
           msg: "Authentication failed. Please try again!",
           toastLength: Toast.LENGTH_LONG,
@@ -3182,13 +2911,15 @@ class _HomeScreenState extends State<HomeScreen> {
         print("Authentication failed.");
       }
     } catch (e) {
-      if (e is PlatformException) {
-        print("Authentication e.code----" + e.code);
-        LogFileManager.writeLog("Authentication e.code----" + e.code);
-        switch (e.code) {
+      if (e is PlatformException)
+      {
+
+        print ("Authentication e.code----"+e.code);
+        LogFileManager.writeLog("Authentication e.code----"+e.code);
+        switch (e.code)
+        {
           case 'NotAvailable':
-            LogFileManager.writeLog(
-                "Biometric authentication is not available on this device.");
+            LogFileManager.writeLog("Biometric authentication is not available on this device.");
             print("Biometric authentication is not available on this device.");
             // Fluttertoast.showToast(
             //   msg: "Biometric authentication is not available on this device.",
@@ -3199,10 +2930,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
             break;
           case 'NotEnrolled':
-            LogFileManager.writeLog(
-                "No biometrics enrolled. Please enroll your fingerprint or Face ID in device settings.");
-            print(
-                "No biometrics enrolled. Please enroll your fingerprint or Face ID in device settings.");
+            LogFileManager.writeLog("No biometrics enrolled. Please enroll your fingerprint or Face ID in device settings.");
+            print("No biometrics enrolled. Please enroll your fingerprint or Face ID in device settings.");
             // Fluttertoast.showToast(
             //   msg: "No biometrics enrolled. Please enroll your fingerprint or Face ID in device settings.",
             //   toastLength: Toast.LENGTH_LONG,
@@ -3210,10 +2939,8 @@ class _HomeScreenState extends State<HomeScreen> {
             // );
             break;
           case 'LockedOut':
-            print(
-                "Biometric authentication is temporarily locked. Please try again later.");
-            LogFileManager.writeLog(
-                "Biometric authentication is temporarily locked. Please try again later.");
+            print("Biometric authentication is temporarily locked. Please try again later.");
+            LogFileManager.writeLog("Biometric authentication is temporarily locked. Please try again later.");
             // Fluttertoast.showToast(
             //   msg: "Biometric authentication is temporarily locked. Please try again later.",
             //   toastLength: Toast.LENGTH_LONG,
@@ -3240,8 +2967,7 @@ class _HomeScreenState extends State<HomeScreen> {
             break;
           case 'PasscodeNotSet':
             print("A passcode must be set to use biometric authentication.");
-            LogFileManager.writeLog(
-                "A passcode must be set to use biometric authentication.");
+            LogFileManager.writeLog("A passcode must be set to use biometric authentication.");
             // Fluttertoast.showToast(
             //   msg: "A passcode must be set to use biometric authentication.",
             //   toastLength: Toast.LENGTH_LONG,
@@ -3250,18 +2976,19 @@ class _HomeScreenState extends State<HomeScreen> {
             break;
           default:
             print("An unexpected error occurred: ${e.message}");
-            LogFileManager.writeLog(
-                "An unexpected error occurred: ${e.message}");
-          // Fluttertoast.showToast(
-          //   msg: "An unexpected error occurred: ${e.message}",
-          //   toastLength: Toast.LENGTH_LONG,
-          //   timeInSecForIosWeb: 1,
-          // );
+            LogFileManager.writeLog("An unexpected error occurred: ${e.message}");
+        // Fluttertoast.showToast(
+        //   msg: "An unexpected error occurred: ${e.message}",
+        //   toastLength: Toast.LENGTH_LONG,
+        //   timeInSecForIosWeb: 1,
+        // );
         }
       }
     }
   }
+
 }
+
 
 class _BannerItem {
   final String image;
@@ -3269,6 +2996,12 @@ class _BannerItem {
 
   _BannerItem({required this.image, required this.text});
 }
+
+
+
+
+
+
 
 /// old punch in-out code
 /*
@@ -3795,7 +3528,7 @@ Future<void> punchOut() async {
       //
       // });
 */
-/**/ /*
+/**//*
 
       LocationHandler.remoteZoneLat = double.parse(REMOTELAT);
       LocationHandler.remoteZoneLon = double.parse(REMOTELONG);

@@ -268,6 +268,8 @@ class VisitDropdownScreenState extends State<VisitStartStopScreen> with WidgetsB
 
       bool confirm = await _showStartVisitDialog(visit);
       if (!confirm) return;
+      bool userConcent = await showLocationDisclosure();
+      if (!userConcent) return;
 
       if (!await enableGPSWithPermission(context)) return;
 
@@ -315,6 +317,33 @@ class VisitDropdownScreenState extends State<VisitStartStopScreen> with WidgetsB
         isLoading = false;
       });
     }
+  }
+
+  Future<bool> showLocationDisclosure() async {
+    return await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Allow Background Location"),
+          content: const Text(
+            "Attendance & Visit Tracker collects location data to track your visit route "
+                "and verify field activities even when the app is closed or not in use. "
+                "This helps maintain accurate visit history for official work.",
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text("Decline"),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text("Allow"),
+            ),
+          ],
+        );
+      },
+    ) ?? false;
   }
 
   Future<void> _handleBatteryOptimization(Data visit) async {

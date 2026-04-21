@@ -26,7 +26,7 @@ def flutterVersionCode = localProperties.getProperty("flutter.versionCode") ?: "
 def flutterVersionName = localProperties.getProperty("flutter.versionName") ?: "1.0"
 
 android {
-    namespace = "com.example.attendance_system_ios"
+    namespace = "com.mtech.attendance"
     compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
@@ -39,14 +39,22 @@ android {
         jvmTarget = "17"
     }
 
-
     defaultConfig {
-        applicationId = "com.example.attendance_system_ios"
+        applicationId = "com.mtech.attendance"
         minSdk = 26
         targetSdk = 36
         versionCode = flutterVersionCode.toInteger()
         versionName = flutterVersionName
         multiDexEnabled true
+    }
+
+    signingConfigs {
+        create("release") {
+            keyAlias = "upload"/*keystoreProperties["keyAlias"] as String*/
+            keyPassword =  "Admin@12345\$"/*keystoreProperties["keyPassword"] as String*/
+            storeFile = file("upload-keystore.jks")
+            storePassword = "Admin@12345\$"/*keystoreProperties["storePassword"] as String*/
+        }
     }
 
     buildTypes {
@@ -56,7 +64,8 @@ android {
             shrinkResources false
 
             // Optional: keep debug signing for now, use release signing config in production
-            signingConfig signingConfigs.debug
+//            signingConfig signingConfigs.debug
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 }
