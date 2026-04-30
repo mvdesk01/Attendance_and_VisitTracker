@@ -565,3 +565,43 @@ class GetVisitClientListEvent extends MainEvent {
 
   GetVisitClientListEvent({required this.pagenumber, required this.pagesize});
 }
+
+class AddMultipleRemoteLocation extends MainEvent{
+  String token;
+  String lat;
+  String long;
+  String staffcode;
+  String flag;
+  String locationName;
+  String radius;
+
+  AddMultipleRemoteLocation( this.token, this.lat, this.long, this.staffcode, this.flag, this.locationName, this.radius);
+
+}
+
+class GetMultiRemoteLocation extends MainEvent {
+  String token;
+  String staffCode;
+
+  GetMultiRemoteLocation( this.token, this.staffCode);
+}
+
+class DeleteMultiRemoteLocation extends MainEvent {
+  String token;
+  String staffCode;
+  int srNo;
+  DeleteMultiRemoteLocation( this.token, this.staffCode, this.srNo);
+}
+
+class UpdateMultiRemoteLocationEvent extends MainEvent {
+  int srNo;
+  String staffCode;
+  String lat;
+  String long;
+  String locationName;
+  String flag;
+  String radius;
+  String token;
+
+  UpdateMultiRemoteLocationEvent( this.srNo, this.staffCode, this.lat, this.long, this.locationName, this.flag, this.radius, this.token);
+}

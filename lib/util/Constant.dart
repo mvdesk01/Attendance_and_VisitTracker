@@ -82,5 +82,10 @@ class Constant {
   static String searchbystaffcode = baseUrl+'Users/GetUserDataByDetails/';
   static String pageinitiationalluserlist = baseUrl+'Users/GetAllUsersByPagination/';
 
+  static String addMultiRemoteLocation = baseUrl+'Users/PostMultiRemoteLocation';
+  static String getMultiRemoteLocation = baseUrl+'Users/GetMultiRemoteLocationByStaffCode';
+  static String deleteMultiRemoteLocation = baseUrl+'Users/DeleteMultiRemoteLocation';
+  static String updateMultiRemoteLocation = baseUrl+'Users/PutMultiRemoteLocation';
+
 }
 

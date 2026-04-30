@@ -79,6 +79,7 @@ class _HomeScreenState extends State<HomeScreen> {
   static bool lastPunchOut = true;
   late bool _isLoading = false;
   late MainBloc mainBloc;
+  List<Map<String, dynamic>> multiLatLongList = [];
   final storage = FlutterSecureStorage();
 
   String? staffCode="";
@@ -182,6 +183,7 @@ class _HomeScreenState extends State<HomeScreen> {
     staffName = await storage.read(key: 'Staff_Name');
 
     mainBloc.add(GetUserInfoEvents(Staffcode: staffCode!, token: Auth_Token!));
+    mainBloc.add(GetMultiRemoteLocation(Auth_Token!, staffCode!));
     //mainBloc.add(GetStaffDetailsEvents(StaffCode: staffCode, token: Auth_Token));
   }
   Future<void> _checkAndRequestLocationPermission() async {
@@ -508,7 +510,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: AppBar(
         actions:  <Widget>[
-          Padding(padding: EdgeInsets.symmetric(horizontal: 12),
+          Padding(padding: const EdgeInsets.symmetric(horizontal: 12),
             child: GestureDetector(
               onTap: () {
                 Fluttertoast.showToast(
@@ -517,7 +519,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   gravity: ToastGravity.BOTTOM,
                 );
               },
-              child: Icon(Icons.notifications),
+              child: const Icon(Icons.notifications),
             )
           ),
         ],
@@ -978,6 +980,27 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               );
             }
+          }
+
+          else if (state is GetMultiRemoteLocationLoadingState) {
+            setState(() {
+              isLoading = true;
+            });
+          }
+          else if (state is GetMultiRemoteLocationLoadedState) {
+            multiLatLongList = state.response;
+            setState(() {
+              isLoading = false;
+            });
+          }
+          else if (state is GetMultiRemoteLocationErrorState) {
+            setState(() {
+              isLoading = false;
+            });
+            Fluttertoast.showToast(
+              msg: state.msg,
+              toastLength: Toast.LENGTH_SHORT,
+            );
           }
 
         },
@@ -1887,6 +1910,7 @@ class _HomeScreenState extends State<HomeScreen> {
         LocationHandler.changeToRemoteLocation();
         LocationHandler.remoteZoneLat = double.parse(REMOTELAT);
         LocationHandler.remoteZoneLon = double.parse(REMOTELONG);
+        LocationHandler.multiLatLong = multiLatLongList;
         // _currentAddress = REMOTELOCATION.toString();
         bool ifInZone = await LocationHandler.checkIfInZone();
         print(ifInZone);
@@ -2064,6 +2088,7 @@ class _HomeScreenState extends State<HomeScreen> {
         LocationHandler.changeToRemoteLocation();
         LocationHandler.remoteZoneLat = double.parse(REMOTELAT);
         LocationHandler.remoteZoneLon = double.parse(REMOTELONG);
+        LocationHandler.multiLatLong = multiLatLongList;
         // _currentAddress = REMOTELOCATION.toString();
         bool ifInZone = await LocationHandler.checkIfInZone();
         if(ifInZone) {

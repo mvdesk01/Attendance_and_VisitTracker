@@ -1724,3 +1724,75 @@ class GetAllClientErrorState extends MainState {
 
   GetAllClientErrorState({required this.error});
 }
+
+class AddMultiRemoteLocationLoadingState extends MainState {
+  @override
+  List <Object> get props => [];
+}
+
+class AddMultiRemoteLocationLoadedState extends MainState {
+  var response;
+  AddMultiRemoteLocationLoadedState( {this.response});
+  @override
+  List<Object> get props => [response];
+}
+
+class AddMultiRemoteLocationErrorState extends MainState {
+  String msg;
+  AddMultiRemoteLocationErrorState({required this.msg});
+  @override
+  List<Object> get props => [msg];
+}
+
+class GetMultiRemoteLocationLoadingState extends MainState {
+  @override
+  List<Object?> get  props => [];
+}
+
+class GetMultiRemoteLocationLoadedState extends MainState {
+  final response;
+  GetMultiRemoteLocationLoadedState(this.response);
+  @override
+  List<Object?> get props => [response];
+}
+
+class GetMultiRemoteLocationErrorState extends MainState {
+  String msg;
+  GetMultiRemoteLocationErrorState({required this.msg});
+  @override
+  List<Object?> get props => [msg];
+}
+
+class DeleteMultiRemoteLocationLoadingState extends MainState {
+  @override
+  List<Object> get props => [];
+}
+class DeleteMultiRemoteLocationLoadedState extends MainState {
+  final response;
+  DeleteMultiRemoteLocationLoadedState(this.response);
+  @override
+  List<Object> get props => [response];
+}
+class DeleteMultiRemoteLocationErrorState extends MainState {
+  String msg;
+  DeleteMultiRemoteLocationErrorState({required this.msg});
+  @override
+  List<Object?> get props => [msg];
+}
+
+class UpdateMultiRemoteLocationLoadingState extends MainState {
+  @override
+  List<Object> get props => [];
+}
+class UpdateMultiRemoteLocationLoadedState extends MainState {
+  final response;
+  UpdateMultiRemoteLocationLoadedState(this.response);
+  @override
+  List<Object> get props => [response];
+}
+class UpdateMultiRemoteLocationErrorState extends MainState {
+  String msg;
+  UpdateMultiRemoteLocationErrorState({required this.msg});
+  @override
+  List<Object?> get props => [msg];
+}

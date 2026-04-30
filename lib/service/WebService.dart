@@ -3474,4 +3474,171 @@ print(staffcode + slipId);
     }
     return CancelGatepassResponse.fromJson(jsonDecode(response.body));
   }
+
+  Future<String> addMultiRemoteLocation(String token, String staffCode, String flag, String lat, String long, String locationName, String radius,) async {
+    try {
+
+      final response = await http.post(
+        Uri.parse(Constant.addMultiRemoteLocation),
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'srNo': 0,
+          'staffCode': staffCode,
+          'latitude': lat,
+          'longitude': long,
+          'locationName': locationName,
+          'flag': flag,
+          'radius': radius
+        }),
+      ).timeout(const Duration(seconds: 10));
+
+      print("Body: ${response.body}");
+      print("Status: ${response.statusCode}");
+
+      if (response.statusCode == 200) {
+
+        final data = jsonDecode(response.body);
+
+        if (data["status"] == true) {
+          return data["message"];
+        } else {
+          throw Exception(data["message"]);
+        }
+      } else if(response.statusCode == 400) {
+        final data = jsonDecode(response.body);
+        throw (data['message']);
+      }
+      else
+      {
+        throw ("Failed to add remote location");
+      }
+
+    } on SocketException {
+      throw ("Network Connection issue");
+    } on TimeoutException {
+      throw ("Request timed out");
+    } catch (e) {
+      print('Error adding multi remote location: $e');
+      rethrow;
+    }
+  }
+
+  Future<List<Map<String, dynamic>>?> getMultiRemoteLocations(String token, String staffCode) async {
+    try{
+      print(Constant.getMultiRemoteLocation+"/" +staffCode);
+      final response = await http.get(
+          Uri.parse(Constant.getMultiRemoteLocation+"/" +staffCode),
+          headers: {
+            'Content-Type': 'Application/Json',
+            'Authorization': 'Bearer $token'
+          }
+      ).timeout(Duration(seconds: 10));
+
+      print(response.body);
+      print(response.statusCode);
+
+      if(response.statusCode == 200 || response.statusCode == 201){
+        final data = jsonDecode(response.body);
+        final data2 = data['data'];
+        final List<Map<String, dynamic>> data3 = List<Map<String, dynamic>>.from(data2['data']);
+        if(data3.isNotEmpty){
+          return data3;
+        } else {
+          return null;
+        }
+      } else {
+        throw ('Faild to fetch multi remote locations');
+      }
+    } on SocketException {
+      throw ('Check your network connection');
+    }
+    on TimeoutException {
+      throw ('Request timed out');
+    }
+    catch (e){
+      throw Exception('Error fetching multi remote locations: $e');
+    }
+  }
+
+  Future<String> deleteMultiRemoteLocation(String staffCode, String token, int srNo) async {
+
+    try {
+      final response = await http.post(
+        Uri.parse (Constant.deleteMultiRemoteLocation+"/"+staffCode+"/"+srNo.toString()),
+        headers: {
+          'Content-Type': 'Application/Json',
+          'Authorization' : 'Bearer $token'
+        },
+        // body: jsonEncode({
+        //   'staffCode': staffCode,
+        //   'id': srNo
+        // })
+      ).timeout(Duration(seconds: 10));
+
+      print("deleteMultiRemoteLocation status code: ${response.statusCode}");
+      print("deleteMultiRemoteLocation body: ${response.body}");
+      if(response.statusCode == 200 || response.statusCode == 201) {
+        final data = jsonDecode (response.body);
+        if(data['status'] == true) {
+          return data['message'];
+        } else {
+          throw (data['message']);
+        }
+      } else {
+        final data = jsonDecode (response.body);
+        throw (data['message']);
+      }
+    } catch (e) {
+      print( "Error in delete Multiple remote location: $e");
+      throw Exception("Error in delete Multiple remote location: $e");
+    }
+  }
+
+  Future<String> updateMultiRemoteLocation(int srNo, String flag, String staffCode, String token, String radius, String locationName, String lat, String long) async {
+    try{
+      final response = await http.post (
+          Uri.parse(Constant.updateMultiRemoteLocation),
+          headers: {
+            'Content-Type': 'Application/Json',
+            'Authorization': 'Bearer $token'
+          },
+          body: jsonEncode({
+            "srNo": srNo,
+            "staffCode": staffCode,
+            "latitude": double.parse(lat).toStringAsFixed(8),
+            "longitude": double.parse(long).toStringAsFixed(8),
+            "locationName": locationName,
+            "flag": flag,
+            "radius": radius
+          })
+      ).timeout(Duration(seconds: 10));
+
+      print("updateMultiRemoteLocation status code: ${response.statusCode}");
+      print("updateMultiRemoteLocation body: ${response.body}");
+      if(response.statusCode == 200 || response.statusCode == 201) {
+        final data = jsonDecode (response.body);
+        if(data['status'] == true) {
+          return data['message'];
+        } else {
+          throw (data['message']);
+        }
+      } else {
+        final data = jsonDecode (response.body);
+        throw (data['message']);
+      }
+    } on SocketException {
+      throw ("Check your network connection");
+    }
+    on TimeoutException {
+      throw ("Request timed out");
+    }
+    catch (e) {
+      throw ("Error in Updating Project Remote Locations $e");
+    }
+  }
+
+
 }
