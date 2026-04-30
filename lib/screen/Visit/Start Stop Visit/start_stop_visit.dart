@@ -264,6 +264,11 @@ class VisitDropdownScreenState extends State<VisitStartStopScreen> with WidgetsB
         isVisitRunning = true;
         selectedVisit = visit;
       });
+      VisitState.runningVisitSrNo = visit.srNo;
+      await storage.write(
+        key: 'RunningVisitSrNo',
+        value: visit.srNo.toString(),
+      );
       await storage.write(key: 'isVisitRunning', value: true.toString());
       await storage.write(key: 'activeVisit', value: visit.srNo.toString());
       VisitState.isVisitRunning.value = true;
@@ -645,8 +650,10 @@ class VisitDropdownScreenState extends State<VisitStartStopScreen> with WidgetsB
       await storage.delete(key: 'SelectedVisit');
       await storage.delete(key: 'AutoStartVisit');
       await storage.delete(key: 'isVisitRunning');
+      await storage.delete(key: 'RunningVisitSrNo');
       VisitState.isVisitRunning.value = false;
       VisitState.isVisitStarted.value = false;
+      VisitState.runningVisitSrNo = null;
 
       setState(() {
         isVisitRunning = false;

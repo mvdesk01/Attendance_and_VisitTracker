@@ -1,19 +1,14 @@
-
 import 'package:attendance_system_ios/bloc/main_bloc.dart';
 import 'package:attendance_system_ios/bloc/main_event.dart';
 import 'package:attendance_system_ios/bloc/main_state.dart';
-import 'package:attendance_system_ios/model/GatePass/AddGatepassRequest.dart';
-import 'package:attendance_system_ios/model/MinutesOfTheMettingForm/DynamicRowData.dart';
 import 'package:attendance_system_ios/model/MinutesOfTheMettingForm/GetMinutesOfTheMeetingDataByVisitSrNoResponse.dart';
 import 'package:attendance_system_ios/model/MinutesOfTheMettingForm/InsertMMALLDataRequest.dart';
 import 'package:attendance_system_ios/model/MinutesOfTheMettingForm/InsertMMRowDataRequest.dart';
 import 'package:attendance_system_ios/model/MinutesOfTheMettingForm/UpdateMMAllData.dart';
 import 'package:attendance_system_ios/model/MinutesOfTheMettingForm/UpdateMMData.dart';
-import 'package:attendance_system_ios/screen/Gate%20Pass/gate_pass.dart';
 import 'package:attendance_system_ios/screen/Home/home.dart';
 import 'package:attendance_system_ios/screen/Visit%20History/Visit_History_Screen.dart';
 import 'package:attendance_system_ios/service/WebService.dart';
-import 'package:attendance_system_ios/util/DialogForUpdate.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -22,36 +17,35 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:jiffy/jiffy.dart';
 import 'package:loading_overlay/loading_overlay.dart';
+
 // import '../../model/GatePass/GatePassResponse.dart';
 import '../../util/MyColor.dart';
+import '../model/MinutesOfTheMettingForm/CustomerList.dart';
+import '../util/DialogForUpdate.dart';
 
 class MinutesOfTheMeetingFormScreen extends StatefulWidget {
-
-  late  String visitSrNo;
+  late String visitSrNo;
   late String minuteforno;
   String visitDateMOM;
   String toTimeMOM;
   String visitNameMOM;
 
-
-  MinutesOfTheMeetingFormScreen(
-      {
-        Key? key,
-        required this.visitSrNo,
-        required this.minuteforno,
-        required this.visitDateMOM,
-        required this.toTimeMOM,
-        required this.visitNameMOM,
-      })
-      : super(key: key);
+  MinutesOfTheMeetingFormScreen({
+    Key? key,
+    required this.visitSrNo,
+    required this.minuteforno,
+    required this.visitDateMOM,
+    required this.toTimeMOM,
+    required this.visitNameMOM,
+  }) : super(key: key);
 
   @override
-  State<MinutesOfTheMeetingFormScreen> createState() => _MinutesOfTheMeetingFormScreenState();
+  State<MinutesOfTheMeetingFormScreen> createState() =>
+      _MinutesOfTheMeetingFormScreenState();
 }
 
-
-class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormScreen> {
-
+class _MinutesOfTheMeetingFormScreenState
+    extends State<MinutesOfTheMeetingFormScreen> {
   TextEditingController _gatepassdatecontroller = new TextEditingController();
   TextEditingController _memberAbsentController = new TextEditingController();
   TextEditingController _memberPresentController = new TextEditingController();
@@ -75,7 +69,7 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
   TextEditingController fromTimeInput = TextEditingController();
   var toTimeController;
   TextEditingController toTimeInput = TextEditingController();
-  String srno="";
+  String srno = "";
   List<String> SRNOtable = [];
   String? Auth_Token = "";
 
@@ -94,9 +88,17 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
   TextEditingController textFieldController3 = TextEditingController();
   TextEditingController textFieldController4 = TextEditingController();
   TextEditingController textFieldController5 = TextEditingController();
-  List<Message> listofRows=[];
+  List<Message> listofRows = [];
   int index = 0;
   bool isNextDateEnabled = false;
+
+  List<CustomerData> customerList = [];
+  CustomerData? selectedCustomer;
+
+  TextEditingController customerSearchController = TextEditingController();
+
+  String? selectedCustCodeFromAPI;
+  bool _isSubmitting = false;
 
   @override
   void initState() {
@@ -134,19 +136,24 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
 
     print("Auth_Token-->" + Auth_Token!);
 
-    if ( _gatepassdatecontroller.text == "") {
-      _gatepassdatecontroller.text = DateFormat('dd/MM/yyyy').format(Jiffy.parse(widget.visitDateMOM).dateTime);
+    if (_gatepassdatecontroller.text == "") {
+      _gatepassdatecontroller.text = DateFormat('dd/MM/yyyy')
+          .format(Jiffy.parse(widget.visitDateMOM).dateTime);
     }
-    if(fromTimeInput.text.isEmpty) {
-      fromTimeInput.text = widget.toTimeMOM/*DateFormat('hh:mm a').format(DateTime.now())*/;
+    if (fromTimeInput.text.isEmpty) {
+      fromTimeInput.text =
+          widget.toTimeMOM /*DateFormat('hh:mm a').format(DateTime.now())*/;
     }
-    if(_subjectController.text.isEmpty){
-      _subjectController.text=widget.visitNameMOM;
+    if (_subjectController.text.isEmpty) {
+      _subjectController.text = widget.visitNameMOM;
     }
 
-    mainBloc.add(GetMinutesOfTheMeetingAllDataByVisitSrNoEvents(token: Auth_Token!,SrNo:widget.visitSrNo));
+    mainBloc.add(GetMinutesOfTheMeetingAllDataByVisitSrNoEvents(
+        token: Auth_Token!, SrNo: widget.visitSrNo));
 
-    mainBloc.add(GetMinutesOfTheMeetingDataByVisitSrNoEvents(token: Auth_Token!,VisitSrNo: widget.visitSrNo));
+    mainBloc.add(GetMinutesOfTheMeetingDataByVisitSrNoEvents(
+        token: Auth_Token!, VisitSrNo: widget.visitSrNo));
+    mainBloc.add(GetVisitClientListEvent(pagenumber: 1, pagesize: 50));
   }
 
   void getAllRowsData() {
@@ -164,91 +171,59 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
       print(rowData);
     }
 
-    if(allRowsData.length==0)
-    {
+    if (allRowsData.length == 0) {
       Fluttertoast.showToast(
         msg: "  Please Enter All Fields...!  ",
         toastLength: Toast.LENGTH_SHORT,
         timeInSecForIosWeb: 1,
       );
-    }
-    else
-    {
-      for (int i=0;i<allRowsData.length;i++)
-      {
-        Map<String, String> rowData=allRowsData.elementAt(i);
-        print("rowData :"+rowData.length.toString()) ;
-        String pointsOrIssues = rowData['pointsOrIssues'].toString() ;
+    } else {
+      for (int i = 0; i < allRowsData.length; i++) {
+        Map<String, String> rowData = allRowsData.elementAt(i);
+        print("rowData :" + rowData.length.toString());
+        String pointsOrIssues = rowData['pointsOrIssues'].toString();
 
-        if(rowData['pointsOrIssues']!.isEmpty)
-        {
+        if (rowData['pointsOrIssues']!.isEmpty) {
           Fluttertoast.showToast(
             msg: "  Please Enter pointsOrIssues...!  ",
             toastLength: Toast.LENGTH_SHORT,
             timeInSecForIosWeb: 1,
           );
-        }
-        else if(rowData['discussedWith']!.isEmpty)
-
-        {
+        } else if (rowData['discussedWith']!.isEmpty) {
           Fluttertoast.showToast(
             msg: "  Please Enter discussedWith...!  ",
             toastLength: Toast.LENGTH_SHORT,
             timeInSecForIosWeb: 1,
           );
-        }
-        else if(rowData['decisionTaken']!.isEmpty)
-
-        {
+        } else if (rowData['decisionTaken']!.isEmpty) {
           Fluttertoast.showToast(
             msg: "  Please Enter decisionTaken...!  ",
             toastLength: Toast.LENGTH_SHORT,
             timeInSecForIosWeb: 1,
           );
-        }
-        else if(rowData['responsibility']!.isEmpty)
-
-        {
+        } else if (rowData['responsibility']!.isEmpty) {
           Fluttertoast.showToast(
             msg: "  Please Enter responsibility...!  ",
             toastLength: Toast.LENGTH_SHORT,
             timeInSecForIosWeb: 1,
           );
-        }
-        else if(rowData['statusOrRemark']!.isEmpty)
-
-        {
+        } else if (rowData['statusOrRemark']!.isEmpty) {
           Fluttertoast.showToast(
             msg: "  Please Enter statusOrRemark...!  ",
             toastLength: Toast.LENGTH_SHORT,
             timeInSecForIosWeb: 1,
           );
-        }
-        else if(rowData['targetDate']!.isEmpty)
-
-        {
+        } else if (rowData['targetDate']!.isEmpty) {
           Fluttertoast.showToast(
             msg: "  Please Enter targetDate...!  ",
             toastLength: Toast.LENGTH_SHORT,
             timeInSecForIosWeb: 1,
           );
-        }
-
-        // else if(rowData['nextDate']!.isEmpty && isNextDateEnabled == true)
-        // {
-        //   Fluttertoast.showToast(
-        //     msg: "  Please Enter nextDate...!  ",
-        //     toastLength: Toast.LENGTH_SHORT,
-        //     timeInSecForIosWeb: 1,
-        //   );
-        // }
-        else if(i==allRowsData.length-1)
-        {
+        } else if (i == allRowsData.length - 1) {
           print("All row data print: ${allRowsData.toString()}");
           _addMinutesOfTheMeetingForm(allRowsData);
         }
         // break;
-
       }
     }
   }
@@ -268,69 +243,49 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
       print(rowData);
     }
 
-    if(allRowsData.length==0)
-    {
+    if (allRowsData.length == 0) {
       Fluttertoast.showToast(
         msg: "  Please Enter All Fields...!  ",
         toastLength: Toast.LENGTH_SHORT,
         timeInSecForIosWeb: 1,
       );
-    }
-    else
-    {
-      for (int i=0;i<allRowsData.length;i++)
-      {
-        Map<String, String> rowData=allRowsData.elementAt(i);
-        print("rowData :"+rowData.length.toString()) ;
-        String pointsOrIssues = rowData['pointsOrIssues'].toString() ;
+    } else {
+      for (int i = 0; i < allRowsData.length; i++) {
+        Map<String, String> rowData = allRowsData.elementAt(i);
+        print("rowData :" + rowData.length.toString());
+        String pointsOrIssues = rowData['pointsOrIssues'].toString();
 
-        if(rowData['pointsOrIssues']!.isEmpty)
-        {
+        if (rowData['pointsOrIssues']!.isEmpty) {
           Fluttertoast.showToast(
             msg: "  Please Enter pointsOrIssues...!  ",
             toastLength: Toast.LENGTH_SHORT,
             timeInSecForIosWeb: 1,
           );
-        }
-        else if(rowData['discussedWith']!.isEmpty)
-
-        {
+        } else if (rowData['discussedWith']!.isEmpty) {
           Fluttertoast.showToast(
             msg: "  Please Enter discussedWith...!  ",
             toastLength: Toast.LENGTH_SHORT,
             timeInSecForIosWeb: 1,
           );
-        }
-        else if(rowData['decisionTaken']!.isEmpty)
-
-        {
+        } else if (rowData['decisionTaken']!.isEmpty) {
           Fluttertoast.showToast(
             msg: "  Please Enter decisionTaken...!  ",
             toastLength: Toast.LENGTH_SHORT,
             timeInSecForIosWeb: 1,
           );
-        }
-        else if(rowData['responsibility']!.isEmpty)
-
-        {
+        } else if (rowData['responsibility']!.isEmpty) {
           Fluttertoast.showToast(
             msg: "  Please Enter responsibility...!  ",
             toastLength: Toast.LENGTH_SHORT,
             timeInSecForIosWeb: 1,
           );
-        }
-        else if(rowData['statusOrRemark']!.isEmpty)
-
-        {
+        } else if (rowData['statusOrRemark']!.isEmpty) {
           Fluttertoast.showToast(
             msg: "  Please Enter statusOrRemark...!  ",
             toastLength: Toast.LENGTH_SHORT,
             timeInSecForIosWeb: 1,
           );
-        }
-        else if(rowData['targetDate']!.isEmpty)
-
-        {
+        } else if (rowData['targetDate']!.isEmpty) {
           Fluttertoast.showToast(
             msg: "  Please Enter targetDate...!  ",
             toastLength: Toast.LENGTH_SHORT,
@@ -347,8 +302,7 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
         //     timeInSecForIosWeb: 1,
         //   );
         // }
-        else if(i==allRowsData.length-1)
-        {
+        else if (i == allRowsData.length - 1) {
           _updateMinutesOfTheMeetingForm(allRowsData);
         }
       }
@@ -360,50 +314,79 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
 
     setState(() {
       rowKeys.add(key);
+      // dynamicRows.add(
+      //   DynamicRow(
+      //     key: key,
+      //     index: 1,
+      //     onDelete: deleteRow,
+      //   ),
+      // );
       dynamicRows.add(
         DynamicRow(
           key: key,
-          index: 1,
+          index: dynamicRows.length, // ✅ ALWAYS CORRECT INDEX
           onDelete: deleteRow,
         ),
       );
-      index = 1;
+      //index = 1;
     });
 
     // wait for widget build
     WidgetsBinding.instance.addPostFrameCallback((_) {
-
       // if nextDate empty → keep it grey
       if (key.currentState?.dateController2.text.isEmpty ?? true) {
         key.currentState?.enableNextDate();
       }
-
     });
 
     print('Added row. Total rows now: ${dynamicRows.length}');
   }
 
+  // void deleteRow(int deleteIndex) {
+  //   setState(() {
+  //     dynamicRows.removeAt(deleteIndex);
+  //     rowKeys.removeAt(deleteIndex);
+  //
+  //     // 🔄 rebuild rows with up-to-date indices
+  //     for (int i = 0; i < dynamicRows.length; i++) {
+  //       dynamicRows[i] = DynamicRow(
+  //         key: rowKeys[i],
+  //         index: i, // ← new, correct index
+  //         onDelete: deleteRow,
+  //       );
+  //     }
+  //   });
+  // }
   void deleteRow(int deleteIndex) {
+    if (deleteIndex < 0 || deleteIndex >= dynamicRows.length) {
+      print("Invalid delete index: $deleteIndex");
+      return; // ✅ prevents crash
+    }
+
     setState(() {
       dynamicRows.removeAt(deleteIndex);
       rowKeys.removeAt(deleteIndex);
 
-      // 🔄 rebuild rows with up-to-date indices
+      // 🔄 rebuild rows with correct indices
       for (int i = 0; i < dynamicRows.length; i++) {
         dynamicRows[i] = DynamicRow(
           key: rowKeys[i],
-          index: i,              // ← new, correct index
+          index: i,
           onDelete: deleteRow,
         );
       }
     });
   }
 
-  void addRowFromData(String points,
-      String discussed, String decision,
-      String responsibility, String status,
-      String targetDate, String nextDate,int index)
-  {
+  void addRowFromData(
+      String points,
+      String discussed,
+      String decision,
+      String responsibility,
+      String status,
+      String targetDate,
+      String nextDate,
+      int index) {
     GlobalKey<_DynamicRowState> key = GlobalKey<_DynamicRowState>();
     // rowKeys.add(key);
     //
@@ -445,11 +428,9 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
     });
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-
       appBar: AppBar(
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
@@ -474,13 +455,9 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
             fontSize: 18.0,
           ).copyWith(
             color: Colors.white,
-          )
-      ),
-
-
+          )),
       body: WillPopScope(
         onWillPop: () async {
-
           if (Navigator.canPop(context)) {
             Navigator.pop(context);
           } else {
@@ -492,20 +469,18 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
             Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
-                    builder: (_) =>
-                        BlocProvider(
-                            create: (context) {
-                              return MainBloc(
-                                  webService: WebService());
-                            },
-                            child: HomeScreen())));
+                    builder: (_) => BlocProvider(
+                        create: (context) {
+                          return MainBloc(webService: WebService());
+                        },
+                        child: HomeScreen())));
             return false; // Prevent the app from closing
           }
           return true;
         },
-        child: _addForm(),),
-
-        bottomNavigationBar: BottomAppBar(
+        child: _addForm(),
+      ),
+      bottomNavigationBar: BottomAppBar(
         child: SizedBox(
           height: 70,
           child: Row(
@@ -522,8 +497,6 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
                     _subjectController.clear();
                     _memberAbsentController.clear();
                     _memberPresentController.clear();
-
-
                   });
                 },
                 child: Column(
@@ -555,14 +528,11 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
                     Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
-                            builder: (_) =>
-                                BlocProvider(
-                                    create: (context) {
-                                      return MainBloc(
-                                          webService: WebService());
-                                    },
-                                    child: VisitHistoryScreen()))
-                    );
+                            builder: (_) => BlocProvider(
+                                create: (context) {
+                                  return MainBloc(webService: WebService());
+                                },
+                                child: VisitHistoryScreen())));
                     // Prevent the app from closing
                   }
                 },
@@ -580,12 +550,12 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
                   ],
                 ),
               ),
-
               Row(
                 children: [
                   if (!isUpdateMode)
                     GestureDetector(
                       onTap: () {
+                        if (_isSubmitting) return;
                         _validation(); // Save action
                       },
                       child: Container(
@@ -593,32 +563,43 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
                         width: 140,
                         height: 56,
                         margin: const EdgeInsets.only(left: 10),
-                        padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 20),
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 6, horizontal: 20),
                         decoration: BoxDecoration(
                           color: MyColors.blueColorCode,
                           borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: MyColors.textBoxBorderColorCode),
+                          border: Border.all(
+                              color: MyColors.textBoxBorderColorCode),
                         ),
                         child: Text(
                           "Save",
-                          style: TextStyle(color: MyColors.whiteColorCode, fontSize: 20),
+                          style: TextStyle(
+                              color: MyColors.whiteColorCode, fontSize: 20),
                         ),
                       ),
                     ),
                   if (isUpdateMode)
                   // Replace the update button GestureDetector with this:
                     GestureDetector(
-                      onTap: _isFormEdited ? _updatevalidation : null,
+                      //onTap: _isFormEdited ? _updatevalidation : null,
+                      onTap: (_isFormEdited && !_isLoading)
+                          ? _updatevalidation
+                          : null,
                       child: Container(
                         alignment: Alignment.center,
                         width: 140,
                         height: 56,
                         margin: const EdgeInsets.only(left: 10),
-                        padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 20),
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 6, horizontal: 20),
                         decoration: BoxDecoration(
-                          color: _isFormEdited ? Colors.green : Colors.grey,
+                          //color: _isFormEdited ? Colors.green : Colors.grey,
+                          color: (_isFormEdited && !_isLoading)
+                              ? Colors.green
+                              : Colors.grey,
                           borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: MyColors.textBoxBorderColorCode),
+                          border: Border.all(
+                              color: MyColors.textBoxBorderColorCode),
                         ),
                         child: Text(
                           "Update",
@@ -628,7 +609,6 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
                     ),
                 ],
               ),
-
             ],
           ),
         ),
@@ -651,7 +631,8 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
     // Check dynamic rows for changes
     for (var key in rowKeys) {
       final rowData = key.currentState?.getRowData() ?? {};
-      if (rowData.values.any((value) => value.isNotEmpty && value != "Not provided")) {
+      if (rowData.values
+          .any((value) => value.isNotEmpty && value != "Not provided")) {
         hasEdits = true;
         break;
       }
@@ -662,6 +643,22 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
         _isFormEdited = hasEdits;
       });
     }
+  }
+
+  void _clearForm() {
+    _gatepassdatecontroller.clear();
+    fromTimeInput.clear();
+    toTimeInput.clear();
+    _subjectController.clear();
+    _memberAbsentController.clear();
+    _memberPresentController.clear();
+
+    selectedCustomer = null;
+
+    dynamicRows.clear();
+    rowKeys.clear();
+
+    setState(() {});
   }
 
   _addForm() {
@@ -680,71 +677,138 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
               _isLoading = true;
             });
           }
+          // else if (state is InsertMMRowsDataLoadedState) {
+          //   setState(() {
+          //     _isLoading = false;
+          //     _isSubmitting = false; // ✅ unlock
+          //   });
+          //   print("InsertMMRowsDataLoadedState ");
+          //   _clearForm();
+          //   Fluttertoast.showToast(
+          //     msg: "   Record Inserted Successfully..!   ",
+          //     toastLength: Toast.LENGTH_SHORT,
+          //     timeInSecForIosWeb: 1,
+          //   );
+          //
+          //   DialogForUpdate().popUp(
+          //       context,
+          //       " Your Minutes Of The Meeting Form Submitted Successfully!",
+          //       "4");
+          //
+          //   Future.delayed(Duration(seconds: 1), () {
+          //     Navigator.pop(context);
+          //   });
+          // }
+
           else if (state is InsertMMRowsDataLoadedState) {
             setState(() {
               _isLoading = false;
+              _isSubmitting = false;
             });
-            print("InsertMMRowsDataLoadedState ");
-            Fluttertoast.showToast(
-              msg: "   Record Inserted Successfully..!   ",
-              toastLength: Toast.LENGTH_SHORT,
-              timeInSecForIosWeb: 1,
-            );
 
-            DialogForUpdate().popUp(
-                context, " Your Minutes Of The Meeting Form Submitted Successfully!", "4");
-          }
-          else if (state is InsertMMRowsDataErrorState) {
+            if (!isUpdateMode) {
+              // ✅ Only do this for pure ADD mode
+              _clearForm();
+              Fluttertoast.showToast(
+                msg: "Record Inserted Successfully..!",
+                toastLength: Toast.LENGTH_SHORT,
+                timeInSecForIosWeb: 1,
+              );
+              DialogForUpdate().popUp(
+                context,
+                "Your Minutes Of The Meeting Form Submitted Successfully!",
+                "4",
+              );
+              Future.delayed(Duration(seconds: 1), () {
+                Navigator.pop(context);
+              });
+            }
+            // ✅ In update mode, do nothing here
+            // UpdateMMAllDataLoadedState already handles pop
+          } else if (state is InsertMMRowsDataErrorState) {
             setState(() {
               _isLoading = false;
             });
-
           }
 //-----------------------
           if (state is InsertMMAllDataLoadingState) {
             setState(() {
               _isLoading = true;
             });
-
           }
+          // else if (state is InsertMMAllDataLoadedState) {
+          //   Fluttertoast.showToast(
+          //     msg: state.cancelGatepassResponse,
+          //     toastLength: Toast.LENGTH_SHORT,
+          //     timeInSecForIosWeb: 1,
+          //   );
+          //
+          //   String input = state.cancelGatepassResponse!;
+          //   RegExp regExp = RegExp(r"SrNo - (\d+)");
+          //
+          //   Match? match = regExp.firstMatch(input);
+          //
+          //   if (match != null) {
+          //     String srNo = match
+          //         .group(1)!; // Extract the first capturing group (the number)
+          //     print("srNo : " + srNo); // Output: 54
+          //
+          //     mainBloc.add(UpdateMeetingFormNoEvents(
+          //         FormNo: int.parse(srNo), SrNo: 3531, token: Auth_Token!));
+          //   } else {
+          //     print("No SrNo found.");
+          //   }
+          // }
           else if (state is InsertMMAllDataLoadedState) {
+            setState(() {
+              _isLoading = false;
+              _isSubmitting = false;
+            });
+
+            _clearForm();
 
             Fluttertoast.showToast(
-              msg: state.cancelGatepassResponse,
-              toastLength: Toast.LENGTH_SHORT,
-              timeInSecForIosWeb: 1,
+              msg: "Record Inserted Successfully",
             );
 
-            String input = state.cancelGatepassResponse!;
-            RegExp regExp = RegExp(r"SrNo - (\d+)");
-
-            Match? match = regExp.firstMatch(input);
-
-            if (match != null) {
-              String srNo = match.group(1)!; // Extract the first capturing group (the number)
-              print("srNo : "+srNo);  // Output: 54
-
-              mainBloc.add(UpdateMeetingFormNoEvents(FormNo: int.parse(srNo), SrNo: 3531, token: Auth_Token!));
-
-            } else {
-              print("No SrNo found.");
-            }
-          }
-          else if (state is InsertMMAllDataErrorState) {
+            Navigator.pop(context); // ✅ SINGLE POP ONLY
+          } else if (state is InsertMMAllDataErrorState) {
             setState(() {
               _isLoading = false;
             });
+          }
+
+          if (state is GetAllClientLoadedState) {
+            setState(() {
+              customerList = state.response.data;
+            });
+
+            // ✅ MATCH AFTER LIST LOADS
+            if (selectedCustCodeFromAPI != null) {
+              selectedCustomer = customerList.firstWhere(
+                    (c) => c.custCode.toString() == selectedCustCodeFromAPI,
+                orElse: () => CustomerData(
+                  custCode: int.tryParse(selectedCustCodeFromAPI ?? "0") ?? 0,
+                  custName: "Unknown Client",
+                  status: "",
+                ),
+              );
+
+              setState(() {});
+            }
           }
 
           if (state is GetMinutesOfTheMeetingAllDataByVisitSrNoLoadingState) {
             setState(() {
               _isLoading = true;
             });
-          }
-          else if (state is GetMinutesOfTheMeetingAllDataByVisitSrNoLoadedState) {
+          } else if (state
+          is GetMinutesOfTheMeetingAllDataByVisitSrNoLoadedState) {
             setState(() {
               _isLoading = false;
             });
+            final item = state
+                .getMinutesOfTheMeetingAllDataByVisitSrNoResponse.data!.first;
             print("GetMinutesOfTheMeetingAllDataByVisitSrNoLoadedState ");
             Fluttertoast.showToast(
               msg: "   Success..!   ",
@@ -753,24 +817,29 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
             );
 
             setState(() {
-              if(state.getMinutesOfTheMeetingAllDataByVisitSrNoResponse!.message!.isNotEmpty)
-              {
-                srno = state.getMinutesOfTheMeetingAllDataByVisitSrNoResponse.message!.first!.srNo.toString();
-                _gatepassdatecontroller.text=state.getMinutesOfTheMeetingAllDataByVisitSrNoResponse.message!.first!.date!;
-                _memberAbsentController.text=state.getMinutesOfTheMeetingAllDataByVisitSrNoResponse.message!.first!.memberAbsent!;
-                _memberPresentController.text=state.getMinutesOfTheMeetingAllDataByVisitSrNoResponse.message!.first!.memberPresent!;
-                _subjectController.text=state.getMinutesOfTheMeetingAllDataByVisitSrNoResponse.message!.first!.subject!;
-                fromTimeInput.text=state.getMinutesOfTheMeetingAllDataByVisitSrNoResponse.message!.first!.time!;
-                String allrecorddata = state.getMinutesOfTheMeetingAllDataByVisitSrNoResponse.message!.first.allrecordIds!;
-                print("allrecorddata"+allrecorddata);
+              if (state.getMinutesOfTheMeetingAllDataByVisitSrNoResponse!
+                  .message!.isNotEmpty) {
+                srno = item.meetingData!.srNo.toString();
+                _gatepassdatecontroller.text = item.meetingData!.date!;
+                _memberAbsentController.text = item.meetingData!.memberAbsent!;
+                _memberPresentController.text =
+                item.meetingData!.memberPresent!;
+                _subjectController.text = item.meetingData!.subject!;
+                fromTimeInput.text = item.meetingData!.time!;
+                String allrecorddata = item.meetingData!.allrecordIds!;
+
+                selectedCustCodeFromAPI = item.meetingData!.custCode;
+
+                //customerSearchController = item.customerName!;
+
+                print("allrecorddata" + allrecorddata);
               }
             });
-          }
-          else if (state is GetMinutesOfTheMeetingAllDataByVisitSrNoErrorState) {
+          } else if (state
+          is GetMinutesOfTheMeetingAllDataByVisitSrNoErrorState) {
             setState(() {
               _isLoading = false;
             });
-
           }
 
           if (state is GetMinutesOfTheMeetingDataByVisitSrNoLoadingState) {
@@ -778,9 +847,8 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
               _isLoading = true;
             });
             print("GetMinutesOfTheMeetingDataByVisitSrNoLoadingState ");
-
-          }
-          else if (state is GetMinutesOfTheMeetingDataByVisitSrNoLoadedState) {
+          } else if (state
+          is GetMinutesOfTheMeetingDataByVisitSrNoLoadedState) {
             setState(() {
               _isLoading = false;
             });
@@ -793,79 +861,89 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
 
             listofRows.clear();
             SRNOtable.clear();
-            listofRows.addAll(state.getMinutesOfTheMeetingDataByVisitSrNoResponse.message!);
+            listofRows.addAll(
+                state.getMinutesOfTheMeetingDataByVisitSrNoResponse.message!);
 
-            String? pointsOrIssues="";
-            String? discussedWith="";
-            String? decisionTaken="";
-            String? responsibility="";
-            String? statusOrRemark="";
-            String? targetDate="";
-            String? nextDate="";
-            print("listofRows size..."+listofRows.length.toString());
-            if(listofRows.length>0)
-            {
+            String? pointsOrIssues = "";
+            String? discussedWith = "";
+            String? decisionTaken = "";
+            String? responsibility = "";
+            String? statusOrRemark = "";
+            String? targetDate = "";
+            String? nextDate = "";
+            print("listofRows size..." + listofRows.length.toString());
+            if (listofRows.length > 0) {
               setState(() {
-                isUpdateMode = true;  // 👈 Add this line
+                isUpdateMode = true; // 👈 Add this line
               });
-              for(int i=0;i<listofRows.length;i++)
-              {
+              for (int i = 0; i < listofRows.length; i++) {
                 SRNOtable.add(listofRows[i].srNo.toString());
-                pointsOrIssues=listofRows[i].pointsOrIssues!;
-                discussedWith=listofRows[i].disccussedwith!;
-                decisionTaken=listofRows[i].decisionTaken!;
-                responsibility=listofRows[i].responsibility!;
-                statusOrRemark=listofRows[i].statusOrRemark!;
-                targetDate=listofRows[i].targateDate!;
-                nextDate=listofRows[i].nextDate!;
-                addRowFromData(pointsOrIssues,discussedWith,decisionTaken,responsibility,statusOrRemark,
-                    targetDate,nextDate,i);
+                pointsOrIssues = listofRows[i].pointsOrIssues!;
+                discussedWith = listofRows[i].disccussedwith!;
+                decisionTaken = listofRows[i].decisionTaken!;
+                responsibility = listofRows[i].responsibility!;
+                statusOrRemark = listofRows[i].statusOrRemark!;
+                targetDate = listofRows[i].targateDate!;
+                nextDate = listofRows[i].nextDate!;
+                addRowFromData(pointsOrIssues, discussedWith, decisionTaken,
+                    responsibility, statusOrRemark, targetDate, nextDate, i);
               }
-              print("table:"+pointsOrIssues!+discussedWith!+decisionTaken!+responsibility!+statusOrRemark!
-                  +targetDate!+nextDate!);
+              print("table:" +
+                  pointsOrIssues! +
+                  discussedWith! +
+                  decisionTaken! +
+                  responsibility! +
+                  statusOrRemark! +
+                  targetDate! +
+                  nextDate!);
             }
-          }
-          else if (state is GetMinutesOfTheMeetingDataByVisitSrNoErrorState) {
+          } else if (state is GetMinutesOfTheMeetingDataByVisitSrNoErrorState) {
             setState(() {
               _isLoading = false;
             });
-
           }
 
 //UpdateMMALLData
-          if(state is UpdateMMALlDataLoadingState){
-            _isLoading=true;
-          }
-          else if(state is UpdateMMAllDataLoadedState)
-          {
-            _isLoading=false;
+          if (state is UpdateMMALlDataLoadingState) {
+            setState(() {
+              _isLoading = true;
+            });
+          } else if (state is UpdateMMAllDataLoadedState) {
+            setState(() {
+              _isLoading = false;
+            });
             Fluttertoast.showToast(msg: "Recordssss updated successfully");
-          }
-          else if(state is UpdateMMAllDataErrorState){
-            _isLoading=false;
-            Fluttertoast.showToast(msg: "Recordssss updated successfullyy");
+            Navigator.pop(context);
+          } else if (state is UpdateMMAllDataErrorState) {
+            setState(() {
+              _isLoading = false;
+            });
+            Navigator.pop(context);
+            //Fluttertoast.showToast(msg: "Recordssss not updated ");
           }
 //UpdateMMData
-          if(state is UpdateMMDataLoadingState) {
-            _isLoading=true;
-          }
-          else if(state is UpdateMMDataLoadedState){
-            _isLoading=false;
+          if (state is UpdateMMDataLoadingState) {
+            setState(() {
+              _isLoading = true;
+            });
+          } else if (state is UpdateMMDataLoadedState) {
+            setState(() {
+              _isLoading = false;
+            });
             Fluttertoast.showToast(msg: "table Records updated successfully");
-          }
-          else if(state is UpdateMMDataErrorState){
-            _isLoading=false;
-            Fluttertoast.showToast(msg: "table Records updated successfullyy");
+          } else if (state is UpdateMMDataErrorState) {
+            setState(() {
+              _isLoading = false;
+            });
+            //Fluttertoast.showToast(msg: "table Records updated not updated");
           }
         },
-        child:
-        SingleChildScrollView(
+        child: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.only(
                 top: 20.0, left: 15, right: 15, bottom: 20),
             child: Column(
               children: [
-
                 Align(
                     alignment: Alignment.centerLeft,
                     child: Padding(
@@ -901,8 +979,8 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
                     fillColor: MyColors.whiteColorCode,
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(4)),
-                      borderSide: BorderSide(
-                          width: 1, color: MyColors.buttonColorCode),
+                      borderSide:
+                      BorderSide(width: 1, color: MyColors.buttonColorCode),
                     ),
                     disabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(4)),
@@ -915,26 +993,22 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
                     ),
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(4)),
-                        borderSide: BorderSide(width: 1,)
-                    ),
+                        borderSide: BorderSide(
+                          width: 1,
+                        )),
                     errorBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(4)),
                         borderSide: BorderSide(
-                            width: 1, color: MyColors.textBoxBorderColorCode)
-                    ),
+                            width: 1, color: MyColors.textBoxBorderColorCode)),
                     focusedErrorBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(4)),
                         borderSide: BorderSide(
-                            width: 2, color: MyColors.buttonColorCode)
-                    ),
+                            width: 2, color: MyColors.buttonColorCode)),
                     hintText: "DD/MM/YYYY",
-                    suffixIcon:
-                    Icon(
-                      Icons
-                          .calendar_month,
+                    suffixIcon: Icon(
+                      Icons.calendar_month,
                       size: 24,
-                      color: MyColors
-                          .dateIconColorCode,
+                      color: MyColors.dateIconColorCode,
                     ),
                     hintStyle: TextStyle(
                         fontSize: 16, color: MyColors.datePlacehoderColorCode),
@@ -966,133 +1040,52 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
                     )),
                 Padding(
                   padding: const EdgeInsets.only(left: 4.0),
-                  child:
-                  TextField(
-                    // onChanged: (value) {
-                    //   fromTimeController = value;
-                    // },
-                    // onTap: () async {
-                    //   final DateFormat
-                    //   formatter =
-                    //   DateFormat(
-                    //       'H:mm',
-                    //       Localizations.localeOf(
-                    //           context).toLanguageTag());
-                    //   final TimeOfDay? picked =
-                    //   await showTimePicker(context: context,
-                    //       initialTime:
-                    //       TimeOfDay.now());
-                    //   builder:
-                    //       (BuildContext
-                    //   context,
-                    //       Widget? child) {
-                    //     return MediaQuery(
-                    //         data: MediaQuery.of(context)
-                    //             .copyWith(
-                    //             alwaysUse24HourFormat:
-                    //             true),
-                    //         child:
-                    //         child!);
-                    //   };
-                    //   if (picked != null) {final String
-                    //   fromTime = formatter.format(DateTime(0, 1, 1, picked.hour, picked.minute));
-                    //   fromTimeController = fromTime;
-                    //   setState(() {
-                    //     fromTimeInput.text = fromTimeController;
-                    //     _checkForFormEdits();
-                    //   });
-                    //   }
-                    // },
+                  child: TextField(
                     readOnly: true,
-                    enabled:
-                    true,
+                    enabled: true,
                     // to trigger disabledBorder
-                    decoration:
-                    const InputDecoration(
+                    decoration: const InputDecoration(
                       filled: true,
-                      fillColor: MyColors
-                          .whiteColorCode,
-                      focusedBorder:
-                      OutlineInputBorder(
-                        borderRadius:
-                        BorderRadius
-                            .all(Radius
-                            .circular(
-                            4)),
+                      fillColor: MyColors.whiteColorCode,
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(4)),
                         borderSide: BorderSide(
-                            width: 1,
-                            color: MyColors
-                                .buttonColorCode),
+                            width: 1, color: MyColors.buttonColorCode),
                       ),
-                      disabledBorder:
-                      OutlineInputBorder(
-                        borderRadius:
-                        BorderRadius
-                            .all(Radius
-                            .circular(
-                            4)),
-                        borderSide: BorderSide(
-                            width: 1,
-                            color: Colors
-                                .orange),
+                      disabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(4)),
+                        borderSide: BorderSide(width: 1, color: Colors.orange),
                       ),
-                      enabledBorder:
-                      OutlineInputBorder(
-                        borderRadius:
-                        BorderRadius
-                            .all(Radius
-                            .circular(
-                            4)),
-                        borderSide: BorderSide(
-                            width: 1,
-                            color: MyColors
-                                .textColorCode),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(4)),
+                        borderSide:
+                        BorderSide(width: 1, color: MyColors.textColorCode),
                       ),
-                      border:
-                      OutlineInputBorder(
-                          borderRadius:
-                          BorderRadius.all(Radius.circular(
-                              4)),
-                          borderSide:
-                          BorderSide(
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(4)),
+                          borderSide: BorderSide(
                             width: 1,
                           )),
                       errorBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius
-                              .all(Radius
-                              .circular(
-                              4)),
+                          borderRadius: BorderRadius.all(Radius.circular(4)),
                           borderSide: BorderSide(
                               width: 1,
-                              color: MyColors
-                                  .textBoxBorderColorCode)),
+                              color: MyColors.textBoxBorderColorCode)),
                       focusedErrorBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius
-                              .all(Radius
-                              .circular(
-                              4)),
+                          borderRadius: BorderRadius.all(Radius.circular(4)),
                           borderSide: BorderSide(
-                              width: 2,
-                              color: MyColors
-                                  .buttonColorCode)),
-                      hintText:
-                      "hh:mm:AM",
-                      suffixIcon:
-                      Icon(
-                        Icons
-                            .watch_later_outlined,
+                              width: 2, color: MyColors.buttonColorCode)),
+                      hintText: "hh:mm:AM",
+                      suffixIcon: Icon(
+                        Icons.watch_later_outlined,
                         size: 24,
-                        color: MyColors
-                            .dateIconColorCode,
+                        color: MyColors.dateIconColorCode,
                       ),
                       hintStyle: TextStyle(
-                          fontSize: 18,
-                          color: MyColors
-                              .searchTextColorCode),
+                          fontSize: 18, color: MyColors.searchTextColorCode),
                       errorText: "",
                     ),
-                    controller:
-                    fromTimeInput,
+                    controller: fromTimeInput,
                     // controller: _passwordController,
                     // onChanged: _authenticationFormBloc.onPasswordChanged,
                     obscureText: false,
@@ -1118,10 +1111,12 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
                         ],
                       ),
                     )),
+
                 TextField(
                   controller: _subjectController,
                   // onChanged: (value) => _checkForFormEdits(),
-                  enabled: true, // to trigger disabledBorder
+                  enabled: true,
+                  // to trigger disabledBorder
                   readOnly: true,
                   decoration: InputDecoration(
                     filled: true,
@@ -1162,6 +1157,46 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
                   // onChanged: _authenticationFormBloc.onPasswordChanged,
                   obscureText: false,
                 ),
+
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 8, top: 10),
+                    child: Row(
+                      children: [
+                        Text("Client Name", style: TextStyle(fontSize: 18)),
+                        Padding(
+                          padding: const EdgeInsets.only(left: 3.0),
+                          child: Text("*",
+                              style: TextStyle(
+                                  fontSize: 18, color: MyColors.redColorCode)),
+                        )
+                      ],
+                    ),
+                  ),
+                ),
+
+                GestureDetector(
+                  onTap: () {
+                    _openCustomerSearchDialog();
+                  },
+                  child: Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.symmetric(horizontal: 10, vertical: 15),
+                    decoration: BoxDecoration(
+                      border:
+                      Border.all(color: MyColors.textBoxBorderColorCode),
+                      borderRadius: BorderRadius.circular(4),
+                      color: MyColors.whiteColorCode,
+                    ),
+                    child: Text(
+                      selectedCustomer?.custName ?? "Select Client",
+                      style: TextStyle(fontSize: 16),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+
                 Align(
                     alignment: Alignment.centerLeft,
                     child: Padding(
@@ -1182,10 +1217,12 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
                         ],
                       ),
                     )),
+
                 TextField(
                   controller: _memberPresentController,
                   onChanged: (value) => _checkForFormEdits(),
-                  enabled: true, // to trigger disabledBorder
+                  enabled: true,
+                  // to trigger disabledBorder
                   decoration: InputDecoration(
                     filled: true,
                     fillColor: MyColors.whiteColorCode,
@@ -1248,7 +1285,8 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
                 TextField(
                   controller: _memberAbsentController,
                   onChanged: (value) => _checkForFormEdits(),
-                  enabled: true, // to trigger disabledBorder
+                  enabled: true,
+                  // to trigger disabledBorder
                   decoration: InputDecoration(
                     filled: true,
                     fillColor: MyColors.whiteColorCode,
@@ -1299,8 +1337,7 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
                 //   ),
                 //    ),
                 Container(
-                  width: MediaQuery
-                      .of(context)
+                  width: MediaQuery.of(context)
                       .size
                       .width, // You can adjust the width of each row
                   padding: const EdgeInsets.all(8),
@@ -1308,34 +1345,27 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
                     border: Border.all(color: Colors.grey),
                     borderRadius: BorderRadius.circular(4),
                   ),
-                  child:
-
-
-                  Column(
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       SizedBox(height: 8),
-
                       ElevatedButton(
-                        onPressed: addRow
-                        ,
-                        child: Text("Add Row", style: TextStyle(color: MyColors
-                            .blueColorCode, fontSize: 18, fontWeight:
-                        FontWeight.bold)),
+                        onPressed: addRow,
+                        child: Text("Add Row",
+                            style: TextStyle(
+                                color: MyColors.blueColorCode,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold)),
                       ),
                       SizedBox(height: 8),
-
                       SingleChildScrollView(
                           scrollDirection: Axis.horizontal,
                           // Horizontal scrolling for the Row
-                          child:
-                          Column(
+                          child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-
                               Row(
                                 children: [
-
                                   SizedBox(
                                     width: 180, // Adjust the width as needed
                                     child: _buildDynamicTextField(
@@ -1343,47 +1373,39 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
                                   ),
                                   SizedBox(
                                     width: 200, // Adjust the width as needed
-                                    child:
-                                    _buildDynamicTextField(
+                                    child: _buildDynamicTextField(
                                         "Field 2", textFieldController2),
                                   ),
                                   SizedBox(
                                     width: 300, // Adjust the width as needed
-                                    child:
-                                    _buildDynamicTextField(
+                                    child: _buildDynamicTextField(
                                         "Field 3", textFieldController3),
                                   ),
                                   SizedBox(
                                     width: 200, // Adjust the width as needed
-                                    child:
-                                    _buildDynamicTextField(
+                                    child: _buildDynamicTextField(
                                         "Field 4", textFieldController4),
                                   ),
                                   SizedBox(
                                     width: 200, // Adjust the width as needed
-                                    child:
-                                    _buildDynamicTextField(
-                                        "Field 5", textFieldController5),),
+                                    child: _buildDynamicTextField(
+                                        "Field 5", textFieldController5),
+                                  ),
                                   SizedBox(
                                     width: 150, // Adjust the width as needed
                                     child: _buildDynamicTextField(
                                         "POINT/ISSUE", dateController1),
                                   ),
-
                                   SizedBox(
                                     width: 200, // Adjust the width as needed
                                     child: _buildDynamicTextField(
                                         "Field 5", dateController2),
                                   ),
-
                                 ],
-
                               ),
                               ...dynamicRows,
                             ],
-                          )
-                      ),
-
+                          )),
                     ],
                   ),
                 ),
@@ -1395,20 +1417,77 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
     );
   }
 
-  Widget _buildDynamicTextField(String label,
-      TextEditingController controller) {
+  void _openCustomerSearchDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        List<CustomerData> filteredList = List.from(customerList);
+
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return AlertDialog(
+              title: Text("Select Client"),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: customerSearchController,
+                    decoration: InputDecoration(
+                      hintText: "Search client...",
+                      prefixIcon: Icon(Icons.search),
+                    ),
+                    onChanged: (value) {
+                      setStateDialog(() {
+                        filteredList = customerList
+                            .where((e) => e.custName
+                            .toLowerCase()
+                            .contains(value.toLowerCase()))
+                            .toList();
+                      });
+                    },
+                  ),
+                  SizedBox(height: 10),
+                  Container(
+                    height: 300,
+                    width: double.maxFinite,
+                    child: ListView.builder(
+                      itemCount: filteredList.length,
+                      itemBuilder: (context, index) {
+                        final customer = filteredList[index];
+
+                        return ListTile(
+                          title: Text(customer.custName),
+                          onTap: () {
+                            setState(() {
+                              selectedCustomer = customer;
+                            });
+                            Navigator.pop(context);
+                          },
+                        );
+                      },
+                    ),
+                  )
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildDynamicTextField(
+      String label, TextEditingController controller) {
     return TextField(
       controller: controller,
       enabled: false,
       // to trigger disabledBorder
-      decoration:
-      InputDecoration(
+      decoration: InputDecoration(
         filled: true,
         fillColor: MyColors.textFieldBackgroundColorCode,
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(4)),
-          borderSide:
-          BorderSide(width: 1, color: MyColors.buttonColorCode),
+          borderSide: BorderSide(width: 1, color: MyColors.buttonColorCode),
         ),
         disabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(4)),
@@ -1416,8 +1495,8 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(4)),
-          borderSide: BorderSide(
-              width: 1, color: MyColors.textBoxBorderColorCode),
+          borderSide:
+          BorderSide(width: 1, color: MyColors.textBoxBorderColorCode),
         ),
         border: OutlineInputBorder(
             borderRadius: BorderRadius.all(Radius.circular(4)),
@@ -1426,15 +1505,13 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
             )),
         errorBorder: OutlineInputBorder(
             borderRadius: BorderRadius.all(Radius.circular(4)),
-            borderSide: BorderSide(
-                width: 1, color: MyColors.textBoxBorderColorCode)),
+            borderSide:
+            BorderSide(width: 1, color: MyColors.textBoxBorderColorCode)),
         focusedErrorBorder: OutlineInputBorder(
             borderRadius: BorderRadius.all(Radius.circular(4)),
-            borderSide: BorderSide(
-                width: 2, color: MyColors.buttonColorCode)),
+            borderSide: BorderSide(width: 2, color: MyColors.buttonColorCode)),
         // hintText: "HintText",
-        hintStyle: TextStyle(
-            fontSize: 16, color: MyColors.blackColorCode),
+        hintStyle: TextStyle(fontSize: 16, color: MyColors.blackColorCode),
         errorText: "",
       ),
       style: TextStyle(
@@ -1460,31 +1537,30 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
         toastLength: Toast.LENGTH_SHORT,
         timeInSecForIosWeb: 1,
       );
-    }
-
-    else if (_subjectController.text.isEmpty) {
+    } else if (_subjectController.text.isEmpty) {
       Fluttertoast.showToast(
         msg: "  Please Enter Subject...!  ",
         toastLength: Toast.LENGTH_SHORT,
         timeInSecForIosWeb: 1,
       );
-    }
-    else if (_memberPresentController.text.isEmpty) {
+    } else if (_memberPresentController.text.isEmpty) {
       Fluttertoast.showToast(
         msg: "  Please Enter Member Present...!  ",
         toastLength: Toast.LENGTH_SHORT,
         timeInSecForIosWeb: 1,
       );
-    }
-    else if (_memberAbsentController.text.isEmpty) {
+    } else if (_memberAbsentController.text.isEmpty) {
       Fluttertoast.showToast(
         msg: "  Please Select Absent members...!  ",
         toastLength: Toast.LENGTH_SHORT,
         timeInSecForIosWeb: 1,
       );
-    }
-
-    else {
+    } else if (selectedCustomer == null) {
+      Fluttertoast.showToast(
+        msg: "Please Select Client...!",
+        toastLength: Toast.LENGTH_SHORT,
+      );
+    } else {
       print(" _else..............");
       getAllRowsData();
     }
@@ -1503,90 +1579,157 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
         toastLength: Toast.LENGTH_SHORT,
         timeInSecForIosWeb: 1,
       );
-    }
-
-    else if (_subjectController.text.isEmpty) {
+    } else if (_subjectController.text.isEmpty) {
       Fluttertoast.showToast(
         msg: "  Please Enter Subject...!  ",
         toastLength: Toast.LENGTH_SHORT,
         timeInSecForIosWeb: 1,
       );
-    }
-    else if (_memberPresentController.text.isEmpty) {
+    } else if (_memberPresentController.text.isEmpty) {
       Fluttertoast.showToast(
         msg: "  Please Enter Member Present...!  ",
         toastLength: Toast.LENGTH_SHORT,
         timeInSecForIosWeb: 1,
       );
-    }
-    else if (_memberAbsentController.text.isEmpty) {
+    } else if (_memberAbsentController.text.isEmpty) {
       Fluttertoast.showToast(
         msg: "  Please Select Absent members...!  ",
         toastLength: Toast.LENGTH_SHORT,
         timeInSecForIosWeb: 1,
       );
-    }
-
-    else {
+    } else {
       print(" _else..............");
       getAllRowsDataupdate();
     }
   }
 
-  void  _updateMinutesOfTheMeetingForm(List<Map<String, String>> allRowsData){
+  // void _updateMinutesOfTheMeetingForm(List<Map<String, String>> allRowsData) {
+  //   mainBloc.add(UpdateMMALLDataEvents(
+  //       updateMMAllData: UpdateMMAllData(
+  //           srNo: srno,
+  //           date: _gatepassdatecontroller.text,
+  //           time: fromTimeInput.text,
+  //           subject: _subjectController.text,
+  //           memberPresent: _memberPresentController.text,
+  //           memberAbsent: _memberAbsentController.text,
+  //           allRecordsIds: "",
+  //           custCode: selectedCustomer!.custCode.toString(),
+  //           visitSrNo: widget.visitSrNo),
+  //       token: Auth_Token!));
+  //
+  //   for (int i = 0; i < allRowsData.length; i++) {
+  //     Map<String, String> rowData = allRowsData.elementAt(i);
+  //     print("rowData :" + rowData.length.toString());
+  //     String pointsOrIssues = rowData['pointsOrIssues'] ?? 'Not provided';
+  //     mainBloc.add(UpdateMMDataEvents(
+  //         updateMMData: UpdateMMData(
+  //             srNo: SRNOtable[i],
+  //             pointsOrIssues: rowData['pointsOrIssues'] ?? 'Not provided',
+  //             discussedWith: rowData['discussedWith'] ?? 'Not provided',
+  //             decisionTaken: rowData['decisionTaken'] ?? 'Not provided',
+  //             responsibility: rowData['responsibility'] ?? 'Not provided',
+  //             targetDate: rowData['targetDate'] ?? 'Not provided',
+  //             statusOrRemark: rowData['statusOrRemark'] ?? 'Not provided',
+  //             nextDate: rowData['nextDate']!.isEmpty
+  //                 ? 'Not provided'
+  //                 : rowData['nextDate'],
+  //             visitSrNo: widget.visitSrNo),
+  //         token: Auth_Token!));
+  //   }
+  // }
+  void _updateMinutesOfTheMeetingForm(List<Map<String, String>> allRowsData) {
+    // 🔒 Start loading (also disables button)
+    setState(() {
+      _isLoading = true;
+    });
 
-    mainBloc.add(UpdateMMALLDataEvents(updateMMAllData: UpdateMMAllData(
+    // ✅ First update main form data
+    mainBloc.add(UpdateMMALLDataEvents(
+      updateMMAllData: UpdateMMAllData(
         srNo: srno,
         date: _gatepassdatecontroller.text,
         time: fromTimeInput.text,
         subject: _subjectController.text,
         memberPresent: _memberPresentController.text,
-        memberAbsent:_memberAbsentController.text,
-        allRecordsIds: "",
-        visitSrNo: widget.visitSrNo),
-        token: Auth_Token!));
+        memberAbsent: _memberAbsentController.text,
+        allRecordsIds: SRNOtable.join(","),
+        custCode: selectedCustomer!.custCode.toString(),
+        visitSrNo: widget.visitSrNo,
+      ),
+      token: Auth_Token!,
+    ));
 
-    for (int i=0;i<allRowsData.length;i++) {
-      Map<String, String> rowData=allRowsData.elementAt(i);
-      print("rowData :"+rowData.length.toString());
-      String pointsOrIssues = rowData['pointsOrIssues'] ?? 'Not provided';
-      mainBloc.add(UpdateMMDataEvents(
+    // ✅ Loop through all rows
+    for (int i = 0; i < allRowsData.length; i++) {
+      Map<String, String> rowData = allRowsData[i];
+
+      // 🔑 Safe check → existing vs new row
+      bool isExistingRow = i < SRNOtable.length;
+
+      if (isExistingRow) {
+        // 🔁 UPDATE EXISTING ROW
+        mainBloc.add(UpdateMMDataEvents(
           updateMMData: UpdateMMData(
-              srNo: SRNOtable[i],
-              pointsOrIssues: rowData['pointsOrIssues'] ?? 'Not provided',
-              discussedWith: rowData['discussedWith'] ?? 'Not provided',
-              decisionTaken:  rowData['decisionTaken'] ?? 'Not provided',
-              responsibility: rowData['responsibility'] ?? 'Not provided',
-              targetDate: rowData['targetDate'] ?? 'Not provided',
-              statusOrRemark: rowData['statusOrRemark'] ?? 'Not provided',
-              nextDate:rowData['nextDate']!.isEmpty ? 'Not provided' : rowData['nextDate'],
-              visitSrNo:widget.visitSrNo),
-              token: Auth_Token!));
+            srNo: SRNOtable[i],
+            // ✅ safe now
+            pointsOrIssues: rowData['pointsOrIssues'] ?? 'Not provided',
+            discussedWith: rowData['discussedWith'] ?? 'Not provided',
+            decisionTaken: rowData['decisionTaken'] ?? 'Not provided',
+            responsibility: rowData['responsibility'] ?? 'Not provided',
+            targetDate: rowData['targetDate'] ?? 'Not provided',
+            statusOrRemark: rowData['statusOrRemark'] ?? 'Not provided',
+            nextDate: rowData['nextDate']!.isEmpty
+                ? 'Not provided'
+                : rowData['nextDate'],
+            visitSrNo: widget.visitSrNo,
+          ),
+          token: Auth_Token!,
+        ));
+      } else {
+        // 🆕 INSERT NEW ROW
+        mainBloc.add(InsertMMRowsDataEvents(
+          insertMMRowDataRequest: InsertMMRowDataRequest(
+            pointsOrIssues: rowData['pointsOrIssues'] ?? 'Not provided',
+            discussedWith: rowData['discussedWith'] ?? 'Not provided',
+            decisionTaken: rowData['decisionTaken'] ?? 'Not provided',
+            responsibility: rowData['responsibility'] ?? 'Not provided',
+            targetDate: rowData['targetDate'] ?? 'Not provided',
+            statusOrRemark: rowData['statusOrRemark'] ?? 'Not provided',
+            nextDate: rowData['nextDate']!.isEmpty
+                ? 'Not provided'
+                : rowData['nextDate'],
+            visitSrNo: widget.visitSrNo,
+          ),
+          token: Auth_Token!,
+        ));
+      }
     }
   }
 
   void _addMinutesOfTheMeetingForm(List<Map<String, String>> allRowsData) {
+    setState(() {
+      _isSubmitting = true;
+    });
 
     mainBloc.add(InsertMMAllDataEvents(
         insertMMALLDataRequest: InsertMMALLDataRequest(
           date: _gatepassdatecontroller.text,
           time: fromTimeInput.text,
           subject: _subjectController.text,
-          memberPresent:_memberPresentController.text,
+          memberPresent: _memberPresentController.text,
           memberAbsent: _memberAbsentController.text,
           allRecordsIds: " ",
+          custcode: selectedCustomer?.custCode.toString(),
           visitSrNo: widget.visitSrNo,
-
         ),
         token: Auth_Token!));
 
-
-
-    for (int i=0;i<allRowsData.length;i++) {
-      Map<String, String> rowData=allRowsData.elementAt(i);
-      print("rowData :"+rowData.length.toString());
+    for (int i = 0; i < allRowsData.length; i++) {
+      Map<String, String> rowData = allRowsData.elementAt(i);
+      print("rowData :" + rowData.length.toString());
       String pointsOrIssues = rowData['pointsOrIssues'] ?? 'Not provided';
-      print("next target date data: ${rowData['nextDate']!.isEmpty ? 'Not provided' : rowData['nextDate']}");
+      print(
+          "next target date data: ${rowData['nextDate']!.isEmpty ? 'Not provided' : rowData['nextDate']}");
       mainBloc.add(InsertMMRowsDataEvents(
           insertMMRowDataRequest: InsertMMRowDataRequest(
             pointsOrIssues: rowData['pointsOrIssues'] ?? 'Not provided',
@@ -1595,15 +1738,15 @@ class _MinutesOfTheMeetingFormScreenState extends State<MinutesOfTheMeetingFormS
             responsibility: rowData['responsibility'] ?? 'Not provided',
             targetDate: rowData['targetDate'] ?? 'Not provided',
             statusOrRemark: rowData['statusOrRemark'] ?? 'Not provided',
-            nextDate: rowData['nextDate']!.isEmpty ? 'Not provided' : rowData['nextDate'],
+            nextDate: rowData['nextDate']!.isEmpty
+                ? 'Not provided'
+                : rowData['nextDate'],
             visitSrNo: widget.visitSrNo,
           ),
-          token: Auth_Token!)) ;
+          token: Auth_Token!));
       // break;
-
     }
   }
-
 }
 
 class DynamicRow extends StatefulWidget {
@@ -1611,9 +1754,10 @@ class DynamicRow extends StatefulWidget {
   final Function(int) onDelete;
   final int index;
 
-  int deleteIndex=0;
+  int deleteIndex = 0;
 
-  DynamicRow({Key? key,required this.index, required this.onDelete}) : super(key: key);
+  DynamicRow({Key? key, required this.index, required this.onDelete})
+      : super(key: key);
 
   @override
   _DynamicRowState createState() => _DynamicRowState();
@@ -1652,7 +1796,7 @@ class _DynamicRowState extends State<DynamicRow> {
       'responsibility': textFieldController4.text,
       'statusOrRemark': textFieldController5.text,
       'targetDate': dateController1.text,
-      'nextDate': dateController2.text?? '',
+      'nextDate': dateController2.text ?? '',
     };
   }
 
@@ -1664,7 +1808,8 @@ class _DynamicRowState extends State<DynamicRow> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SingleChildScrollView(
-            scrollDirection: Axis.horizontal, // Horizontal scrolling for the Row
+            scrollDirection: Axis.horizontal,
+            // Horizontal scrolling for the Row
             child: Row(
               children: [
                 // No need for SizedBox or Expanded here, just use TextField directly
@@ -1672,23 +1817,28 @@ class _DynamicRowState extends State<DynamicRow> {
                 // Removing Expanded from here
                 SizedBox(
                   width: 180,
-                  child: _buildDynamicTextField("Field 1", textFieldController1),
+                  child:
+                  _buildDynamicTextField("Field 1", textFieldController1),
                 ),
                 SizedBox(
                   width: 200,
-                  child: _buildDynamicTextField("Field 2", textFieldController2),
+                  child:
+                  _buildDynamicTextField("Field 2", textFieldController2),
                 ),
                 SizedBox(
                   width: 300,
-                  child: _buildDynamicTextField("Field 3", textFieldController3),
+                  child:
+                  _buildDynamicTextField("Field 3", textFieldController3),
                 ),
                 SizedBox(
                   width: 200,
-                  child: _buildDynamicTextField("Field 4", textFieldController4),
+                  child:
+                  _buildDynamicTextField("Field 4", textFieldController4),
                 ),
                 SizedBox(
                   width: 200,
-                  child: _buildDynamicTextField("Field 5", textFieldController5),
+                  child:
+                  _buildDynamicTextField("Field 5", textFieldController5),
                 ),
                 SizedBox(
                   width: 150, // Adjust the width as needed
@@ -1699,13 +1849,15 @@ class _DynamicRowState extends State<DynamicRow> {
                     onTap: () {
                       FocusScope.of(context).requestFocus(FocusNode());
                       _selectDate(context, dateController1);
-                    }, // to trigger disabledBorder
+                    },
+                    // to trigger disabledBorder
                     decoration: InputDecoration(
                       filled: true,
                       fillColor: MyColors.whiteColorCode,
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(4)),
-                        borderSide: BorderSide(width: 1, color: MyColors.buttonColorCode),
+                        borderSide: BorderSide(
+                            width: 1, color: MyColors.buttonColorCode),
                       ),
                       disabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(4)),
@@ -1713,7 +1865,8 @@ class _DynamicRowState extends State<DynamicRow> {
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(4)),
-                        borderSide: BorderSide(width: 1, color: MyColors.textBoxBorderColorCode),
+                        borderSide: BorderSide(
+                            width: 1, color: MyColors.textBoxBorderColorCode),
                       ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(4)),
@@ -1721,11 +1874,13 @@ class _DynamicRowState extends State<DynamicRow> {
                       ),
                       errorBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(4)),
-                        borderSide: BorderSide(width: 1, color: MyColors.textBoxBorderColorCode),
+                        borderSide: BorderSide(
+                            width: 1, color: MyColors.textBoxBorderColorCode),
                       ),
                       focusedErrorBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(4)),
-                        borderSide: BorderSide(width: 2, color: MyColors.buttonColorCode),
+                        borderSide: BorderSide(
+                            width: 2, color: MyColors.buttonColorCode),
                       ),
                       hintText: "DD/MM/YYYY",
                       suffixIcon: Icon(
@@ -1733,18 +1888,22 @@ class _DynamicRowState extends State<DynamicRow> {
                         size: 24,
                         color: MyColors.dateIconColorCode,
                       ),
-                      hintStyle: TextStyle(fontSize: 16, color: MyColors.datePlacehoderColorCode),
+                      hintStyle: TextStyle(
+                          fontSize: 16,
+                          color: MyColors.datePlacehoderColorCode),
                       errorText: "",
-                      contentPadding: EdgeInsets.symmetric(vertical: 30.0, horizontal: 10.0), // Increase vertical padding to increase height
+                      contentPadding: EdgeInsets.symmetric(
+                          vertical: 30.0,
+                          horizontal:
+                          10.0), // Increase vertical padding to increase height
                     ),
                     obscureText: false,
                   ),
                 ),
 
-                  SizedBox(
+                SizedBox(
                   width: 200, // Adjust the width as needed
                   child: TextField(
-
                     controller: dateController2,
                     enabled: true,
                     readOnly: true,
@@ -1769,7 +1928,8 @@ class _DynamicRowState extends State<DynamicRow> {
 
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(4)),
-                        borderSide: BorderSide(width: 1, color: MyColors.buttonColorCode),
+                        borderSide: BorderSide(
+                            width: 1, color: MyColors.buttonColorCode),
                       ),
                       disabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(4)),
@@ -1777,7 +1937,8 @@ class _DynamicRowState extends State<DynamicRow> {
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(4)),
-                        borderSide: BorderSide(width: 1, color: MyColors.textBoxBorderColorCode),
+                        borderSide: BorderSide(
+                            width: 1, color: MyColors.textBoxBorderColorCode),
                       ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(4)),
@@ -1785,26 +1946,31 @@ class _DynamicRowState extends State<DynamicRow> {
                       ),
                       errorBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(4)),
-                        borderSide: BorderSide(width: 1, color: MyColors.textBoxBorderColorCode),
+                        borderSide: BorderSide(
+                            width: 1, color: MyColors.textBoxBorderColorCode),
                       ),
                       focusedErrorBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(4)),
-                        borderSide: BorderSide(width: 2, color: MyColors.buttonColorCode),
+                        borderSide: BorderSide(
+                            width: 2, color: MyColors.buttonColorCode),
                       ),
                       hintText: "DD/MM/YYYY",
                       suffixIcon: Icon(
                         Icons.calendar_month,
                         size: 24,
                         color: isNextDateEnabled
-                            ? Colors.grey : MyColors.dateIconColorCode,
+                            ? Colors.grey
+                            : MyColors.dateIconColorCode,
                       ),
                       hintStyle: TextStyle(
                         fontSize: 16,
                         color: isNextDateEnabled
                             ? MyColors.datePlacehoderColorCode
                             : Colors.grey,
-                      ),                      errorText: "",
-                      contentPadding: EdgeInsets.symmetric(vertical: 30.0, horizontal: 10.0),
+                      ),
+                      errorText: "",
+                      contentPadding: EdgeInsets.symmetric(
+                          vertical: 30.0, horizontal: 10.0),
                     ),
                     obscureText: false,
                   ),
@@ -1813,21 +1979,60 @@ class _DynamicRowState extends State<DynamicRow> {
                 SizedBox(
                   width: 50,
                   child: Padding(
-                    padding: const EdgeInsets.only(top: 20.0, left: 15, right: 15, bottom: 40),
-                    child: GestureDetector(
-                      child: Icon(
-                        Icons.delete_rounded,
-                        size: 24,
-                        color: MyColors.redColorCode,
-                      ),
-                      onTap: () {
-                        print("Clicked index" +widget.index.toString());
-                        setState(() {
-                          widget.onDelete(widget.index);
-                          // widget.onDelete();
-                        });
-                      }, // Trigger the onDelete callback,
+                    padding: const EdgeInsets.only(
+                        top: 20.0, left: 15, right: 15, bottom: 40),
+                    // child: GestureDetector(
+                    //   child: Icon(
+                    //     Icons.delete_rounded,
+                    //     size: 24,
+                    //     color: MyColors.redColorCode,
+                    //   ),
+                    //   // onTap: () {
+                    //   //   final parentState = context.findAncestorStateOfType<
+                    //   //       _MinutesOfTheMeetingFormScreenState>();
+                    //   //
+                    //   //   if (parentState != null &&
+                    //   //       widget.index < parentState.SRNOtable.length) {
+                    //   //     Fluttertoast.showToast(
+                    //   //       msg: "Existing rows cannot be deleted",
+                    //   //       toastLength: Toast.LENGTH_SHORT,
+                    //   //     );
+                    //   //     return;
+                    //   //   }
+                    //
+                    //     widget.onDelete(widget.index);
+                    //   },
+                    child: Builder(
+                      builder: (context) {
+                        final parentState = context.findAncestorStateOfType<
+                            _MinutesOfTheMeetingFormScreenState>();
+
+                        bool isExistingRow = parentState != null &&
+                            widget.index < parentState.SRNOtable.length;
+
+                        if (isExistingRow) {
+                          return SizedBox(width: 24); // hide icon
+                        }
+
+                        return GestureDetector(
+                          onTap: () {
+                            widget.onDelete(widget.index);
+                          },
+                          child: Icon(
+                            Icons.delete_rounded,
+                            size: 24,
+                            color: MyColors.redColorCode,
+                          ),
+                        );
+                      },
                     ),
+                    // onTap: () {
+                    //   print("Clicked index" + widget.index.toString());
+                    //   // setState(() {
+                    //   widget.onDelete(widget.index);
+                    //   // widget.onDelete();
+                    //   //});
+                    // }, // Trigger the onDelete callback,
                   ),
                 ),
               ],
@@ -1844,8 +2049,8 @@ class _DynamicRowState extends State<DynamicRow> {
     });
   }
 
-  void _selectDate(BuildContext context, TextEditingController controller) async {
-
+  void _selectDate(
+      BuildContext context, TextEditingController controller) async {
     DateTime? pickedDate = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
@@ -1854,15 +2059,12 @@ class _DynamicRowState extends State<DynamicRow> {
     );
 
     if (pickedDate != null) {
-
       // If selecting NEXT TARGET DATE
       if (controller == dateController2 && dateController1.text.isNotEmpty) {
-
         DateTime targetDate =
         DateFormat('dd/MM/yyyy').parse(dateController1.text);
 
         if (!pickedDate.isAfter(targetDate)) {
-
           Fluttertoast.showToast(
             msg: "Next Target Date must be greater than Target Date",
             toastLength: Toast.LENGTH_SHORT,
@@ -1885,51 +2087,53 @@ class _DynamicRowState extends State<DynamicRow> {
     }
   }
 
-  Widget _buildDynamicTextField(String label, TextEditingController controller) {
-    return
-
-      TextField(
-        controller: controller,
-        onChanged: (value) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            context.findAncestorStateOfType<_MinutesOfTheMeetingFormScreenState>()?._checkForFormEdits();
-          });
-        },
-        enabled: true, // to trigger disabledBorder
-        decoration: InputDecoration(
-          filled: true,
-          fillColor: MyColors.whiteColorCode,
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.all(Radius.circular(4)),
-            borderSide: BorderSide(width: 1, color: MyColors.buttonColorCode),
-          ),
-          disabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.all(Radius.circular(4)),
-            borderSide: BorderSide(width: 1, color: Colors.orange),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.all(Radius.circular(4)),
-            borderSide: BorderSide(width: 1, color: MyColors.textBoxBorderColorCode),
-          ),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.all(Radius.circular(4)),
-            borderSide: BorderSide(width: 1),
-          ),
-          errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.all(Radius.circular(4)),
-            borderSide: BorderSide(width: 1, color: MyColors.textBoxBorderColorCode),
-          ),
-          focusedErrorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.all(Radius.circular(4)),
-            borderSide: BorderSide(width: 2, color: MyColors.buttonColorCode),
-          ),
-          hintStyle: TextStyle(fontSize: 16, color: MyColors.textBoxColorCode),
-          errorText: "",
-          contentPadding: EdgeInsets.symmetric(vertical: 30.0, horizontal: 10.0),
+  Widget _buildDynamicTextField(
+      String label, TextEditingController controller) {
+    return TextField(
+      controller: controller,
+      onChanged: (value) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          context
+              .findAncestorStateOfType<_MinutesOfTheMeetingFormScreenState>()
+              ?._checkForFormEdits();
+        });
+      },
+      enabled: true,
+      // to trigger disabledBorder
+      decoration: InputDecoration(
+        filled: true,
+        fillColor: MyColors.whiteColorCode,
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(4)),
+          borderSide: BorderSide(width: 1, color: MyColors.buttonColorCode),
         ),
-        obscureText: false,
-      );
-
+        disabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(4)),
+          borderSide: BorderSide(width: 1, color: Colors.orange),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(4)),
+          borderSide:
+          BorderSide(width: 1, color: MyColors.textBoxBorderColorCode),
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(4)),
+          borderSide: BorderSide(width: 1),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(4)),
+          borderSide:
+          BorderSide(width: 1, color: MyColors.textBoxBorderColorCode),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(4)),
+          borderSide: BorderSide(width: 2, color: MyColors.buttonColorCode),
+        ),
+        hintStyle: TextStyle(fontSize: 16, color: MyColors.textBoxColorCode),
+        errorText: "",
+        contentPadding: EdgeInsets.symmetric(vertical: 30.0, horizontal: 10.0),
+      ),
+      obscureText: false,
+    );
   }
-
 }

@@ -822,6 +822,23 @@ class MainBloc extends Bloc<MainEvent, MainState> {
         }
       }
 
+      else if (event is GetVisitClientListEvent) {
+        try {
+          yield GetAllClientLoadingState();
+
+          var response = await webService.getAllCustomers(
+              event.pagenumber, event.pagesize);
+
+          if (response != null && response.status == true) {
+            yield GetAllClientLoadedState(response: response);
+          } else {
+            yield GetAllClientErrorState(error: "No Data Found");
+          }
+        } catch (e) {
+          yield GetAllClientErrorState(error: e.toString());
+        }
+      }
+
     }
   }
 }

@@ -35,6 +35,7 @@ import '../model/Leave/LeaveTypeDetails.dart';
 import '../model/Leave/Staffdetails.dart';
 import '../model/Leave/SubmitLeaveResponse.dart';
 import '../model/Login/LoginResponse.dart';
+import '../model/MinutesOfTheMettingForm/CustomerList.dart';
 import '../model/MinutesOfTheMettingForm/GetMinutesOfTheMeetingAllDataByVisitSrNoResponse.dart';
 import '../model/Profile/ProfileResponse.dart';
 import '../model/Profile/UpdateUserinfo.dart';
@@ -1577,4 +1578,22 @@ class UpdateMultiRemoteLocationErrorState extends MainState {
   UpdateMultiRemoteLocationErrorState({required this.msg});
   @override
   List<Object?> get props => [msg];
+}
+
+class GetAllClientLoadingState extends MainState {
+  @override
+// TODO: implement props
+  List<Object> get props => throw UnimplementedError();
+}
+
+class GetAllClientLoadedState extends MainState {
+  final CustomerResponse response;
+
+  GetAllClientLoadedState({required this.response});
+}
+
+class GetAllClientErrorState extends MainState {
+  final String error;
+
+  GetAllClientErrorState({required this.error});
 }

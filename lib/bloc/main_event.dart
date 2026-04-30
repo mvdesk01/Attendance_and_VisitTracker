@@ -523,3 +523,12 @@ class UpdateMultiRemoteLocationEvent extends MainEvent {
 
   UpdateMultiRemoteLocationEvent( this.srNo, this.staffCode, this.lat, this.long, this.locationName, this.flag, this.radius, this.token);
 }
+
+
+class GetVisitClientListEvent extends MainEvent {
+  int pagenumber;
+
+  int pagesize;
+
+  GetVisitClientListEvent({required this.pagenumber, required this.pagesize});
+}

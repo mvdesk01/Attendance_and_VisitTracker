@@ -3,8 +3,8 @@ import 'dart:convert';
 InsertMMALLDataRequest InsertMMALLDataRequestFromJson(String str) =>
     InsertMMALLDataRequest.fromJson(json.decode(str));
 
-String InsertMMALLDataRequestToJson(InsertMMALLDataRequest data) => json.encode(data.toJson());
-
+String InsertMMALLDataRequestToJson(InsertMMALLDataRequest data) =>
+    json.encode(data.toJson());
 
 class InsertMMALLDataRequest {
   String? date;
@@ -14,6 +14,7 @@ class InsertMMALLDataRequest {
   String? memberAbsent;
   String? allRecordsIds;
   String? visitSrNo;
+  String? custcode;
 
   InsertMMALLDataRequest(
       {this.date,
@@ -22,7 +23,8 @@ class InsertMMALLDataRequest {
         this.memberPresent,
         this.memberAbsent,
         this.allRecordsIds,
-        this.visitSrNo});
+        this.visitSrNo,
+        this.custcode});
 
   InsertMMALLDataRequest.fromJson(Map<String, dynamic> json) {
     date = json['date'];
@@ -32,6 +34,7 @@ class InsertMMALLDataRequest {
     memberAbsent = json['memberAbsent'];
     allRecordsIds = json['allRecordsIds'];
     visitSrNo = json['visitSrNo'];
+    custcode = json['custCode'];
   }
 
   Map<String, dynamic> toJson() {
@@ -43,6 +46,7 @@ class InsertMMALLDataRequest {
     data['memberAbsent'] = this.memberAbsent;
     data['allRecordsIds'] = this.allRecordsIds;
     data['visitSrNo'] = this.visitSrNo;
+    data['custCode'] = this.custcode;
     return data;
   }
 }

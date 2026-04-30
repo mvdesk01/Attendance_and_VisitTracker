@@ -3,8 +3,6 @@ import 'package:attendance_system_ios/service/log_file_manager.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
-// import 'package:location/location.dart';
-// import 'dart:math';
 
 class LocationHandler {
   static double? currentLat;  // Example zone center latitude
@@ -192,12 +190,6 @@ class LocationHandler {
     /// 3️⃣ If none matched
     return false;
   }
-
-
-
-
-
-
 
 }
 

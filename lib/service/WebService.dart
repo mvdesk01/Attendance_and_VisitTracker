@@ -55,6 +55,7 @@ import '../model/CancellationRequestData/SubmitTourCancellation.dart';
 import '../model/CancellationRequestData/TourCancellationRequest.dart';
 import '../model/Expense/Submitexpenserecords.dart';
 import '../model/GatePass/GatePassResponse.dart';
+import '../model/MinutesOfTheMettingForm/CustomerList.dart';
 import '../model/MinutesOfTheMettingForm/UpdateMMAllData.dart';
 import '../model/MinutesOfTheMettingForm/UpdateMMData.dart';
 import '../model/RemoteLocation/RemoteLocation.dart';
@@ -3498,5 +3499,37 @@ print(url);
        }
   }
 
+  Future<CustomerResponse?> getAllCustomers(int pageNumber, int pageSize) async {
+    try {
+      final uri = Uri.parse(
+          "http://114.143.140.28:8020/api/Visit/GetAllCustomersList/$pageNumber/$pageSize");
+
+      final response = await http.get(
+        uri,
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+      );
+
+      print("Response: ${response.body}");
+
+      if (response.statusCode == 200) {
+        return CustomerResponse.fromJson(jsonDecode(response.body));
+      } else if (response.statusCode == 400) {
+        Fluttertoast.showToast(msg: "No Records Found");
+        return null;
+      } else if (response.statusCode == 401) {
+        scaffoldMessengerKey.currentState?.showSnackBar(
+          SnackBar(content: Text('Unauthorized. Kindly Login Again!!')),
+        );
+        return null;
+      }
+
+      return null;
+    } catch (e) {
+      LogFileManager.writeLog('Error in getAllCustomers: $e');
+      return null;
+    }
+  }
 
 }

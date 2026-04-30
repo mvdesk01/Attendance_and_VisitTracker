@@ -1376,24 +1376,47 @@ class _AddCoffScreenState extends State<AddCoffScreen> {
     clearfields();
   }
 
+  // Future<void> _selectDate(BuildContext context) async {
+  //   final DateTime? picked = await showDatePicker(
+  //     context: context,
+  //     initialDate: selectedDate,
+  //     firstDate: selectedDate.subtract(Duration(days: 40)),
+  //     lastDate: DateTime(2030),
+  //   );
+  //
+  //   if (picked != null && picked != selectedDate) {
+  //     setState(() {
+  //       selectedDate = picked;
+  //
+  //       // ✅ Correct format with leading zeros
+  //       _gatepassdatecontroller.text =
+  //           DateFormat('dd/MM/yyyy').format(selectedDate);
+  //
+  //       // API format (if needed)
+  //       date = DateFormat('yyyy-MM-dd').format(selectedDate);
+  //     });
+  //   }
+  // }
+
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: selectedDate,
-      firstDate: selectedDate.subtract(Duration(days: 40)),
-      lastDate: DateTime(2030),
+
+      // ✅ allow from 2010
+      firstDate: DateTime(2010),
+
+      // ✅ allow far future
+      lastDate: DateTime(2100),
     );
 
-    if (picked != null && picked != selectedDate) {
+    if (picked != null) {
       setState(() {
         selectedDate = picked;
 
-        // ✅ Correct format with leading zeros
-        _gatepassdatecontroller.text =
-            DateFormat('dd/MM/yyyy').format(selectedDate);
-
-        // API format (if needed)
-        date = DateFormat('yyyy-MM-dd').format(selectedDate);
+        final DateFormat formatter = DateFormat('dd/MM/yyyy');
+        _gatepassdatecontroller.text = formatter.format(selectedDate);
+        date = formatter.format(selectedDate);
       });
     }
   }

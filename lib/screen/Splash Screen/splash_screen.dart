@@ -9,6 +9,7 @@ import '../../bloc/main_bloc.dart';
 import '../../bloc/main_event.dart';
 import '../../bloc/main_state.dart';
 import '../../service/WebService.dart';
+import '../../service/appupdate_service.dart';
 import '../../service/log_file_manager.dart';
 import '../../service/internet_service.dart';
 import '../../util/MyColor.dart';
@@ -52,7 +53,15 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     );
 
     _controller.forward();
-    _initializeApp();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // optional small delay for smoother UI
+      await Future.delayed(const Duration(milliseconds: 300));
+
+      await AppUpdateService.checkAndUpdate(context);
+
+      // now safe to continue
+      _initializeApp();
+    });
   }
 
   Future<void> _initializeApp() async {

@@ -364,13 +364,13 @@ class _DebitcoffscreenState extends State<Debitcoffscreen> {
               if (state.cancelGatepassResponse.message ==
                   "C-Off details saved successfully !") {
                 DialogForUpdate()
-                    .popUp(context, "D-OFF Saved Successfully!", "1");
+                    .popUp(context, "C-OFF Debit Saved Successfully!", "1");
               }
             } else if (widget.flag == 2) {
               if (state.cancelGatepassResponse.message ==
                   "C-Off details updated successfully !") {
                 DialogForUpdate()
-                    .popUp(context, "D-OFF Updated Successfully!", "1");
+                    .popUp(context, "C-OFF Debit Updated Successfully!", "1");
               }
             } else {}
           } else if (state is SubmitCoffDebitErrorState) {
@@ -862,7 +862,7 @@ class _DebitcoffscreenState extends State<Debitcoffscreen> {
                     //   fromTimeController = value;
                     // },
                     onTap: () async {
-                      final DateFormat formatter = DateFormat('H:mm',
+                      final DateFormat formatter = DateFormat('HH:mm',
                           Localizations.localeOf(context).toLanguageTag());
                       final TimeOfDay? picked = await showTimePicker(
                           context: context, initialTime: TimeOfDay.now());
@@ -959,7 +959,7 @@ class _DebitcoffscreenState extends State<Debitcoffscreen> {
                     //   fromTimeController = value;
                     // },
                     onTap: () async {
-                      final DateFormat formatter = DateFormat('H:mm',
+                      final DateFormat formatter = DateFormat('HH:mm',
                           Localizations.localeOf(context).toLanguageTag());
                       final TimeOfDay? picked = await showTimePicker(
                           context: context, initialTime: TimeOfDay.now());
@@ -1310,7 +1310,7 @@ class _DebitcoffscreenState extends State<Debitcoffscreen> {
               staffName: _staffNamecontroller.text,
               coffDate: _gatepassdatecontroller.text,
               department: _departmentNamecontroller.text,
-              designation: designation,
+              designation: _designationController.text,
               shift: "GS",
               balance: _balancehrsController.text,
               fromTime: fromTimeInput.text,
@@ -1329,7 +1329,7 @@ class _DebitcoffscreenState extends State<Debitcoffscreen> {
               staffName: _staffNamecontroller.text,
               coffDate: _gatepassdatecontroller.text,
               department: _departmentNamecontroller.text,
-              designation: designation,
+              designation: _designationController.text,
               shift: "GS",
               balance: _balancehrsController.text,
               fromTime: fromTimeInput.text,
@@ -1343,27 +1343,49 @@ class _DebitcoffscreenState extends State<Debitcoffscreen> {
     }
   }
 
+  // Future<void> _selectDate(BuildContext context) async {
+  //   DateTime now = DateTime.now();
+  //
+  //   final DateTime? picked = await showDatePicker(
+  //     context: context,
+  //
+  //     initialDate: now, // always safe
+  //
+  //     firstDate: now.subtract(Duration(days: 40)),
+  //
+  //     lastDate: DateTime(now.year + 1), // FIXED (was wrong)
+  //   );
+  //
+  //   if (picked != null) {
+  //     setState(() {
+  //       selectedDate = picked;
+  //
+  //       _gatepassdatecontroller.text =
+  //           DateFormat('dd/MM/yyyy').format(selectedDate);
+  //
+  //       date = DateFormat('yyyy-MM-dd').format(selectedDate);
+  //     });
+  //   }
+  // }
   Future<void> _selectDate(BuildContext context) async {
-    DateTime now = DateTime.now();
-
     final DateTime? picked = await showDatePicker(
       context: context,
+      initialDate: selectedDate,
 
-      initialDate: now, // always safe
+      // ✅ allow from 2010
+      firstDate: DateTime(2010),
 
-      firstDate: now.subtract(Duration(days: 40)),
-
-      lastDate: DateTime(now.year + 1), // FIXED (was wrong)
+      // ✅ allow far future
+      lastDate: DateTime(2100),
     );
 
     if (picked != null) {
       setState(() {
         selectedDate = picked;
 
-        _gatepassdatecontroller.text =
-            DateFormat('dd/MM/yyyy').format(selectedDate);
-
-        date = DateFormat('yyyy-MM-dd').format(selectedDate);
+        final DateFormat formatter = DateFormat('dd/MM/yyyy');
+        _gatepassdatecontroller.text = formatter.format(selectedDate);
+        date = formatter.format(selectedDate);
       });
     }
   }

@@ -7,6 +7,7 @@ import 'package:attendance_system_ios/bloc/main_bloc.dart';
 import 'package:attendance_system_ios/screen/AdminHomeScreen/AdminHome.dart';
 import 'package:attendance_system_ios/screen/Home/home.dart';
 import 'package:attendance_system_ios/screen/Login/login_screen.dart'; // Add LoginScreen import
+import 'package:attendance_system_ios/screen/Punchremainder/Punchreminderscreennew.dart';
 import 'package:attendance_system_ios/screen/Splash%20Screen/splash_screen.dart';
 import 'package:attendance_system_ios/screen/Visit/Start%20Stop%20Visit/start_stop_visit.dart';
 import 'package:attendance_system_ios/service/background_service.dart';
@@ -22,6 +23,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:timezone/data/latest.dart' as tz_data;
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:http/http.dart' as http;
+import 'package:workmanager/workmanager.dart';
 
 final FlutterLocalNotificationsPlugin notificationsPlugin = FlutterLocalNotificationsPlugin();
 final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
@@ -34,9 +36,13 @@ void main() async {
   tz_data.initializeTimeZones();
   HttpOverrides.global = MyHttpOverrides();
   // ✅ Initialize AlarmManager only on Android
-  if (Platform.isAndroid) {
-    await AndroidAlarmManager.initialize();
-  }
+  // if (Platform.isAndroid) {
+  //   await AndroidAlarmManager.initialize();
+  // }
+  await Workmanager().initialize(
+    callbackDispatcher,
+    isInDebugMode: true,
+  );
   Bloc.observer = SimpleBlocObserver();
 
   const AndroidInitializationSettings initializationSettingsAndroid = AndroidInitializationSettings('icon1');
@@ -281,4 +287,5 @@ class VisitState {
   static final ValueNotifier<bool> isVisitRunning = ValueNotifier(false);
   static final ValueNotifier<bool> isVisitStarted = ValueNotifier(false);
   static final ValueNotifier<int> countRemainingLatLong = ValueNotifier(0);
+  static int? runningVisitSrNo;
 }
