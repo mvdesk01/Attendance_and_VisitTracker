@@ -984,18 +984,18 @@ class _HomeScreenState extends State<HomeScreen> {
 
           else if (state is GetMultiRemoteLocationLoadingState) {
             setState(() {
-              isLoading = true;
+              _isLoading = true;
             });
           }
           else if (state is GetMultiRemoteLocationLoadedState) {
-            multiLatLongList = state.response;
+            multiLatLongList = state.response?? [];
             setState(() {
-              isLoading = false;
+              _isLoading = false;
             });
           }
           else if (state is GetMultiRemoteLocationErrorState) {
             setState(() {
-              isLoading = false;
+              _isLoading = false;
             });
             Fluttertoast.showToast(
               msg: state.msg,

@@ -793,7 +793,8 @@ class MainBloc extends Bloc<MainEvent, MainState> {
           //print(e.toString());
           yield GetAllUsersListErrorState(msg: e.toString());
         }
-      } else if (event is GetVisitClientListEvent) {
+      }
+      else if (event is GetVisitClientListEvent) {
         try {
           yield GetAllClientLoadingState();
 

@@ -166,6 +166,7 @@ class LocationHandler {
     }
 
     /// 2️⃣ Check Multiple Remote Locations
+    if(multiLatLong.isEmpty) return false;
     for (var location in multiLatLong) {
 
       if ((location['flag'] ?? "").toString().trim() != "Y") {

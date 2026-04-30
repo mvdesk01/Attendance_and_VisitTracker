@@ -586,8 +586,7 @@ class WebService {
   }
 
   ///clientlist
-  Future<CustomerResponse?> getAllCustomers(
-      int pageNumber, int pageSize) async {
+  Future<CustomerResponse?> getAllCustomers(int pageNumber, int pageSize) async {
     try {
       final uri = Uri.parse(
           "http://114.143.140.28:8020/api/Visit/GetAllCustomersList/$pageNumber/$pageSize");
