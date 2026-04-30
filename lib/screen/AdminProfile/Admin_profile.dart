@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:attendance_system_ios/bloc/main_bloc.dart';
 import 'package:attendance_system_ios/bloc/main_event.dart';
@@ -13,30 +12,27 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:loading_overlay/loading_overlay.dart';
-import 'package:permission_handler/permission_handler.dart';
+
 import '../../model/Profile/UpdateUserinfo.dart';
+import '../../model/UsersList/GetAllusersListResponse.dart';
 import '../../service/log_file_manager.dart';
 import '../../util/MyColor.dart';
-import '../../model/UsersList/GetAllusersListResponse.dart';
-
 
 /// distanceCheckFlag = Y (allow mark from anywhere), N (not allowed by admin), by default null (not allowed)
 /// addressApprovedFlag = Y ( allow mark attendance from admin), P ( requested form user and pending from admin approve), N (not allowed by admin), by default null ( no action form user)
 class AdminUserProfile extends StatefulWidget {
   Message datum;
 
-  AdminUserProfile(
-      {
-        Key? key,
-        required this.datum,
-      })
-      : super(key: key);
+  AdminUserProfile({
+    Key? key,
+    required this.datum,
+  }) : super(key: key);
+
   @override
   State<AdminUserProfile> createState() => _AdminUserProfile();
 }
 
 class _AdminUserProfile extends State<AdminUserProfile> {
-
   final TextEditingController nameController = TextEditingController();
   final TextEditingController cardIdController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
@@ -65,7 +61,6 @@ class _AdminUserProfile extends State<AdminUserProfile> {
   /// check or allow user to mark location form anywhere
   String? distanceCheckFlag;
 
-
   @override
   void initState() {
     super.initState();
@@ -73,22 +68,22 @@ class _AdminUserProfile extends State<AdminUserProfile> {
     mainBloc = BlocProvider.of(context);
     profileImage = "";
     isEmailEditable = false; // Initially not editable
-    isMobileEditable = false;// Default profile picture
+    isMobileEditable = false; // Default profile picture
     getData();
-
   }
+
   Future<void> getData() async {
     Auth_Token = await storage.read(key: 'Auth_Token');
     print("Auth_Token-->$Auth_Token");
-    mainBloc.add(GetUserInfoEvents(Staffcode: widget.datum.staffCode!, token: Auth_Token!));
-
+    mainBloc.add(GetUserInfoEvents(
+        Staffcode: widget.datum.staffCode!, token: Auth_Token!));
   }
+
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
       length: 4,
-      child:
-      Scaffold(
+      child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
@@ -102,32 +97,27 @@ class _AdminUserProfile extends State<AdminUserProfile> {
             fontSize: 18.0,
           ).copyWith(color: Colors.white),
           actions: [
-
             Padding(
               padding: const EdgeInsets.all(5.0),
-              child:
-              GestureDetector(
-                onTap: (){
+              child: GestureDetector(
+                onTap: () {
                   //Delete Profile/User
                   print("on click delete_Profile");
 
                   showDialog(
                       context: context,
                       builder: (BuildContext context) =>
-                          _buildPopupDialogforRemoveStaffcode(
-                              context));
+                          _buildPopupDialogforRemoveStaffcode(context));
                 },
                 child: Image.asset(
                   "assets/icons/delete_Profile.png",
                   width: 35,
                   height: 35,
-
                 ),
               ),
             )
           ],
         ),
-
         body: LoadingOverlay(
             isLoading: _isLoading,
             opacity: 0.5,
@@ -137,8 +127,7 @@ class _AdminUserProfile extends State<AdminUserProfile> {
               valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
             ),
             child: BlocListener<MainBloc, MainState>(
-              listener: (context, state) async
-              {
+              listener: (context, state) async {
                 if (state is GetUserinfoLoadingState) {
                   setState(() {
                     _isLoading = true;
@@ -154,9 +143,19 @@ class _AdminUserProfile extends State<AdminUserProfile> {
                     nameController.text = user?.displayName ?? '';
                     cardIdController.text = user?.staffCode ?? '';
                     emailController.text = user?.emailId ?? '';
-                    mobileController.text = user?.mobileNo ?? '';
+                    //mobileController.text = user?.mobileNo ?? '';
+                    if (user?.mobileNo == null ||
+                        user!.mobileNo!.trim().isEmpty ||
+                        user.mobileNo == "null") {
+                      mobileController.text = "N/A";
+                      print("N/A");
+                    } else {
+                      print(user.mobileNo);
+                      mobileController.text = user.mobileNo!;
+                    }
                     dateOfJoiningController.text = user?.createdOn != null
-                        ? DateFormat('dd/MM/yyyy').format(DateTime.parse(user!.createdOn!))
+                        ? DateFormat('dd/MM/yyyy')
+                            .format(DateTime.parse(user!.createdOn!))
                         : '';
                     DeviceIdController.text = user?.uuid ?? '';
                     addressController.text = user?.currAddress ?? '';
@@ -166,31 +165,42 @@ class _AdminUserProfile extends State<AdminUserProfile> {
                     if (user?.addressapproveFlag == 'P') {
                       addressApprovedFlag = 'Y';
                       _showChangeAddressButton = true;
-                      _showOfficeAddressButton = false; // Hide Office Address Button
-                    } /*else if (user?.addressapproveFlag == 'PO') {
+                      _showOfficeAddressButton =
+                          false; // Hide Office Address Button
+                    }
+                    /*else if (user?.addressapproveFlag == 'PO') {
                       _showChangeAddressButton = false;
                       _showOfficeAddressButton = true; // Show Office Address Button
                     }*/
 
-                    if(user?.atsCheckflag== 'Y'){
+                    if (user?.atsCheckflag == 'Y') {
                       setState(() {
-                        _isChecked=true;
+                        _isChecked = true;
                       });
                     }
 
                     // _showChangeAddressButton = user?.addressapproveFlag == 'P';
                     // _showChangeAddressButton = user?.addressapproveFlag == 'PO';
-                    remoteaddressController.text = user?.newRemoteLocation ?? '';
+                    //remoteaddressController.text = user?.newRemoteLocation ?? '';
+                    if (user?.newRemoteLocation == null ||
+                        user!.newRemoteLocation!.trim().isEmpty ||
+                        user.newRemoteLocation == "null") {
+                      remoteaddressController.text = "N/A";
+                      print("N/A");
+                    } else {
+                      print(user.newRemoteLocation);
+                      remoteaddressController.text = user.newRemoteLocation!;
+                    }
                     // Handle profile picture
-                    if (user?.profilePic != null && user!.profilePic!.isNotEmpty) {
+                    if (user?.profilePic != null &&
+                        user!.profilePic!.isNotEmpty) {
                       profileImage = user.profilePic; // Base64 string
                     } else {
                       profileImage = null;
                     }
                     distanceCheckFlag = user!.distanceCheckFlag;
                   });
-                }
-                else if (state is GetUserinfoErrorState) {
+                } else if (state is GetUserinfoErrorState) {
                   setState(() {
                     _isLoading = false;
                   });
@@ -207,25 +217,23 @@ class _AdminUserProfile extends State<AdminUserProfile> {
                   setState(() {
                     _isLoading = true;
                   });
-                }
-                else if (state is DeleteStaffEntryLoadedState) {
+                } else if (state is DeleteStaffEntryLoadedState) {
                   print("DeleteStaffEntryLoadedState called...");
 
                   setState(() {
                     _isLoading = false;
                   });
                   Fluttertoast.showToast(
-                    msg:  " "+state.cancelGatepassResponse.message!+" ...!",
+                    msg: " " + state.cancelGatepassResponse.message! + " ...!",
                     toastLength: Toast.LENGTH_SHORT,
                     timeInSecForIosWeb: 1,
                   );
-                  if(state.cancelGatepassResponse.message=="User Deleted Successfully...")
-                  {
-                    CustomDialog().popUp(context,
-                        "Well done! User Deleted Successfully...!!");
+                  if (state.cancelGatepassResponse.message ==
+                      "User Deleted Successfully...") {
+                    CustomDialog().popUp(
+                        context, "Well done! User Deleted Successfully...!!");
                   }
-                }
-                else if (state is DeleteStaffEntryErrorState) {
+                } else if (state is DeleteStaffEntryErrorState) {
                   print("DeleteStaffEntryErrorState called...");
 
                   setState(() {
@@ -233,27 +241,25 @@ class _AdminUserProfile extends State<AdminUserProfile> {
                   });
                 }
 
-                if(state is acceptrequestLoadingState){
+                if (state is acceptrequestLoadingState) {
                   setState(() {
-                    _isLoading=true;
+                    _isLoading = true;
                   });
-                }
-                else if(state is acceptrequestLoadedState){
+                } else if (state is acceptrequestLoadedState) {
                   setState(() {
                     _isLoading = false;
                   });
-                  if(state.cancelGatepassResponse.message == "AddressApproveFlag Updated Successfully..."){
+                  if (state.cancelGatepassResponse.message ==
+                      "AddressApproveFlag Updated Successfully...") {
                     Fluttertoast.showToast(
                       msg: "  Request Accepted   ",
                       toastLength: Toast.LENGTH_SHORT,
                       timeInSecForIosWeb: 1,
                     );
                   }
-
-                }
-                else if(state is acceptrequestErrorState){
+                } else if (state is acceptrequestErrorState) {
                   setState(() {
-                    _isLoading=false;
+                    _isLoading = false;
                   });
                   Fluttertoast.showToast(
                     msg: "  Failed To Accept Request...!   ",
@@ -262,18 +268,17 @@ class _AdminUserProfile extends State<AdminUserProfile> {
                   );
                 }
 
-                if(state is nondistancecheckLoadingState){
+                if (state is nondistancecheckLoadingState) {
                   setState(() {
-                    _isLoading=true;
+                    _isLoading = true;
                   });
-                }
-                else if(state is nondistancecheckLoadedState){
+                } else if (state is nondistancecheckLoadedState) {
                   setState(() {
                     _isLoading = false;
 
-                    if(distanceCheckFlag == 'Y'){
+                    if (distanceCheckFlag == 'Y') {
                       distanceCheckFlag = 'N';
-                    }else{
+                    } else {
                       distanceCheckFlag = 'Y';
                     }
                   });
@@ -284,10 +289,9 @@ class _AdminUserProfile extends State<AdminUserProfile> {
                         : "Distance check enabled",
                     toastLength: Toast.LENGTH_SHORT,
                   );
-                }
-                else if(state is nondistancecheckErrorState){
+                } else if (state is nondistancecheckErrorState) {
                   setState(() {
-                    _isLoading=false;
+                    _isLoading = false;
                   });
                   Fluttertoast.showToast(
                     msg: "  Failed To Set Request...!   ",
@@ -296,304 +300,313 @@ class _AdminUserProfile extends State<AdminUserProfile> {
                   );
                 }
 
-                if(state is UpdateUserinfoLoadingState){
+                if (state is UpdateUserinfoLoadingState) {
                   setState(() {
-                    _isLoading=true;
+                    _isLoading = true;
                   });
-                }
-                else if(state is UpdateUserinfoLoadedState){
+                } else if (state is UpdateUserinfoLoadedState) {
                   setState(() {
                     _isLoading = false;
                   });
-                  if(state.updateuserinfo.message == "EmailId is Already Present.."){
+                  if (state.updateuserinfo.message ==
+                      "EmailId is Already Present..") {
                     Fluttertoast.showToast(msg: "EmailId already present");
                     return;
-                  }else if(state.updateuserinfo.message == "MobileNo is Already Present.."){
-                    Fluttertoast.showToast(msg: "Mobile Number already present");
+                  } else if (state.updateuserinfo.message ==
+                      "MobileNo is Already Present..") {
+                    Fluttertoast.showToast(
+                        msg: "Mobile Number already present");
                     return;
+                  } else if (state.updateuserinfo.message ==
+                      "Profile Updated Successfully...") {
+                    Fluttertoast.showToast(
+                        msg: "Details Updated succesfully!!");
                   }
-                  else if(state.updateuserinfo.message == "Profile Updated Successfully..."){
-                    Fluttertoast.showToast(msg: "Details Updated succesfully!!");
-                  }
-
-                }
-                else if(state is UpdateUserinfoErrorState){
+                } else if (state is UpdateUserinfoErrorState) {
                   setState(() {
-                    _isLoading= false;
+                    _isLoading = false;
                   });
                   Fluttertoast.showToast(msg: "error in updating");
                 }
 
-                if(state is updateUserAtsFlagLoadingState){
-                  _isLoading=  true;
-                }
-                else if(state is updateUserAtsFlagLoadedState){
+                if (state is updateUserAtsFlagLoadingState) {
+                  _isLoading = true;
+                } else if (state is updateUserAtsFlagLoadedState) {
                   setState(() {
-                    _isLoading=false;
+                    _isLoading = false;
                   });
                   Fluttertoast.showToast(msg: "User Attendance flag changed");
-                }
-                else if(state is updateUserAtsFlagErrorState){
+                } else if (state is updateUserAtsFlagErrorState) {
                   setState(() {
-                    _isLoading=false;
+                    _isLoading = false;
                   });
                   Fluttertoast.showToast(msg: "User Attendance flag changedd");
-
                 }
               },
-              child:
-              SingleChildScrollView(
+              child: SingleChildScrollView(
                   child: Column(
-                    children: <Widget>[
-                      GestureDetector(
-                        child: Stack(
-                          clipBehavior: Clip.none,
-                          children: [
-                            CircleAvatar(
-                              radius: 70,
-                              backgroundImage: profileImage != null
-                                  ? MemoryImage(base64Decode(profileImage!))
-                                  : AssetImage(" ") as ImageProvider,
-                              child: profileImage == null
-                                  ? const Icon(Icons.person, size: 50, color: Colors.white)
-                                  : null,
-                            ),
-                          ],
+                children: <Widget>[
+                  GestureDetector(
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        CircleAvatar(
+                          radius: 70,
+                          backgroundImage: profileImage != null
+                              ? MemoryImage(base64Decode(profileImage!))
+                              : AssetImage(" ") as ImageProvider,
+                          child: profileImage == null
+                              ? const Icon(Icons.person,
+                                  size: 50, color: Colors.white)
+                              : null,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  TextField(
+                    controller: nameController,
+                    decoration: InputDecoration(
+                      labelText: 'Name',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(color: Colors.black, width: 1),
+                      ),
+                    ),
+                    style: TextStyle(color: Colors.black),
+                    enabled: false, // Make uneditable
+                  ),
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: cardIdController,
+                    decoration: InputDecoration(
+                      labelText: 'Card ID',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(color: Colors.blue, width: 1),
+                      ),
+                    ),
+                    style: TextStyle(color: Colors.black),
+                    enabled: false, // Make uneditable
+                  ),
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: dateOfJoiningController,
+                    decoration: InputDecoration(
+                      labelText: 'Date of Joining',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(color: Colors.blue, width: 1),
+                      ),
+                    ),
+                    style: TextStyle(color: Colors.black),
+                    enabled: false, // Make uneditable
+                  ),
+                  const SizedBox(height: 10),
+                  _buildEditableProfileField(
+                    emailController,
+                    'Email',
+                    isEmailEditable,
+                    () {
+                      setState(() {
+                        isEmailEditable =
+                            !isEmailEditable; // Toggle email editable state
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  _buildEditableProfileField(
+                    mobileController,
+                    'Mobile Number',
+                    isMobileEditable,
+                    () {
+                      setState(() {
+                        isMobileEditable =
+                            !isMobileEditable; // Toggle mobile editable state
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  SizedBox(
+                    width: double.infinity,
+                    // Makes the TextField span the entire screen width
+                    child: TextField(
+                      controller: addressController,
+                      decoration: InputDecoration(
+                        labelText: 'Current Address',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(color: Colors.blue, width: 1),
                         ),
                       ),
-                      const SizedBox(height: 20),
-                      TextField(
-                        controller: nameController,
-                        decoration: InputDecoration(
-                          labelText: 'Name',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: BorderSide(color: Colors.black, width: 1),
-                          ),
+                      style: TextStyle(color: Colors.black),
+                      // Set text color to black
+                      enabled: false,
+                      // Make uneditable
+                      maxLines:
+                          null, // Allows the text to wrap and expand vertically
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  SizedBox(
+                    width: double.infinity,
+                    // Makes the TextField span the entire screen width
+                    child: TextField(
+                      controller: remoteaddressController,
+                      decoration: InputDecoration(
+                        labelText: 'Remote Address',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(color: Colors.blue, width: 1),
                         ),
-                        style: TextStyle(color: Colors.black),
-                        enabled: false, // Make uneditable
                       ),
-                      const SizedBox(height: 10),
-                      TextField(
-                        controller: cardIdController,
-                        decoration: InputDecoration(
-                          labelText: 'Card ID',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: BorderSide(color: Colors.blue, width: 1),
-                          ),
-                        ),
-                        style: TextStyle(color: Colors.black),
-                        enabled: false, // Make uneditable
-                      ),
-                      const SizedBox(height: 10),
-                      TextField(
-                        controller: dateOfJoiningController,
-                        decoration: InputDecoration(
-                          labelText: 'Date of Joining',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: BorderSide(color: Colors.blue, width: 1),
-                          ),
-                        ),
-                        style: TextStyle(color: Colors.black),
-                        enabled: false, // Make uneditable
-                      ),
+                      style: TextStyle(color: Colors.black),
+                      // Set text color to black
+                      enabled: false,
+                      // Make uneditable
+                      maxLines:
+                          null, // Allows the text to wrap and expand vertically
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    // Aligns to the left
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Checkbox(
+                        value: _isChecked,
+                        onChanged: (bool? value) {
+                          setState(() {
+                            _isChecked = value!;
+                          });
 
-                      const SizedBox(height: 10),
-                      _buildEditableProfileField(
-                        emailController,
-                        'Email',
-                        isEmailEditable,
-                            () {
-                          setState(() {
-                            isEmailEditable = !isEmailEditable; // Toggle email editable state
-                          });
+                          // Send ATSFlag depending on the state
+                          _handleCheckboxChecked(_isChecked);
                         },
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        visualDensity:
+                            VisualDensity(horizontal: -4.0, vertical: -4.0),
                       ),
-                      const SizedBox(height: 10),
-                      _buildEditableProfileField(
-                        mobileController,
-                        'Mobile Number',
-                        isMobileEditable,
-                            () {
-                          setState(() {
-                            isMobileEditable = !isMobileEditable; // Toggle mobile editable state
-                          });
+                      const Text("Timelog Attendance"),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: distanceCheckFlag == 'Y'
+                              ? Colors.red
+                              : Colors.green,
+                        ),
+                        onPressed: () {
+                          _toggleDistanceCheck();
                         },
-                      ),
-                      const SizedBox(height: 10),
-                      SizedBox(
-                        width: double.infinity, // Makes the TextField span the entire screen width
-                        child: TextField(
-                          controller: addressController,
-                          decoration: InputDecoration(
-                            labelText: 'Current Address',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: BorderSide(color: Colors.blue, width: 1),
-                            ),
-                          ),
-                          style: TextStyle(color: Colors.black), // Set text color to black
-                          enabled: false, // Make uneditable
-                          maxLines: null, // Allows the text to wrap and expand vertically
+                        child: Text(
+                          distanceCheckFlag == 'Y'
+                              ? "Disable Anywhere Attendance"
+                              : "Allow Attendance From Anywhere",
                         ),
                       ),
-                      const SizedBox(height: 10),
-                      SizedBox(
-                        width: double.infinity, // Makes the TextField span the entire screen width
-                        child: TextField(
-                          controller: remoteaddressController,
-                          decoration: InputDecoration(
-                            labelText: 'Remote Address',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: BorderSide(color: Colors.blue, width: 1),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      //Expanded(child: child)
+                      Visibility(
+                        visible: _showChangeAddressButton,
+                        child: Align(
+                          alignment: Alignment.bottomCenter,
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: ElevatedButton(
+                              onPressed: _changeaddress,
+                              child: Text('Remote/Office Address Requested'),
                             ),
                           ),
-                          style: TextStyle(color: Colors.black), // Set text color to black
-                          enabled: false, // Make uneditable
-                          maxLines: null, // Allows the text to wrap and expand vertically
                         ),
                       ),
-                      const SizedBox(height: 10),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.start, // Aligns to the left
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Checkbox(
-                            value: _isChecked,
-                            onChanged: (bool? value) {
+                    ],
+                  ),
+                  const SizedBox(height: 5),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Visibility(
+                        visible: _showUpdateButton,
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            setState(() {
+                              _isLoading = true;
+                            });
+
+                            try {
+                              //final updatedFields = getAllFields();
+
+                              final updateProfileResponse =
+                                  ProfileUpdateRequest(
+                                staffCode: cardIdController.text,
+                                profilePic: profileImage.toString(),
+                                email: emailController.text,
+                                mobileNo: mobileController.text,
+                                // profileImage: updatedFields["profilePic"], // Handle Base64 or URL
+                              );
+                              print(profileImage.toString());
+                              mainBloc.add(UpdateProfileDetailsEvents(
+                                updateuserinfo: updateProfileResponse,
+                                token: Auth_Token!,
+                              ));
+                            } catch (e) {
+                              LogFileManager.writeLog(
+                                  'Error in catch admin profile: $e');
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                    content: Text(
+                                        'Failed to update profile: ${e.toString()}')),
+                              );
+                            } finally {
                               setState(() {
-                                _isChecked = value!;
+                                _isLoading = false;
                               });
-
-                              // Send ATSFlag depending on the state
-                              _handleCheckboxChecked(_isChecked);
-                            },
-                            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            visualDensity: VisualDensity(horizontal: -4.0, vertical: -4.0),
-                          ),
-                          const Text("Timelog Attendance"),
-                        ],
+                            }
+                          },
+                          child: _isLoading
+                              ? const CircularProgressIndicator(
+                                  color: Colors.white)
+                              : const Text('Update'),
+                        ),
                       ),
-
-                      const SizedBox(height: 10),
-
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: distanceCheckFlag == 'Y'
-                                  ? Colors.red
-                                  : Colors.green,
-                            ),
-                            onPressed: () {
-                              _toggleDistanceCheck();
-                            },
-                            child: Text(
-                              distanceCheckFlag == 'Y'
-                                  ? "Disable Anywhere Attendance"
-                                  : "Allow Attendance From Anywhere",
-                            ),
-                          ),
-                        ],
+                      Visibility(
+                        visible: _showOfficeAddressButton,
+                        child: ElevatedButton(
+                          onPressed: _changetoofficeaddress,
+                          // Replace with actual function
+                          child: Text('Office Address'),
+                        ),
                       ),
-
-                      const SizedBox(height: 10),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          //Expanded(child: child)
-                          Visibility(
-                            visible: _showChangeAddressButton,
-                            child: Align(
-                              alignment: Alignment.bottomCenter,
-                              child: Padding(
-                                padding: const EdgeInsets.all(16.0),
-                                child: ElevatedButton(
-                                  onPressed: _changeaddress,
-                                  child: Text('Remote/Office Address Requested'),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 5),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Visibility(
-                            visible: _showUpdateButton,
-                            child: ElevatedButton(
-                              onPressed: () async {
-                                setState(() {
-                                  _isLoading = true;
-                                });
-
-                                try {
-                                  //final updatedFields = getAllFields();
-
-                                  final updateProfileResponse = ProfileUpdateRequest(
-                                    staffCode: cardIdController.text,
-                                    profilePic: profileImage.toString(),
-                                    email: emailController.text,
-                                    mobileNo: mobileController.text,
-                                    // profileImage: updatedFields["profilePic"], // Handle Base64 or URL
-                                  );
-                                  print(profileImage.toString());
-                                  mainBloc.add(UpdateProfileDetailsEvents(
-                                    updateuserinfo: updateProfileResponse ,
-                                    token: Auth_Token!,
-                                  ));
-                                } catch (e) {
-                                  LogFileManager.writeLog('Error in catch admin profile: $e');
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text('Failed to update profile: ${e.toString()}')),
-                                  );
-                                } finally {
-                                  setState(() {
-                                    _isLoading = false;
-                                  });
-                                }
-                              },
-                              child: _isLoading
-                                  ? const CircularProgressIndicator(color: Colors.white)
-                                  : const Text('Update'),
-                            ),
-                          ),
-                          Visibility(
-                            visible: _showOfficeAddressButton,
-                            child: ElevatedButton(
-                              onPressed: _changetoofficeaddress, // Replace with actual function
-                              child: Text('Office Address'),
-                            ),
-                          ),
-                        ],
-                      )
                     ],
                   )
-              ),
-            )
-        ),
+                ],
+              )),
+            )),
       ),
     );
   }
 
-  Widget _buildEditableProfileField(
-      TextEditingController controller,
-      String label,
-      bool isEditable,
-      Function toggleEditable) {
+  Widget _buildEditableProfileField(TextEditingController controller,
+      String label, bool isEditable, Function toggleEditable) {
     return Row(
       children: [
         Expanded(
           child: TextField(
             controller: controller,
-            keyboardType: label == 'Mobile Number' ? TextInputType.number : TextInputType.emailAddress,
+            keyboardType: label == 'Mobile Number'
+                ? TextInputType.number
+                : TextInputType.emailAddress,
             decoration: InputDecoration(
               labelText: label,
               labelStyle: const TextStyle(color: Colors.black),
@@ -607,16 +620,19 @@ class _AdminUserProfile extends State<AdminUserProfile> {
             style: const TextStyle(color: Colors.black),
             onChanged: (value) {
               setState(() {
-                _showUpdateButton = true;  // Show Update button when edited
+                _showUpdateButton = true; // Show Update button when edited
               });
             },
           ),
         ),
         IconButton(
-          icon: Icon(isEditable ? Icons.check : Icons.edit, color: Colors.black),
+          icon:
+              Icon(isEditable ? Icons.check : Icons.edit, color: Colors.black),
           onPressed: () {
-            if (label == 'Mobile Number' && _validatePhoneNumber(controller.text) != null) {
-              Fluttertoast.showToast(msg: "Enter a valid 10-digit mobile number");
+            if (label == 'Mobile Number' &&
+                _validatePhoneNumber(controller.text) != null) {
+              Fluttertoast.showToast(
+                  msg: "Enter a valid 10-digit mobile number");
               return;
             }
             if (label == 'Email' && _validateEmail(controller.text) != null) {
@@ -642,7 +658,8 @@ class _AdminUserProfile extends State<AdminUserProfile> {
   String? _validateEmail(String value) {
     if (value.isEmpty) {
       return "Email is required";
-    } else if (!RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{3,}$').hasMatch(value)) {
+    } else if (!RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{3,}$')
+        .hasMatch(value)) {
       return "Enter a valid email address";
     }
     return null;
@@ -689,7 +706,8 @@ class _AdminUserProfile extends State<AdminUserProfile> {
           onPressed: () {
             Navigator.pop(context);
             //here call Api
-            mainBloc.add(DeleteStaffEntryEvents(staffCode: widget.datum.staffCode!, token: Auth_Token!));
+            mainBloc.add(DeleteStaffEntryEvents(
+                staffCode: widget.datum.staffCode!, token: Auth_Token!));
           },
           // textColor: Theme.of(context).primaryColor,
           child: const Text(
@@ -710,7 +728,10 @@ class _AdminUserProfile extends State<AdminUserProfile> {
       _isLoading = true;
     });
     //here call Api
-    mainBloc.add(AcceptlocationRequest(staffcode: widget.datum.staffCode!, approvedflag: addressApprovedFlag!, token: Auth_Token!));
+    mainBloc.add(AcceptlocationRequest(
+        staffcode: widget.datum.staffCode!,
+        approvedflag: addressApprovedFlag!,
+        token: Auth_Token!));
     print(addressApprovedFlag);
     Fluttertoast.showToast(
       msg: "Remote location request approved successfully!",
@@ -727,24 +748,25 @@ class _AdminUserProfile extends State<AdminUserProfile> {
   _changetoofficeaddress() {
     Navigator.pop(context);
     //here call Api
-    mainBloc.add(AcceptlocationRequest(staffcode: widget.datum.staffCode!, approvedflag: officeapprovedflag!, token: Auth_Token!));
+    mainBloc.add(AcceptlocationRequest(
+        staffcode: widget.datum.staffCode!,
+        approvedflag: officeapprovedflag!,
+        token: Auth_Token!));
     print(officeapprovedflag);
     //mainBloc.add(DeleteStaffEntryEvents(staffCode: widget.datum.staffCode!, token: Auth_Token!));
     //AcceptlocationRequest
   }
 
-  _handleCheckboxChecked(bool ischecked){
+  _handleCheckboxChecked(bool ischecked) {
     final flag = ischecked ? "Y" : "N";
 
     mainBloc.add(UpdateUserFlagATS(
       UserId: widget.datum.staffCode!,
       AtsFlag: flag,
     ));
-
   }
 
   void _toggleDistanceCheck() {
-
     String newFlag;
 
     if (distanceCheckFlag == 'Y') {
@@ -761,11 +783,7 @@ class _AdminUserProfile extends State<AdminUserProfile> {
       ),
     );
   }
-
 }
-
-
-
 
 /*
   Widget _buildEditableProfileField(TextEditingController controller, String label, bool isEditable, Function toggleEditable) {

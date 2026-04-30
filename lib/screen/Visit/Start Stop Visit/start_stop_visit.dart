@@ -1,12 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:attendance_system_ios/screen/Visit/Start%20Stop%20Visit/location_service_repository.dart';
 import 'package:attendance_system_ios/service/log_file_manager.dart';
 import 'package:battery_plus/battery_plus.dart' show Battery;
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -17,36 +16,43 @@ import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../../database/database_helper.dart';
 import '../../../main.dart';
 import '../../../model/VisitData/fetch_visit_data.dart';
 import '../../../service/auto_start_visit.dart';
 import '../../../service/background_service.dart';
 import '../../../service/battery_helper.dart';
-import '../../Splash Screen/splash_screen.dart';
 import '../../../service/internet_service.dart';
+import '../../Splash Screen/splash_screen.dart';
 
 class VisitStartStopScreen extends StatefulWidget {
   final Data? visit;
+
   const VisitStartStopScreen({super.key, required this.visit});
+
   @override
   VisitDropdownScreenState createState() => VisitDropdownScreenState();
 }
 
-class VisitDropdownScreenState extends State<VisitStartStopScreen> with WidgetsBindingObserver{
-
+class VisitDropdownScreenState extends State<VisitStartStopScreen>
+    with WidgetsBindingObserver {
   FlutterSecureStorage storage = FlutterSecureStorage();
   late SharedPreferences prefs;
+
   // late Timer _timer;
   bool isLoading = false;
   List<Data> visits = [];
   Data? selectedVisit;
+
   // final String empCode = "CD02714"; // Example Employee Code
   bool isVisitRunning = false;
   bool isServiceRunning = false;
+
   // late final Function(BuildContext) onReady;
   late BackgroundService backgroundService;
-  LocationServiceRepository checkLocaitonPermission = LocationServiceRepository();
+  LocationServiceRepository checkLocaitonPermission =
+      LocationServiceRepository();
   Position? lastPosition;
   DateTime? lastTime;
   String lat = '';
@@ -54,20 +60,22 @@ class VisitDropdownScreenState extends State<VisitStartStopScreen> with WidgetsB
   String? token = '';
   String? staffcode = '';
 
-  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+      FlutterLocalNotificationsPlugin();
 
   @override
-   void initState() {
+  void initState() {
     super.initState();
     _initializee();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final String? payload = ModalRoute.of(context)?.settings.arguments as String?;
+      final String? payload =
+          ModalRoute.of(context)?.settings.arguments as String?;
       if (payload != null) {
         onNotificationClicked(context);
       }
     });
     backgroundService = BackgroundService();
-    NativeLocationBridge.initialize();     // native ios tracking initiallization
+    NativeLocationBridge.initialize(); // native ios tracking initiallization
     // backgroundService.initializeService();
   }
 
@@ -76,13 +84,14 @@ class VisitDropdownScreenState extends State<VisitStartStopScreen> with WidgetsB
     await _fetchStorage(); // Wait for the storage fetching to complete
 
     // when the screen is build through start visit of visit outside
-    if(widget.visit != null){
+    if (widget.visit != null) {
       print('vist: ${widget.visit!.srNo}');
       setState(() {
         selectedVisit = widget.visit;
         visits.add(widget.visit!);
       });
-      await storage.write(key: 'SelectedVisit', value: jsonEncode(widget.visit));
+      await storage.write(
+          key: 'SelectedVisit', value: jsonEncode(widget.visit));
       return;
     }
 
@@ -93,7 +102,8 @@ class VisitDropdownScreenState extends State<VisitStartStopScreen> with WidgetsB
       Data? autoSelectedVisit = visits.first;
 
       // ✅ First, store visit data in shared storage (Async operation)
-      await storage.write(key: 'SelectedVisit', value: jsonEncode(autoSelectedVisit));
+      await storage.write(
+          key: 'SelectedVisit', value: jsonEncode(autoSelectedVisit));
 
       // ✅ Then, update UI inside `setState()`
       if (mounted) {
@@ -101,8 +111,7 @@ class VisitDropdownScreenState extends State<VisitStartStopScreen> with WidgetsB
           selectedVisit = autoSelectedVisit;
         });
       }
-    }
-    else {
+    } else {
       // ✅ Handle multiple visits
       if (mounted) {
         setState(() {
@@ -150,7 +159,7 @@ class VisitDropdownScreenState extends State<VisitStartStopScreen> with WidgetsB
 
       if (response.statusCode == 200) {
         final VisitDataResoponse visitData =
-        VisitDataResoponse.fromJson(json.decode(response.body));
+            VisitDataResoponse.fromJson(json.decode(response.body));
         List<Data> allVisits = visitData.message!.data!;
 
         final DateTime now = DateTime.now();
@@ -202,7 +211,7 @@ class VisitDropdownScreenState extends State<VisitStartStopScreen> with WidgetsB
               );
 
               bool isVisitStillValid = (now.isAfter(visitStartDateTime) ||
-                  now.isAtSameMomentAs(visitStartDateTime)) &&
+                      now.isAtSameMomentAs(visitStartDateTime)) &&
                   (now.isBefore(visitEndDateTime) ||
                       now.isAtSameMomentAs(visitEndDateTime));
               return isVisitStillValid ||
@@ -224,12 +233,13 @@ class VisitDropdownScreenState extends State<VisitStartStopScreen> with WidgetsB
           // Restore the running visit as selected
           if (isVisitRunning && storedVisit != null) {
             selectedVisit = visits.firstWhere(
-                    (visit) => visit.srNo == storedVisit!.srNo,
+                (visit) => visit.srNo == storedVisit!.srNo,
                 orElse: () => storedVisit!);
           }
         });
       } else if (response.statusCode == 401) {
-        LogFileManager.writeLog("Unauthorized ${response.statusCode}, response body: ${response.body}");
+        LogFileManager.writeLog(
+            "Unauthorized ${response.statusCode}, response body: ${response.body}");
         scaffoldMessengerKey.currentState?.showSnackBar(
           SnackBar(
             content: Text('Unauthorized. Kindly Login Again!!'),
@@ -250,8 +260,8 @@ class VisitDropdownScreenState extends State<VisitStartStopScreen> with WidgetsB
     } catch (e) {
       LogFileManager.writeLog("Fetch visit error: ${e}");
       print('Fetch visit error: $e');
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text("Fetch visit error: Retry After Sometime!")));
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Fetch visit error: Retry After Sometime!")));
     } finally {
       setState(() {
         isLoading = false;
@@ -261,7 +271,8 @@ class VisitDropdownScreenState extends State<VisitStartStopScreen> with WidgetsB
 
   Future<void> startVisit(Data visit) async {
     try {
-      Future<PermissionStatus> status = checkAndRequestNotificationPermission(context);
+      Future<PermissionStatus> status =
+          checkAndRequestNotificationPermission(context);
       if (!await status.isGranted) {
         return;
       }
@@ -279,7 +290,8 @@ class VisitDropdownScreenState extends State<VisitStartStopScreen> with WidgetsB
       // ✅ Ensure background service is running
       if (!await backgroundService.flutterBackgroundService.isRunning()) {
         await backgroundService.initializeService();
-        bool started = await backgroundService.flutterBackgroundService.startService();
+        bool started =
+            await backgroundService.flutterBackgroundService.startService();
         if (!started) {
           LogFileManager.writeLog("Failed to start background service.");
           Fluttertoast.showToast(msg: "Failed to start background service.");
@@ -299,6 +311,11 @@ class VisitDropdownScreenState extends State<VisitStartStopScreen> with WidgetsB
         isVisitRunning = true;
         selectedVisit = visit;
       });
+      VisitState.runningVisitSrNo = visit.srNo;
+      await storage.write(
+        key: 'RunningVisitSrNo',
+        value: visit.srNo.toString(),
+      );
       // visit running state store locally
       await storage.write(key: 'isVisitRunning', value: true.toString());
       // ✅ Update global state only
@@ -321,29 +338,30 @@ class VisitDropdownScreenState extends State<VisitStartStopScreen> with WidgetsB
 
   Future<bool> showLocationDisclosure() async {
     return await showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text("Allow Background Location"),
-          content: const Text(
-            "Attendance & Visit Tracker collects location data to track your visit route "
+          context: context,
+          barrierDismissible: false,
+          builder: (context) {
+            return AlertDialog(
+              title: const Text("Allow Background Location"),
+              content: const Text(
+                "Attendance & Visit Tracker collects location data to track your visit route "
                 "and verify field activities even when the app is closed or not in use. "
                 "This helps maintain accurate visit history for official work.",
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text("Decline"),
-            ),
-            ElevatedButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text("Allow"),
-            ),
-          ],
-        );
-      },
-    ) ?? false;
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: const Text("Decline"),
+                ),
+                ElevatedButton(
+                  onPressed: () => Navigator.pop(context, true),
+                  child: const Text("Allow"),
+                ),
+              ],
+            );
+          },
+        ) ??
+        false;
   }
 
   Future<void> _handleBatteryOptimization(Data visit) async {
@@ -359,77 +377,96 @@ class VisitDropdownScreenState extends State<VisitStartStopScreen> with WidgetsB
       await BatteryOptimizationHelper.requestIgnore();
     } else {
       Fluttertoast.showToast(
-        msg: "Battery optimization already disabled. Tracking will continue smoothly.",
+        msg:
+            "Battery optimization already disabled. Tracking will continue smoothly.",
         toastLength: Toast.LENGTH_SHORT,
       );
-      LogFileManager.writeLog("Battery optimization already disabled. Tracking will continue smoothly.");
+      LogFileManager.writeLog(
+          "Battery optimization already disabled. Tracking will continue smoothly.");
     }
 
     // ✅ Always continue visit start
     await startLocationTracking(visit);
     backgroundService.setServiceAsForeGround();
-    LogFileManager.writeLog("Visit started ${visit.reason} At: ${DateTime.now()}");
+    LogFileManager.writeLog(
+        "Visit started ${visit.reason} At: ${DateTime.now()}");
   }
 
   Future<bool> _showStartVisitDialog(Data visit) async {
     return await showDialog<bool>(
-      context: context,
-      builder: (BuildContext context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          child: Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Colors.blue.shade50, Colors.blue.shade100],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text("Start Visit",
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.blueAccent)),
-                const SizedBox(height: 16),
-                Text("Visit Name: ${visit.reason}", style: const TextStyle(fontSize: 16)),
-                const SizedBox(height: 10),
-                Text("Start Time: ${visit.fromtime}", style: const TextStyle(fontSize: 16)),
-                const SizedBox(height: 10),
-                Text("End Time: ${visit.totime}", style: const TextStyle(fontSize: 16)),
-                const SizedBox(height: 10),
-                Text("Destination: ${visit.destination}", style: const TextStyle(fontSize: 16)),
-                const SizedBox(height: 20),
-                const Text(
-                  "Caution: For better tracking of your visit, start your visit when you are ready to go.",
-                  style: TextStyle(color: Colors.redAccent, fontSize: 14, fontWeight: FontWeight.w500),
+          context: context,
+          builder: (BuildContext context) {
+            return Dialog(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20)),
+              child: Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Colors.blue.shade50, Colors.blue.shade100],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(20),
                 ),
-                const SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    TextButton(
-                        onPressed: () => Navigator.pop(context, false),
-                        child: const Text("Cancel", style: TextStyle(color: Colors.redAccent, fontSize: 16))),
-                    const SizedBox(width: 10),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blueAccent,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      ),
-                      onPressed: () => Navigator.pop(context, true),
-                      child: const Text("OK", style: TextStyle(color: Colors.white, fontSize: 16)),
+                    const Text("Start Visit",
+                        style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blueAccent)),
+                    const SizedBox(height: 16),
+                    Text("Visit Name: ${visit.reason}",
+                        style: const TextStyle(fontSize: 16)),
+                    const SizedBox(height: 10),
+                    Text("Start Time: ${visit.fromtime}",
+                        style: const TextStyle(fontSize: 16)),
+                    const SizedBox(height: 10),
+                    Text("End Time: ${visit.totime}",
+                        style: const TextStyle(fontSize: 16)),
+                    const SizedBox(height: 10),
+                    Text("Destination: ${visit.destination}",
+                        style: const TextStyle(fontSize: 16)),
+                    const SizedBox(height: 20),
+                    const Text(
+                      "Caution: For better tracking of your visit, start your visit when you are ready to go.",
+                      style: TextStyle(
+                          color: Colors.redAccent,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500),
+                    ),
+                    const SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        TextButton(
+                            onPressed: () => Navigator.pop(context, false),
+                            child: const Text("Cancel",
+                                style: TextStyle(
+                                    color: Colors.redAccent, fontSize: 16))),
+                        const SizedBox(width: 10),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blueAccent,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10)),
+                          ),
+                          onPressed: () => Navigator.pop(context, true),
+                          child: const Text("OK",
+                              style:
+                                  TextStyle(color: Colors.white, fontSize: 16)),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ],
-            ),
-          ),
-        );
-      },
-    ) ??
+              ),
+            );
+          },
+        ) ??
         false;
   }
 
@@ -474,7 +511,8 @@ class VisitDropdownScreenState extends State<VisitStartStopScreen> with WidgetsB
       print("Visit End Time: $visitEndTime");
 
       if (now.isBefore(visitStartTime)) {
-        Fluttertoast.showToast(msg: "You cannot start the visit before its scheduled time.");
+        Fluttertoast.showToast(
+            msg: "You cannot start the visit before its scheduled time.");
         setState(() {
           isVisitRunning = false;
           selectedVisit = null;
@@ -508,11 +546,14 @@ class VisitDropdownScreenState extends State<VisitStartStopScreen> with WidgetsB
       isLoading = true;
     });
 
-    Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-    if(visit.status == 'I'){
-      updateVisitStatusStartingLatLong(position.latitude, position.longitude, visit);
+    Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high);
+    if (visit.status == 'I') {
+      updateVisitStatusStartingLatLong(
+          position.latitude, position.longitude, visit);
     }
-    await sendLocation(position.latitude, position.longitude, visit);    // no need but for quickly receiving the first lat long
+    await sendLocation(position.latitude, position.longitude,
+        visit); // no need but for quickly receiving the first lat long
     setState(() {
       isLoading = false;
     });
@@ -524,36 +565,41 @@ class VisitDropdownScreenState extends State<VisitStartStopScreen> with WidgetsB
     //     lon = position.longitude.toString();
     //   });
     // });
-    print("Tracking started for visit: ${visit.reason/*['VisitName']*/}");
+    print("Tracking started for visit: ${visit.reason /*['VisitName']*/}");
   }
 
-  Future<void> updateVisitStatusStartingLatLong(double latitude, double longitude, Data visit)async {
-    try{
+  Future<void> updateVisitStatusStartingLatLong(
+      double latitude, double longitude, Data visit) async {
+    try {
       final response = await http.post(
-          Uri.parse("http://114.143.140.28:8020/api/Visit/UpdateStatusStartLatLong/${visit.srNo}/${latitude.toStringAsFixed(8)}/${longitude.toStringAsFixed(8)}/S"),
+          Uri.parse(
+              "http://114.143.140.28:8020/api/Visit/UpdateStatusStartLatLong/${visit.srNo}/${latitude.toStringAsFixed(8)}/${longitude.toStringAsFixed(8)}/S"),
           headers: <String, String>{
             'Content-Type': 'application/json',
             'Authorization': 'Bearer $token', // Ensure token is valid
-          }
-      );
+          });
 
-      if(response.statusCode == 200){
-        print('updateVisitStatusStartingLatLong body: '+ response.body);
-      }else {
+      if (response.statusCode == 200) {
+        print('updateVisitStatusStartingLatLong body: ' + response.body);
+      } else {
         print('Failed to updateVisitStatusStartingLatLong');
       }
-    } catch(e){
+    } catch (e) {
       print('Error while calling updateVisitStatusStartingLatLong API: $e');
-      LogFileManager.writeLog('Error while calling updateVisitStatusStartingLatLong API: $e');
+      LogFileManager.writeLog(
+          'Error while calling updateVisitStatusStartingLatLong API: $e');
     }
   }
 
   ///newWithofflineSupport
-  Future<void> sendLocation(double latitude, double longitude, Data visit) async {
+  Future<void> sendLocation(
+      double latitude, double longitude, Data visit) async {
     int? transactionId = visit.srNo;
-    String actualDate=DateFormat('dd/MM/yyyy').format(DateTime.now()).split(" ").first;
+    String actualDate =
+        DateFormat('dd/MM/yyyy').format(DateTime.now()).split(" ").first;
     String stringTransactionId = transactionId.toString();
-    String transactionTime = DateFormat('dd/MM/yyyy HH:mm:ss').format(DateTime.now());
+    String transactionTime =
+        DateFormat('dd/MM/yyyy HH:mm:ss').format(DateTime.now());
     String transactionDate = DateFormat('dd/MM/yyyy').format(DateTime.now());
 
     double speed = 0.0;
@@ -568,23 +614,25 @@ class VisitDropdownScreenState extends State<VisitStartStopScreen> with WidgetsB
 
     if (lastPosition != null && lastTime != null) {
       distanceInMeters = Geolocator.distanceBetween(
-          lastPosition!.latitude, lastPosition!.longitude, latitude, longitude
-      );
+          lastPosition!.latitude, lastPosition!.longitude, latitude, longitude);
       distanceInKm = distanceInMeters / 1000;
-      double timeDiffInSeconds = currentTime.difference(lastTime!).inSeconds.toDouble();
+      double timeDiffInSeconds =
+          currentTime.difference(lastTime!).inSeconds.toDouble();
       if (timeDiffInSeconds > 0) {
         speed = (distanceInMeters / timeDiffInSeconds) * 3.6;
       }
     }
 
     try {
-      List<Placemark> placemarks = await placemarkFromCoordinates(latitude, longitude);
+      List<Placemark> placemarks =
+          await placemarkFromCoordinates(latitude, longitude);
       if (placemarks.isNotEmpty) {
         address = "${placemarks.first.name}, ${placemarks.first.locality}";
       }
     } catch (e) {
       print("📌 Address fetch error: $e");
-      LogFileManager.writeLog("Start-Stop --> SendLocation --> Address fetch error: $e");
+      LogFileManager.writeLog(
+          "Start-Stop --> SendLocation --> Address fetch error: $e");
     }
 
     lastPosition = Position(
@@ -601,73 +649,81 @@ class VisitDropdownScreenState extends State<VisitStartStopScreen> with WidgetsB
     );
     lastTime = currentTime;
 
-    bool hasInternet = await InternetService().hasInternetAccess();  // ✅ Check internet
+    bool hasInternet =
+        await InternetService().hasInternetAccess(); // ✅ Check internet
 
     if (!hasInternet) {
-      print("❌ No internet! Storing data in SQLite instead of making an API call.");
+      print(
+          "❌ No internet! Storing data in SQLite instead of making an API call.");
       await DatabaseHelper().insertLocation({
-        "staffcode":staffcode,
+        "staffcode": staffcode,
         "latitude": latitude,
         "longitude": longitude,
         "address": address,
         "speed": speed,
         "distanceInMeters": distanceInMeters,
         "distanceInKm": distanceInKm,
-        "srNo_Vo":stringTransactionId,
+        "srNo_Vo": stringTransactionId,
         "timestamp": transactionTime,
         "batteryPercentage": batteryLevel.toString()
       });
 
-      print("✅ Data stored in SQLite: LAT: $latitude, LONG: $longitude, ADDRESS: $address, SPEED: ${speed.toStringAsFixed(2)}, DISTANCE: ${distanceInMeters.toStringAsFixed(2)} meters,staffcode: $staffcode");
-      LogFileManager.writeLog("Data stored in SQLite: LAT: $latitude, LONG: $longitude, ADDRESS: $address, SPEED: ${speed.toStringAsFixed(2)}, DISTANCE: ${distanceInMeters.toStringAsFixed(2)} meters,staffcode: $staffcode");
+      print(
+          "✅ Data stored in SQLite: LAT: $latitude, LONG: $longitude, ADDRESS: $address, SPEED: ${speed.toStringAsFixed(2)}, DISTANCE: ${distanceInMeters.toStringAsFixed(2)} meters,staffcode: $staffcode");
+      LogFileManager.writeLog(
+          "Data stored in SQLite: LAT: $latitude, LONG: $longitude, ADDRESS: $address, SPEED: ${speed.toStringAsFixed(2)}, DISTANCE: ${distanceInMeters.toStringAsFixed(2)} meters,staffcode: $staffcode");
 
-      return;  // 🚀 Exit function to prevent API call
+      return; // 🚀 Exit function to prevent API call
     }
     await syncOfflineData();
 
-    await LogManagerTrackingData.writeLog("API request time - ${DateTime.now()}");
+    await LogManagerTrackingData.writeLog(
+        "API request time - ${DateTime.now()}");
     // ✅ Internet is available, send data to server
     try {
-          final response = await http.post(
-            Uri.parse('http://114.143.140.28:8020/api/Visit/InsertUpdateTrackingRecords'),
-            headers: {'Content-Type': 'application/json'},
-            body: json.encode({
-              "transactionId": 'string',
-              "transactionDate": transactionDate,
-              "transactionTime": transactionTime,
-              "latitude": latitude.toStringAsFixed(8),
-              "longitude": longitude.toStringAsFixed(8),
-              "staffCode": staffcode,
-              "deviceId": "11",
-              "uuidid": "11",
-              "process": "11",
-              "actualDate": actualDate,
-              "actualTime": "11",
-              "address": address,
-              "speed": speed.toStringAsFixed(2),
-              "distance": distanceInMeters.toStringAsFixed(2),
-              "srNo_Vo": stringTransactionId,
-              "status": "S",
-              "distanceInKm": distanceInKm.toStringAsFixed(3),
-              "gpsCheckFlag": "1",
-              "batteryPercentage": batteryLevel.toString()
-            }),
-          );
+      final response = await http.post(
+        Uri.parse(
+            'http://114.143.140.28:8020/api/Visit/InsertUpdateTrackingRecords'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          "transactionId": 'string',
+          "transactionDate": transactionDate,
+          "transactionTime": transactionTime,
+          "latitude": latitude.toStringAsFixed(8),
+          "longitude": longitude.toStringAsFixed(8),
+          "staffCode": staffcode,
+          "deviceId": "11",
+          "uuidid": "11",
+          "process": "11",
+          "actualDate": actualDate,
+          "actualTime": "11",
+          "address": address,
+          "speed": speed.toStringAsFixed(2),
+          "distance": distanceInMeters.toStringAsFixed(2),
+          "srNo_Vo": stringTransactionId,
+          "status": "S",
+          "distanceInKm": distanceInKm.toStringAsFixed(3),
+          "gpsCheckFlag": "1",
+          "batteryPercentage": batteryLevel.toString()
+        }),
+      );
 
-          print("Save Location Details status code: ${response.statusCode}");
-          // Fluttertoast.showToast(msg: "Save Location Details status code: ${response.statusCode}");
-          print("Save Location Details body: ${response.body}");
-          print("Speed: ${speed.toStringAsFixed(2)} km/h");
-          print("Distance: ${distanceInMeters.toStringAsFixed(2)} meters");
-          print("Distance in Km: ${distanceInKm.toStringAsFixed(3)} km");
-          print("Address: $address");
-          LogFileManager.writeLog('Save Location Details body when nwt is available: ${response.body}');
-          await LogManagerTrackingData.writeLog("API success time - ${DateTime.now()}");
+      print("Save Location Details status code: ${response.statusCode}");
+      // Fluttertoast.showToast(msg: "Save Location Details status code: ${response.statusCode}");
+      print("Save Location Details body: ${response.body}");
+      print("Speed: ${speed.toStringAsFixed(2)} km/h");
+      print("Distance: ${distanceInMeters.toStringAsFixed(2)} meters");
+      print("Distance in Km: ${distanceInKm.toStringAsFixed(3)} km");
+      print("Address: $address");
+      LogFileManager.writeLog(
+          'Save Location Details body when nwt is available: ${response.body}');
+      await LogManagerTrackingData.writeLog(
+          "API success time - ${DateTime.now()}");
+    } catch (e) {
+      LogFileManager.writeLog(
+          "Saving lat long Error when nwt is available:  $e");
+      print("Saving lat long Error: $e");
     }
-    catch (e) {
-      LogFileManager.writeLog("Saving lat long Error when nwt is available:  $e");
-          print("Saving lat long Error: $e");
-        }
   }
 
   @override
@@ -705,17 +761,22 @@ class VisitDropdownScreenState extends State<VisitStartStopScreen> with WidgetsB
       setState(() {
         isVisitRunning = false;
         selectedVisit = null;
-        fetchVisits();  // Refresh visit list
+        fetchVisits(); // Refresh visit list
       });
+      VisitState.runningVisitSrNo = null;
+      await storage.delete(key: 'RunningVisitSrNo');
       backgroundService.stopService();
-      BackgroundServiceAutoStart backgroundServiceAutoStart = BackgroundServiceAutoStart();
+      BackgroundServiceAutoStart backgroundServiceAutoStart =
+          BackgroundServiceAutoStart();
       backgroundServiceAutoStart.stopService();
       // ❗️ Manually cancel the notification (especially for iOS)
-      await FlutterLocalNotificationsPlugin().cancel(foregroundServiceNotificationId);
+      await FlutterLocalNotificationsPlugin()
+          .cancel(foregroundServiceNotificationId);
       await FlutterLocalNotificationsPlugin().cancel(889);
       await FlutterLocalNotificationsPlugin().cancelAll();
       if (Platform.isIOS) {
-        await NativeLocationBridge.stopNativeTracking(); // 👈 Native ios stop tracking
+        await NativeLocationBridge
+            .stopNativeTracking(); // 👈 Native ios stop tracking
       }
       Fluttertoast.showToast(msg: "Visit stopped.");
       LogFileManager.writeLog("Visit Stopped At: ${DateTime.now()}");
@@ -737,367 +798,306 @@ class VisitDropdownScreenState extends State<VisitStartStopScreen> with WidgetsB
       ),
       body: isLoading
           ? Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Animated modern loader
-            SizedBox(
-              height: 100,
-              width: 100,
-              child: Stack(
-                alignment: Alignment.center,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Subtle background circle
-                  Container(
-                    height: 80,
-                    width: 80,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.blue.withOpacity(0.1),
-                    ),
-                  ),
-                  // Actual spinner
-                  const CircularProgressIndicator(
-                    strokeWidth: 5,
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-            const Text(
-              "Loading visits...",
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w500,
-                color: Colors.blueGrey,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              "Please wait a moment! Do not close this screen",
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[600],
-              ),
-            ),
-            // const SizedBox(height: 8),
-            // Text(
-            //   "Do not close this screen until visit started",
-            //   style: TextStyle(
-            //     fontSize: 14,
-            //     color: Colors.grey[600],
-            //   ),
-            // ),
-          ],
-        ),
-      )
-          : Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            DropdownButton<Data>(
-              isExpanded: true,
-              value: (selectedVisit != null && visits.contains(selectedVisit))
-                  ? selectedVisit
-                  : null,  // ✅ avoid mismatch
-              hint: const Text("Select a Visit"),
-              items: visits.map((visit) {
-                return DropdownMenuItem<Data>(
-                  value: visit,
-                  child: Text(
-                    "${visit.reason} (${visit.selectDate} -> ${visit.fromtime} - ${visit.totime})",
-                    style: const TextStyle(fontSize: 14),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                );
-              }).toList(),
-              onChanged: (value) {
-                if (value != null) {
-                  onVisitSelected(value);
-                  setState(() {
-                    selectedVisit = value;
-                  });
-                }
-              },
-            ),
-
-            const SizedBox(height: 40),
-            ElevatedButton.icon(
-              onPressed: selectedVisit == null || isVisitRunning
-                  ? null
-                  : () {
-                startVisit(selectedVisit!);
-              },
-              icon: const Icon(Icons.play_arrow, color: Colors.green),
-              label: Text(
-                isVisitRunning
-                    ? "Visit Running..."
-                    : "Start Visit",
-                style: const TextStyle(color: Colors.blue),
-              ),
-              style: ElevatedButton.styleFrom(
-                minimumSize: const Size(double.infinity, 50),
-                textStyle: const TextStyle(fontSize: 16),
-              ),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton.icon(
-              onPressed: isVisitRunning ? stopVisit : null,
-              icon: const Icon(Icons.stop_outlined, color: Colors.red),
-              label: const Text(
-                "Stop Visit",
-                style: TextStyle(color: Colors.blue),
-              ),
-              style: ElevatedButton.styleFrom(
-                minimumSize: const Size(double.infinity, 50),
-                textStyle: const TextStyle(fontSize: 16),
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            FutureBuilder<LocationPermission>(
-              future: Geolocator.checkPermission(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.done &&
-                    snapshot.hasData &&
-                    snapshot.data != LocationPermission.always) {
-
-                  // Determine platform-specific message
-                  final bool isIOS = Platform.isIOS;
-                  final String title = isIOS
-                      ? "Note for iPhone Users:"
-                      : "Note for Android Users:";
-
-                  final List<Widget> instructions = isIOS
-                      ? [
-                    Text(
-                      "To enable accurate background tracking, please ensure you’ve set location permission to 'Always'.",
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? Colors.white70
-                            : Colors.black87,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      "Go to:",
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.lightBlue,
-                      ),
-                    ),
-                    Text(
-                      "Settings > Attendance > Location > Select 'Always'",
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? Colors.white70
-                            : Colors.black87,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      "Also ensure 'Precise Location' is enabled.",
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? Colors.white70
-                            : Colors.black87,
-                      ),
-                    ),
-                  ]
-                      : [
-                    Text(
-                      "To ensure continuous and accurate location tracking in the background, please allow the app to always access your location.",
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? Colors.white70
-                            : Colors.black87,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      "Go to:",
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.lightBlue,
-                      ),
-                    ),
-                    Text(
-                      "Settings > Apps > Attendance > Permissions > Location > Allow all the time",
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? Colors.white70
-                            : Colors.black87,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      "Also ensure GPS is turned ON and battery optimization is disabled for this app.",
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? Colors.white70
-                            : Colors.black87,
-                      ),
-                    ),
-                  ];
-
-                  return Container(
-                    margin: const EdgeInsets.only(top: 16),
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).scaffoldBackgroundColor,
-                      border: Border.all(color: Colors.lightBlueAccent),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  // Animated modern loader
+                  SizedBox(
+                    height: 100,
+                    width: 100,
+                    child: Stack(
+                      alignment: Alignment.center,
                       children: [
-                        Text(
-                          title,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.lightBlue,
+                        // Subtle background circle
+                        Container(
+                          height: 80,
+                          width: 80,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.blue.withOpacity(0.1),
                           ),
                         ),
-                        const SizedBox(height: 8),
-                        ...instructions,
+                        // Actual spinner
+                        const CircularProgressIndicator(
+                          strokeWidth: 5,
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(Colors.blue),
+                        ),
                       ],
                     ),
-                  );
-                }
-                return const SizedBox.shrink();
-              },
-            ),
-            /*if (Platform.isIOS) ...[
-              FutureBuilder<LocationPermission>(
-                future: Geolocator.checkPermission(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.done &&
-                      snapshot.hasData &&
-                      snapshot.data != LocationPermission.always) {
-                    return Container(
-                      margin: const EdgeInsets.only(top: 16),
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).scaffoldBackgroundColor,
-                        border: Border.all(
-                          color: Colors.lightBlueAccent,
-                        ),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "Note for iPhone Users:",
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.lightBlue,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            "To enable accurate background tracking, please ensure you’ve set location permission to 'Always'.",
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Theme.of(context).brightness ==
-                                  Brightness.dark
-                                  ? Colors.white70
-                                  : Colors.black87,
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            "Go to:",
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.lightBlue,
-                            ),
-                          ),
-                          Text(
-                            "Settings > Attendance > Location > Select 'Always'",
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Theme.of(context).brightness ==
-                                  Brightness.dark
-                                  ? Colors.white70
-                                  : Colors.black87,
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            "Also ensure 'Precise Location' is enabled.",
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Theme.of(context).brightness ==
-                                  Brightness.dark
-                                  ? Colors.white70
-                                  : Colors.black87,
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
-                  return const SizedBox
-                      .shrink(); // Don't show anything if permission is Always
-                },
+                  ),
+                  const SizedBox(height: 24),
+                  const Text(
+                    "Loading visits...",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.blueGrey,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    "Please wait a moment! Do not close this screen",
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                  // const SizedBox(height: 8),
+                  // Text(
+                  //   "Do not close this screen until visit started",
+                  //   style: TextStyle(
+                  //     fontSize: 14,
+                  //     color: Colors.grey[600],
+                  //   ),
+                  // ),
+                ],
               ),
-            ],*/
+            )
+          : Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                children: [
+                  DropdownButton<Data>(
+                    isExpanded: true,
+                    value: (selectedVisit != null &&
+                            visits.contains(selectedVisit))
+                        ? selectedVisit
+                        : null,
+                    // ✅ avoid mismatch
+                    hint: const Text("Select a Visit"),
+                    items: visits.map((visit) {
+                      return DropdownMenuItem<Data>(
+                        value: visit,
+                        child: Text(
+                          "${visit.reason} (${visit.selectDate} -> ${visit.fromtime} - ${visit.totime})",
+                          style: const TextStyle(fontSize: 14),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      if (value != null) {
+                        onVisitSelected(value);
+                        setState(() {
+                          selectedVisit = value;
+                        });
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 40),
+                  ElevatedButton.icon(
+                    onPressed: selectedVisit == null || isVisitRunning
+                        ? null
+                        : () {
+                            startVisit(selectedVisit!);
+                          },
+                    icon: const Icon(Icons.play_arrow, color: Colors.green),
+                    label: Text(
+                      isVisitRunning ? "Visit Running..." : "Start Visit",
+                      style: const TextStyle(color: Colors.blue),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: const Size(double.infinity, 50),
+                      textStyle: const TextStyle(fontSize: 16),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton.icon(
+                    onPressed: isVisitRunning ? stopVisit : null,
+                    icon: const Icon(Icons.stop_outlined, color: Colors.red),
+                    label: const Text(
+                      "Stop Visit",
+                      style: TextStyle(color: Colors.blue),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: const Size(double.infinity, 50),
+                      textStyle: const TextStyle(fontSize: 16),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  FutureBuilder<LocationPermission>(
+                    future: Geolocator.checkPermission(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.done &&
+                          snapshot.hasData &&
+                          snapshot.data != LocationPermission.always) {
+                        // Determine platform-specific message
+                        final bool isIOS = Platform.isIOS;
+                        final String title = isIOS
+                            ? "Note for iPhone Users:"
+                            : "Note for Android Users:";
 
-            // const SizedBox(height: 10,),
-            if (isVisitRunning) ...[
-              Expanded(
+                        final List<Widget> instructions = isIOS
+                            ? [
+                                Text(
+                                  "To enable accurate background tracking, please ensure you’ve set location permission to 'Always'.",
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Theme.of(context).brightness ==
+                                            Brightness.dark
+                                        ? Colors.white70
+                                        : Colors.black87,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  "Go to:",
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.lightBlue,
+                                  ),
+                                ),
+                                Text(
+                                  "Settings > Attendance > Location > Select 'Always'",
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Theme.of(context).brightness ==
+                                            Brightness.dark
+                                        ? Colors.white70
+                                        : Colors.black87,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  "Also ensure 'Precise Location' is enabled.",
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Theme.of(context).brightness ==
+                                            Brightness.dark
+                                        ? Colors.white70
+                                        : Colors.black87,
+                                  ),
+                                ),
+                              ]
+                            : [
+                                Text(
+                                  "To ensure continuous and accurate location tracking in the background, please allow the app to always access your location.",
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Theme.of(context).brightness ==
+                                            Brightness.dark
+                                        ? Colors.white70
+                                        : Colors.black87,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  "Go to:",
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.lightBlue,
+                                  ),
+                                ),
+                                Text(
+                                  "Settings > Apps > Attendance > Permissions > Location > Allow all the time",
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Theme.of(context).brightness ==
+                                            Brightness.dark
+                                        ? Colors.white70
+                                        : Colors.black87,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  "Also ensure GPS is turned ON and battery optimization is disabled for this app.",
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Theme.of(context).brightness ==
+                                            Brightness.dark
+                                        ? Colors.white70
+                                        : Colors.black87,
+                                  ),
+                                ),
+                              ];
+
+                        return Container(
+                          margin: const EdgeInsets.only(top: 16),
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).scaffoldBackgroundColor,
+                            border: Border.all(color: Colors.lightBlueAccent),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                title,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.lightBlue,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              ...instructions,
+                            ],
+                          ),
+                        );
+                      }
+                      return const SizedBox.shrink();
+                    },
+                  ),
+                  if (isVisitRunning) ...[
+                    Expanded(
                       child: Lottie.asset(
                         'assets/animation/visit_tracking.json',
                         repeat: true,
                         animate: true,
                       ),
                     ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text("Visit Tracking Started", style: TextStyle(fontSize: 22, color: Colors.blue[800], fontWeight: FontWeight.bold),),
-                  Icon(Icons.location_on_outlined, size: 30, color: Colors.blue[800],),
-                  Text("..", style: TextStyle(fontSize: 22, color: Colors.blue[800], fontWeight: FontWeight.bold),),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          "Visit Tracking Started",
+                          style: TextStyle(
+                              fontSize: 22,
+                              color: Colors.blue[800],
+                              fontWeight: FontWeight.bold),
+                        ),
+                        Icon(
+                          Icons.location_on_outlined,
+                          size: 30,
+                          color: Colors.blue[800],
+                        ),
+                        Text(
+                          "..",
+                          style: TextStyle(
+                              fontSize: 22,
+                              color: Colors.blue[800],
+                              fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 150),
+                  ]
                 ],
               ),
-              const SizedBox(height: 150),
-            ]
-          ],
-        ),
-      ),
+            ),
     );
   }
 
   void onVisitSelected(Data visit) async {
-    try{
+    try {
       // ✅ Perform async storage operation first
       await storage.write(key: 'SelectedVisit', value: jsonEncode(visit));
-    } catch(e){
+    } catch (e) {
       LogFileManager.writeLog("Error in onVisitSelected: $e");
     }
 
-    try{
+    try {
       // ✅ Then, update UI inside setState()
       if (mounted) {
         setState(() {
           selectedVisit = visit;
         });
       }
-    } catch(e){
+    } catch (e) {
       LogFileManager.writeLog("Error in onVisitSelected mount: $e");
     }
   }
@@ -1109,7 +1109,8 @@ class VisitDropdownScreenState extends State<VisitStartStopScreen> with WidgetsB
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text("Stop Visit Tracking"),
-          content: const Text("Are you sure you want to stop tracking the visit?"),
+          content:
+              const Text("Are you sure you want to stop tracking the visit?"),
           actions: [
             TextButton(
               onPressed: () {
@@ -1131,25 +1132,29 @@ class VisitDropdownScreenState extends State<VisitStartStopScreen> with WidgetsB
     );
   }
 
-  Future<PermissionStatus> checkAndRequestNotificationPermission(BuildContext context) async {
+  Future<PermissionStatus> checkAndRequestNotificationPermission(
+      BuildContext context) async {
     PermissionStatus status = await Permission.notification.status;
 
     // iOS specific handling
     if (Platform.isIOS) {
       final bool? result = await flutterLocalNotificationsPlugin
-          .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()
+          .resolvePlatformSpecificImplementation<
+              IOSFlutterLocalNotificationsPlugin>()
           ?.requestPermissions(
-        alert: true,
-        badge: true,
-        sound: true,
-      );
+            alert: true,
+            badge: true,
+            sound: true,
+          );
 
       if (result == false) {
         // User denied permission
-        await _showPermissionDialog(context, "Notification permission denied on iOS. Please enable it from settings.");
+        await _showPermissionDialog(context,
+            "Notification permission denied on iOS. Please enable it from settings.");
         return status;
       } else {
-        print("iOS notification permission granted via flutter_local_notifications: $result");
+        print(
+            "iOS notification permission granted via flutter_local_notifications: $result");
         return PermissionStatus.granted;
       }
     }
@@ -1162,13 +1167,15 @@ class VisitDropdownScreenState extends State<VisitStartStopScreen> with WidgetsB
         if (result.isGranted) {
           print("Notification permission granted on Android.");
         } else if (result.isPermanentlyDenied) {
-          await _showPermissionDialog(context, "Notification permission permanently denied. Enable it from settings.");
+          await _showPermissionDialog(context,
+              "Notification permission permanently denied. Enable it from settings.");
         } else {
           print("Notification permission denied on Android.");
         }
         return result;
       } else if (status.isPermanentlyDenied) {
-        await _showPermissionDialog(context, "Notification permission permanently denied. Enable it from settings.");
+        await _showPermissionDialog(context,
+            "Notification permission permanently denied. Enable it from settings.");
       } else if (status.isGranted) {
         print("Notification permission already granted on Android.");
       }
@@ -1203,7 +1210,8 @@ class VisitDropdownScreenState extends State<VisitStartStopScreen> with WidgetsB
 
     if (permission == LocationPermission.deniedForever) {
       Fluttertoast.showToast(
-        msg: "Location permission permanently denied. Please enable it in settings.",
+        msg:
+            "Location permission permanently denied. Please enable it in settings.",
         toastLength: Toast.LENGTH_LONG,
       );
       await Geolocator.openAppSettings();
@@ -1224,7 +1232,8 @@ class VisitDropdownScreenState extends State<VisitStartStopScreen> with WidgetsB
         }
       } else if (Platform.isIOS) {
         Fluttertoast.showToast(
-          msg: "Enable 'Always Allow' location access in Settings > App > Location.",
+          msg:
+              "Enable 'Always Allow' location access in Settings > App > Location.",
           toastLength: Toast.LENGTH_LONG,
         );
         await openAppSettings();
@@ -1267,7 +1276,8 @@ class VisitDropdownScreenState extends State<VisitStartStopScreen> with WidgetsB
     return true;
   }*/
 
-  Future<void> _showPermissionDialog(BuildContext context, String message) async {
+  Future<void> _showPermissionDialog(
+      BuildContext context, String message) async {
     await showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -1321,7 +1331,6 @@ class VisitDropdownScreenState extends State<VisitStartStopScreen> with WidgetsB
   }
 }
 
-
 ///dropdown
 ///current
 /*   DropdownButton<Data>(
@@ -1353,6 +1362,7 @@ class VisitDropdownScreenState extends State<VisitStartStopScreen> with WidgetsB
                 }
               },
             ),*/
+
 ///newold
 // DropdownButton<Data>(
 //   isExpanded: true,
@@ -1397,7 +1407,6 @@ class VisitDropdownScreenState extends State<VisitStartStopScreen> with WidgetsB
 //     });
 //   },
 // ),
-
 
 /*Future<bool> enableGPSWithPermission() async {
     try {
@@ -1557,7 +1566,6 @@ class VisitDropdownScreenState extends State<VisitStartStopScreen> with WidgetsB
 //       });
 //     }
 //   }
-
 
 // abhishek api save lat long while tracking is started
 // Future<void> sendLocation(double latitude, double longitude, Data visit) async {
@@ -1744,7 +1752,6 @@ class VisitDropdownScreenState extends State<VisitStartStopScreen> with WidgetsB
 //     }
 //   }
 
-
 /*        final position = Position(
           longitude: double.tryParse(event['longitude'].toString()) ?? 0.0,
           latitude: double.tryParse(event['latitude'].toString()) ?? 0.0,
@@ -1817,7 +1824,6 @@ class VisitDropdownScreenState extends State<VisitStartStopScreen> with WidgetsB
     print("Notification shown: Visit is being tracked");
   }*/
 
-
 ///old UI logic with method name
 /*@override
 Widget build(BuildContext context) {
@@ -1887,6 +1893,7 @@ Widget build(BuildContext context) {
     ),
   );
 }*/
+
 /// Restore State from SharedPreferences
 // Future<bool> restoreState() async {
 //   final prefs = await SharedPreferences.getInstance();

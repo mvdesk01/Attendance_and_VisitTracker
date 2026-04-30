@@ -12,6 +12,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:loading_overlay/loading_overlay.dart';
+
 import '../../model/GatePass/GatePassResponse.dart';
 import '../../util/MyColor.dart';
 
@@ -20,19 +21,17 @@ class AddGatePass extends StatefulWidget {
   int flag;
   Message datum;
 
-  AddGatePass(
-      {
-        Key? key,
-        required this.flag,
-        required this.datum,
-      })
-      : super(key: key);
+  AddGatePass({
+    Key? key,
+    required this.flag,
+    required this.datum,
+  }) : super(key: key);
+
   @override
   State<AddGatePass> createState() => _AddGatePassState();
 }
 
 class _AddGatePassState extends State<AddGatePass> {
-
   TextEditingController _TransactionidController = new TextEditingController();
   TextEditingController _gatepassdatecontroller = new TextEditingController();
   TextEditingController _staffCodecontroller = new TextEditingController();
@@ -45,30 +44,30 @@ class _AddGatePassState extends State<AddGatePass> {
   late MainBloc mainBloc;
   final storage = FlutterSecureStorage();
   DateTime selectedDate = DateTime.now();
-  late String date='';
+  late String date = '';
   List<String> gatepasstypeList = [];
   List<String> gatepassReasonsList = [];
-  String gatePasstype="Select";
-  String gatePassReason="Select";
+  String gatePasstype = "Select";
+  String gatePassReason = "Select";
   bool isGatepasscontainerselected = false;
   bool isReasoncontainerselected = false;
-  bool ClickStatus=false;
+  bool ClickStatus = false;
   var fromTimeController;
   TextEditingController fromTimeInput = TextEditingController();
   var toTimeController;
   TextEditingController toTimeInput = TextEditingController();
 
-  String? Auth_Token="";
+  String? Auth_Token = "";
 
-  String? staffCode="";
+  String? staffCode = "";
 
-  String designation="";
+  String designation = "";
 
-  String departmentName="";
+  String departmentName = "";
 
   @override
   void initState() {
-    mainBloc=BlocProvider.of(context);
+    mainBloc = BlocProvider.of(context);
     gatepasstypeList.add("Personal");
     gatepasstypeList.add("Official");
     gatepasstypeList.add("Lunch");
@@ -80,69 +79,62 @@ class _AddGatePassState extends State<AddGatePass> {
     gatepassReasonsList.add("Personal Work");
     gatepassReasonsList.add("Marriage Anniversary");
 
+    final DateFormat formatter = DateFormat('dd/MM/yyyy');
+    _gatepassdatecontroller.text = formatter.format(DateTime.now());
+    selectedDate = DateTime.now();
+
     getData();
 
-    if (widget.flag == 2)
-    {
-
+    if (widget.flag == 2) {
       print("widget.flag == 2");
       _TransactionidController.text = widget.datum.transactionId.toString();
-      _staffCodecontroller.text=widget.datum.staffCode.toString();
-      _staffNamecontroller.text=widget.datum.name.toString();
-      _departmentNamecontroller.text=departmentName.toString();
+      _staffCodecontroller.text = widget.datum.staffCode.toString();
+      _staffNamecontroller.text = widget.datum.name.toString();
+      _departmentNamecontroller.text = departmentName.toString();
       // _gatepassdatecontroller.text=widget.datum.gatePassDate.toString();
-      _gatepassdatecontroller.text =
-          DateFormat("dd/MM/yyyy").format(DateTime.parse(widget.datum.gatePassDate.toString()));
-      gatePasstype=widget.datum.type.toString();
+      _gatepassdatecontroller.text = DateFormat("dd/MM/yyyy")
+          .format(DateTime.parse(widget.datum.gatePassDate.toString()));
+      gatePasstype = widget.datum.type.toString();
       // fromTimeInput.text=widget.datum.fromTime.toString();
-      fromTimeInput.text =
-          DateFormat("HH:mm").format(DateTime.parse(widget.datum.fromTime.toString()));
-      toTimeInput.text =
-          DateFormat("HH:mm").format(DateTime.parse(widget.datum.toTime.toString()));
+      fromTimeInput.text = DateFormat("HH:mm")
+          .format(DateTime.parse(widget.datum.fromTime.toString()));
+      toTimeInput.text = DateFormat("HH:mm")
+          .format(DateTime.parse(widget.datum.toTime.toString()));
       // toTimeInput.text=widget.datum.toTime.toString();
       calculateTotalMin();
-      _purposecontroller.text=widget.datum.customerName.toString();
-
-    }
-    else
-    {
+      _purposecontroller.text = widget.datum.customerName.toString();
+    } else {
       print("widget.flag == 1");
       getData();
     }
-
   }
+
   Future<void> getData() async {
     staffCode = await storage.read(key: 'Staff_Code');
 
-    print("staffCodee---->"+staffCode!);
+    print("staffCodee---->" + staffCode!);
     Auth_Token = await storage.read(key: 'Auth_Token');
 
-    print("Auth_Tokenn---->"+Auth_Token!);
+    print("Auth_Tokenn---->" + Auth_Token!);
 
-    mainBloc.add(GetStaffDetailsEvents(StaffCode: staffCode!, token: Auth_Token!));
-
+    mainBloc
+        .add(GetStaffDetailsEvents(StaffCode: staffCode!, token: Auth_Token!));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-
       appBar: AppBar(
           leading: IconButton(
               icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
-              onPressed: () =>
-                  Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                          builder: (_) => BlocProvider(
-                              create: (context) {
-                                return MainBloc(
-                                    webService: WebService());
-                              },
-                              child: GatePass())))
-
-          ),
-
+              onPressed: () => Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => BlocProvider(
+                          create: (context) {
+                            return MainBloc(webService: WebService());
+                          },
+                          child: GatePass())))),
           title: const Text("Add Gate Pass"),
           backgroundColor: MyColors.lightBlue,
           centerTitle: true,
@@ -151,12 +143,8 @@ class _AddGatePassState extends State<AddGatePass> {
             fontSize: 18.0,
           ).copyWith(
             color: Colors.white,
-          )
-      ),
-
-
-      body:
-      WillPopScope(
+          )),
+      body: WillPopScope(
         onWillPop: () async {
           /*   Navigator.pop(context, {"FilterAlert":false});
             return false;*/
@@ -173,16 +161,15 @@ class _AddGatePassState extends State<AddGatePass> {
                 MaterialPageRoute(
                     builder: (_) => BlocProvider(
                         create: (context) {
-                          return MainBloc(
-                              webService: WebService());
+                          return MainBloc(webService: WebService());
                         },
                         child: GatePass())));
-            return false;  // Prevent the app from closing
+            return false; // Prevent the app from closing
           }
           return true;
         },
-        child:
-        _addGatePass(),),
+        child: _addGatePass(),
+      ),
       bottomNavigationBar: BottomAppBar(
         child: SizedBox(
           height: 70,
@@ -196,11 +183,11 @@ class _AddGatePassState extends State<AddGatePass> {
                     _gatepassdatecontroller.clear();
                     _totalmincontroller.clear();
                     _purposecontroller.clear();
-                    gatePasstype="Select";
-                    gatePassReason="Select";
-                    ClickStatus=false;
-                    fromTimeInput.text="";
-                    toTimeInput.text="";
+                    gatePasstype = "Select";
+                    gatePassReason = "Select";
+                    ClickStatus = false;
+                    fromTimeInput.text = "";
+                    toTimeInput.text = "";
                   });
                 },
                 child: const Column(
@@ -223,7 +210,6 @@ class _AddGatePassState extends State<AddGatePass> {
                   if (Navigator.canPop(context)) {
                     Navigator.pop(context);
                     print(" Navigatorrrrrrrrrrrrr");
-
                   } else {
                     // You can also handle custom back button logic here
                     // For example, exit the app, show a confirmation dialog, etc.
@@ -235,11 +221,9 @@ class _AddGatePassState extends State<AddGatePass> {
                         MaterialPageRoute(
                             builder: (_) => BlocProvider(
                                 create: (context) {
-                                  return MainBloc(
-                                      webService: WebService());
+                                  return MainBloc(webService: WebService());
                                 },
-                                child: const GatePass()))
-                    );
+                                child: const GatePass())));
                     // Prevent the app from closing
                   }
                 },
@@ -272,11 +256,11 @@ class _AddGatePassState extends State<AddGatePass> {
                       color: MyColors.blueColorCode,
                       borderRadius: BorderRadius.all(Radius.circular(10)),
                       border:
-                      Border.all(color: MyColors.textBoxBorderColorCode)),
+                          Border.all(color: MyColors.textBoxBorderColorCode)),
                   child: Text(
                     "Save",
                     style:
-                    TextStyle(color: MyColors.whiteColorCode, fontSize: 20),
+                        TextStyle(color: MyColors.whiteColorCode, fontSize: 20),
                   ),
                 ),
               )
@@ -302,9 +286,7 @@ class _AddGatePassState extends State<AddGatePass> {
             setState(() {
               _isLoading = true;
             });
-          }
-          else if (state is GetStaffDetailsLoadedState)
-          {
+          } else if (state is GetStaffDetailsLoadedState) {
             setState(() {
               _isLoading = false;
             });
@@ -313,27 +295,31 @@ class _AddGatePassState extends State<AddGatePass> {
             //   toastLength: Toast.LENGTH_SHORT,
             //   timeInSecForIosWeb: 1,
             // );
-            if(widget.flag==1) {
+            if (widget.flag == 1) {
               _TransactionidController.text =
                   state.staffDetailsResponse!.message!.transactionID.toString();
               _staffCodecontroller.text =
                   state.staffDetailsResponse!.message!.staffCode.toString();
               _staffNamecontroller.text =
                   state.staffDetailsResponse!.message!.staffName.toString();
-              _departmentNamecontroller.text =
-                  state.staffDetailsResponse!.message!.departmentName.toString();
+              _departmentNamecontroller.text = state
+                  .staffDetailsResponse!.message!.departmentName
+                  .toString();
               designation =
                   state.staffDetailsResponse!.message!.designation.toString();
-            }else if(widget.flag==2){
-              _departmentNamecontroller.text=state.staffDetailsResponse!.message!.departmentName.toString();
+            } else if (widget.flag == 2) {
+              _departmentNamecontroller.text = state
+                  .staffDetailsResponse!.message!.departmentName
+                  .toString();
             }
             setState(() {
-              departmentName=state.staffDetailsResponse!.message!.departmentName.toString();
+              departmentName = state
+                  .staffDetailsResponse!.message!.departmentName
+                  .toString();
             });
-            print(state.staffDetailsResponse!.message!.transactionID.toString());
-          }
-          else if (state is GetStaffDetailsErrorState)
-          {
+            print(
+                state.staffDetailsResponse!.message!.transactionID.toString());
+          } else if (state is GetStaffDetailsErrorState) {
             setState(() {
               _isLoading = false;
             });
@@ -348,9 +334,7 @@ class _AddGatePassState extends State<AddGatePass> {
             setState(() {
               _isLoading = true;
             });
-          }
-          else if (state is AddGatePassLoadedState)
-          {
+          } else if (state is AddGatePassLoadedState) {
             setState(() {
               _isLoading = false;
             });
@@ -359,27 +343,20 @@ class _AddGatePassState extends State<AddGatePass> {
               toastLength: Toast.LENGTH_SHORT,
               timeInSecForIosWeb: 1,
             );
-            if(widget.flag==1) {
+            if (widget.flag == 1) {
               if (state.cancelGatepassResponse!.message ==
                   "Gate Pass Details Saved Successfully!") {
                 DialogForUpdate().popUp(
                     context, "Gate Pass Details Saved Successfully!", "3");
               }
-            }
-            else if(widget.flag==2)
-            {
-
+            } else if (widget.flag == 2) {
               if (state.cancelGatepassResponse!.message ==
                   "Gate Pass Details Updated Successfully!") {
-                DialogForUpdate().popUp(
-                    context, "Gate Pass Updated Successfully!", "3");
+                DialogForUpdate()
+                    .popUp(context, "Gate Pass Updated Successfully!", "3");
               }
-            }else
-            {
-            }
-          }
-          else if (state is AddGatePassErrorState)
-          {
+            } else {}
+          } else if (state is AddGatePassErrorState) {
             setState(() {
               _isLoading = false;
             });
@@ -390,8 +367,7 @@ class _AddGatePassState extends State<AddGatePass> {
             );
           }
         },
-        child:
-        SingleChildScrollView(
+        child: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.only(
                 top: 20.0, left: 15, right: 15, bottom: 20),
@@ -405,13 +381,13 @@ class _AddGatePassState extends State<AddGatePass> {
                         "Transaction ID ",
                         style: TextStyle(fontSize: 18),
                       ),
-
                     ],
                   ),
                 ),
                 TextField(
                   controller: _TransactionidController,
-                  enabled: false, // to trigger disabledBorder
+                  enabled: false,
+                  // to trigger disabledBorder
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
                     filled: true,
@@ -419,7 +395,7 @@ class _AddGatePassState extends State<AddGatePass> {
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(4)),
                       borderSide:
-                      BorderSide(width: 1, color: MyColors.buttonColorCode),
+                          BorderSide(width: 1, color: MyColors.buttonColorCode),
                     ),
                     disabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(4)),
@@ -452,7 +428,6 @@ class _AddGatePassState extends State<AddGatePass> {
                   // onChanged: _authenticationFormBloc.onPasswordChanged,
                   obscureText: false,
                 ),
-
                 Align(
                     alignment: Alignment.centerLeft,
                     child: Padding(
@@ -463,7 +438,6 @@ class _AddGatePassState extends State<AddGatePass> {
                             "Staff Code ",
                             style: TextStyle(fontSize: 18),
                           ),
-
                         ],
                       ),
                     )),
@@ -479,7 +453,7 @@ class _AddGatePassState extends State<AddGatePass> {
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(4)),
                       borderSide:
-                      BorderSide(width: 1, color: MyColors.buttonColorCode),
+                          BorderSide(width: 1, color: MyColors.buttonColorCode),
                     ),
                     disabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(4)),
@@ -522,7 +496,6 @@ class _AddGatePassState extends State<AddGatePass> {
                             "Staff Name",
                             style: TextStyle(fontSize: 18),
                           ),
-
                         ],
                       ),
                     )),
@@ -538,7 +511,7 @@ class _AddGatePassState extends State<AddGatePass> {
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(4)),
                       borderSide:
-                      BorderSide(width: 1, color: MyColors.buttonColorCode),
+                          BorderSide(width: 1, color: MyColors.buttonColorCode),
                     ),
                     disabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(4)),
@@ -581,7 +554,6 @@ class _AddGatePassState extends State<AddGatePass> {
                             "Department Name",
                             style: TextStyle(fontSize: 18),
                           ),
-
                         ],
                       ),
                     )),
@@ -594,7 +566,7 @@ class _AddGatePassState extends State<AddGatePass> {
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(4)),
                       borderSide:
-                      BorderSide(width: 1, color: MyColors.buttonColorCode),
+                          BorderSide(width: 1, color: MyColors.buttonColorCode),
                     ),
                     disabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(4)),
@@ -651,17 +623,18 @@ class _AddGatePassState extends State<AddGatePass> {
                   controller: _gatepassdatecontroller,
                   readOnly: true,
                   enabled: true,
-                  onTap: (){
+                  onTap: () {
                     FocusScope.of(context).requestFocus(new FocusNode());
                     _selectDate(context);
-                  },// to trigger disabledBorder
+                  },
+                  // to trigger disabledBorder
                   decoration: InputDecoration(
                     filled: true,
                     fillColor: MyColors.whiteColorCode,
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(4)),
-                      borderSide: BorderSide(
-                          width: 1, color: MyColors.buttonColorCode),
+                      borderSide:
+                          BorderSide(width: 1, color: MyColors.buttonColorCode),
                     ),
                     disabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(4)),
@@ -674,27 +647,23 @@ class _AddGatePassState extends State<AddGatePass> {
                     ),
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(4)),
-                        borderSide: BorderSide(width: 1,)
-                    ),
+                        borderSide: BorderSide(
+                          width: 1,
+                        )),
                     errorBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(4)),
                         borderSide: BorderSide(
-                            width: 1, color: MyColors.textBoxBorderColorCode)
-                    ),
+                            width: 1, color: MyColors.textBoxBorderColorCode)),
                     focusedErrorBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(4)),
                         borderSide: BorderSide(
-                            width: 2, color: MyColors.buttonColorCode)
-                    ),
+                            width: 2, color: MyColors.buttonColorCode)),
                     hintText: "DD/MM/YYYY",
-                    suffixIcon:
-                    Icon(
-                      Icons
-                          .calendar_month,
+                    suffixIcon: Icon(
+                      Icons.calendar_month,
                       size: 24,
-                      color: MyColors
-                          .dateIconColorCode,
-                    ) ,
+                      color: MyColors.dateIconColorCode,
+                    ),
                     hintStyle: TextStyle(
                         fontSize: 16, color: MyColors.datePlacehoderColorCode),
                     errorText: "",
@@ -725,21 +694,17 @@ class _AddGatePassState extends State<AddGatePass> {
                     )),
                 GestureDetector(
                   onTap: () {
-
                     setState(() {});
                   },
-                  child:
-
-                  Padding(
+                  child: Padding(
                       padding: const EdgeInsets.only(bottom: 8),
-                      child:
-                      Container(
-                        margin: EdgeInsets.only(top: 10.0, right: 3.0, left: 3.0),
+                      child: Container(
+                        margin:
+                            EdgeInsets.only(top: 10.0, right: 3.0, left: 3.0),
                         height: 50.0,
                         width: double.infinity,
                         decoration: BoxDecoration(
                           border: Border.all(width: 1.0, color: Colors.grey),
-
                         ),
                         /* height: 40.0,
                             width: double.infinity,
@@ -748,72 +713,68 @@ class _AddGatePassState extends State<AddGatePass> {
                                 borderRadius: BorderRadius.circular(10.0),
                                 border: Border.all(color: Colors.grey)),*/
                         child: ListTile(
-                          leading: Text(gatePasstype ?? gatePasstype.toString(),style: TextStyle(fontSize: 15.0, )),
-                          trailing:
-                          isGatepasscontainerselected?
-                          IconButton(
-                            icon: Icon(
-                              Icons.keyboard_arrow_up,
-                            ),
-                            onPressed: () {
-                              isGatepasscontainerselected = false;
-                              setState(() {});
-                            },
-                          )
-                              :
+                          leading: Text(gatePasstype ?? gatePasstype.toString(),
+                              style: TextStyle(
+                                fontSize: 15.0,
+                              )),
+                          trailing: isGatepasscontainerselected
+                              ? IconButton(
+                                  icon: Icon(
+                                    Icons.keyboard_arrow_up,
+                                  ),
+                                  onPressed: () {
+                                    isGatepasscontainerselected = false;
+                                    setState(() {});
+                                  },
+                                )
+                              : IconButton(
+                                  icon: Icon(Icons.keyboard_arrow_down),
+                                  onPressed: () {
+                                    isGatepasscontainerselected = true;
 
-                          IconButton(
-                            icon: Icon(
-                                Icons.keyboard_arrow_down),
-
-                            onPressed: () {
-                              isGatepasscontainerselected = true;
-
-
-                              setState(() {});
-                            },
-                          ),
-
+                                    setState(() {});
+                                  },
+                                ),
                         ),
-
                       )),
                 ),
                 isGatepasscontainerselected
-                    ?
-                Card(
-                  elevation: 3.0,
-                  child: Container(
-                    height: 150.0,
-                    width: double.infinity,
-                    margin: EdgeInsets.only(left: 20.0, right: 20.0),
-                    child: ListView.builder(
-                      itemCount: gatepasstypeList!.length,
-                      itemBuilder: (BuildContext context, int index) {
-                        return Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: GestureDetector(
-                              onTap: () {
+                    ? Card(
+                        elevation: 3.0,
+                        child: Container(
+                          height: 150.0,
+                          width: double.infinity,
+                          margin: EdgeInsets.only(left: 20.0, right: 20.0),
+                          child: ListView.builder(
+                            itemCount: gatepasstypeList!.length,
+                            itemBuilder: (BuildContext context, int index) {
+                              return Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        isGatepasscontainerselected = false;
 
+                                        gatePasstype =
+                                            gatepasstypeList[index].toString();
+                                      });
 
-                                setState(() {
-                                  isGatepasscontainerselected = false;
-
-                                  gatePasstype =gatepasstypeList[index].toString();
-                                });
-
-                                String selectedGatepassType = gatepasstypeList![index].toString();
-                                print("selectedGatepassType : "+selectedGatepassType);
-                              },
-                              child: SizedBox(
-                                height: 40.0,
-                                width: 50.0,
-                                child: Text(gatepasstypeList![index].toString()),
-                              ),
-                            ));
-                      },
-                    ),
-                  ),
-                )
+                                      String selectedGatepassType =
+                                          gatepasstypeList![index].toString();
+                                      print("selectedGatepassType : " +
+                                          selectedGatepassType);
+                                    },
+                                    child: SizedBox(
+                                      height: 40.0,
+                                      width: 50.0,
+                                      child: Text(
+                                          gatepasstypeList![index].toString()),
+                                    ),
+                                  ));
+                            },
+                          ),
+                        ),
+                      )
                     : SizedBox(),
                 Align(
                     alignment: Alignment.centerLeft,
@@ -837,151 +798,77 @@ class _AddGatePassState extends State<AddGatePass> {
                     )),
                 Padding(
                   padding: const EdgeInsets.only(left: 4.0),
-                  child:
-                  TextField(
+                  child: TextField(
                     // onChanged: (value) {
                     //   fromTimeController = value;
                     // },
                     onTap: () async {
-                      final DateFormat
-                      formatter =
-                      DateFormat(
-                          'H:mm',
-                          Localizations.localeOf(
-                              context)
-                              .toLanguageTag());
-                      final TimeOfDay? picked =
-                      await showTimePicker(
-                          context:
-                          context,
-                          initialTime:
-                          TimeOfDay
-                              .now());
+                      final DateFormat formatter = DateFormat('HH:mm',
+                          Localizations.localeOf(context).toLanguageTag());
+                      final TimeOfDay? picked = await showTimePicker(
+                          context: context, initialTime: TimeOfDay.now());
                       builder:
-                          (BuildContext
-                      context,
-                          Widget? child) {
+                      (BuildContext context, Widget? child) {
                         return MediaQuery(
-                            data: MediaQuery.of(
-                                context)
-                                .copyWith(
-                                alwaysUse24HourFormat:
-                                true),
-                            child:
-                            child!);
+                            data: MediaQuery.of(context)
+                                .copyWith(alwaysUse24HourFormat: true),
+                            child: child!);
                       };
-                      if (picked !=
-                          null) {
-                        final String
-                        fromTime =
-                        formatter.format(
-                            DateTime(
-                                0,
-                                1,
-                                1,
-                                picked
-                                    .hour,
-                                picked
-                                    .minute));
-                        fromTimeController =
-                            fromTime;
+                      if (picked != null) {
+                        final String fromTime = formatter.format(
+                            DateTime(0, 1, 1, picked.hour, picked.minute));
+                        fromTimeController = fromTime;
                         setState(() {
-                          fromTimeInput
-                              .text =
-                              fromTimeController;
+                          fromTimeInput.text = fromTimeController;
                         });
-                        calculateTotalMin( );
+                        calculateTotalMin();
                       }
                     },
                     readOnly: true,
-                    enabled:
-                    true, // to trigger disabledBorder
-                    decoration:
-                    const InputDecoration(
+                    enabled: true,
+                    // to trigger disabledBorder
+                    decoration: const InputDecoration(
                       filled: true,
-                      fillColor: MyColors
-                          .whiteColorCode,
-                      focusedBorder:
-                      OutlineInputBorder(
-                        borderRadius:
-                        BorderRadius
-                            .all(Radius
-                            .circular(
-                            4)),
+                      fillColor: MyColors.whiteColorCode,
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(4)),
                         borderSide: BorderSide(
-                            width: 1,
-                            color: MyColors
-                                .buttonColorCode),
+                            width: 1, color: MyColors.buttonColorCode),
                       ),
-                      disabledBorder:
-                      OutlineInputBorder(
-                        borderRadius:
-                        BorderRadius
-                            .all(Radius
-                            .circular(
-                            4)),
-                        borderSide: BorderSide(
-                            width: 1,
-                            color: Colors
-                                .orange),
+                      disabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(4)),
+                        borderSide: BorderSide(width: 1, color: Colors.orange),
                       ),
-                      enabledBorder:
-                      OutlineInputBorder(
-                        borderRadius:
-                        BorderRadius
-                            .all(Radius
-                            .circular(
-                            4)),
-                        borderSide: BorderSide(
-                            width: 1,
-                            color: MyColors
-                                .textColorCode),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(4)),
+                        borderSide:
+                            BorderSide(width: 1, color: MyColors.textColorCode),
                       ),
-                      border:
-                      OutlineInputBorder(
-                          borderRadius:
-                          BorderRadius.all(Radius.circular(
-                              4)),
-                          borderSide:
-                          BorderSide(
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(4)),
+                          borderSide: BorderSide(
                             width: 1,
                           )),
                       errorBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius
-                              .all(Radius
-                              .circular(
-                              4)),
+                          borderRadius: BorderRadius.all(Radius.circular(4)),
                           borderSide: BorderSide(
                               width: 1,
-                              color: MyColors
-                                  .textBoxBorderColorCode)),
+                              color: MyColors.textBoxBorderColorCode)),
                       focusedErrorBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius
-                              .all(Radius
-                              .circular(
-                              4)),
+                          borderRadius: BorderRadius.all(Radius.circular(4)),
                           borderSide: BorderSide(
-                              width: 2,
-                              color: MyColors
-                                  .buttonColorCode)),
-                      hintText:
-                      "hh:mm:AM",
-                      suffixIcon:
-                      Icon(
-                        Icons
-                            .watch_later_outlined,
+                              width: 2, color: MyColors.buttonColorCode)),
+                      hintText: "hh:mm:AM",
+                      suffixIcon: Icon(
+                        Icons.watch_later_outlined,
                         size: 24,
-                        color: MyColors
-                            .dateIconColorCode,
+                        color: MyColors.dateIconColorCode,
                       ),
                       hintStyle: TextStyle(
-                          fontSize: 18,
-                          color: MyColors
-                              .searchTextColorCode),
+                          fontSize: 18, color: MyColors.searchTextColorCode),
                       errorText: "",
                     ),
-                    controller:
-                    fromTimeInput,
+                    controller: fromTimeInput,
                     // controller: _passwordController,
                     // onChanged: _authenticationFormBloc.onPasswordChanged,
                     obscureText: false,
@@ -1009,150 +896,77 @@ class _AddGatePassState extends State<AddGatePass> {
                     )),
                 Padding(
                   padding: const EdgeInsets.only(left: 4.0),
-                  child:
-                  TextField(
+                  child: TextField(
                     // onChanged: (value) {
                     //   fromTimeController = value;
                     // },
                     onTap: () async {
-                      final DateFormat
-                      formatter =
-                      DateFormat(
-                          'H:mm',
-                          Localizations.localeOf(
-                              context)
-                              .toLanguageTag());
-                      final TimeOfDay? picked =
-                      await showTimePicker(
-                          context:
-                          context,
-                          initialTime:
-                          TimeOfDay
-                              .now());
+                      final DateFormat formatter = DateFormat('HH:mm',
+                          Localizations.localeOf(context).toLanguageTag());
+                      final TimeOfDay? picked = await showTimePicker(
+                          context: context, initialTime: TimeOfDay.now());
                       builder:
-                          (BuildContext
-                      context,
-                          Widget? child) {
+                      (BuildContext context, Widget? child) {
                         return MediaQuery(
-                            data: MediaQuery.of(
-                                context)
-                                .copyWith(
-                                alwaysUse24HourFormat:
-                                true),
-                            child:
-                            child!);
+                            data: MediaQuery.of(context)
+                                .copyWith(alwaysUse24HourFormat: true),
+                            child: child!);
                       };
-                      if (picked !=
-                          null) {
-                        final String
-                        fromTime =
-                        formatter.format(
-                            DateTime(
-                                0,
-                                1,
-                                1,
-                                picked
-                                    .hour,
-                                picked
-                                    .minute));
-                        toTimeController =
-                            fromTime;
+                      if (picked != null) {
+                        final String fromTime = formatter.format(
+                            DateTime(0, 1, 1, picked.hour, picked.minute));
+                        toTimeController = fromTime;
                         setState(() {
-                          toTimeInput
-                              .text =
-                              toTimeController;
+                          toTimeInput.text = toTimeController;
                         });
-                        calculateTotalMin( );
+                        calculateTotalMin();
                       }
                     },
                     readOnly: true,
-                    enabled:
-                    true, // to trigger disabledBorder
-                    decoration:
-                    const InputDecoration(
+                    enabled: true,
+                    // to trigger disabledBorder
+                    decoration: const InputDecoration(
                       filled: true,
-                      fillColor: MyColors
-                          .whiteColorCode,
-                      focusedBorder:
-                      OutlineInputBorder(
-                        borderRadius:
-                        BorderRadius
-                            .all(Radius
-                            .circular(
-                            4)),
+                      fillColor: MyColors.whiteColorCode,
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(4)),
                         borderSide: BorderSide(
-                            width: 1,
-                            color: MyColors
-                                .buttonColorCode),
+                            width: 1, color: MyColors.buttonColorCode),
                       ),
-                      disabledBorder:
-                      OutlineInputBorder(
-                        borderRadius:
-                        BorderRadius
-                            .all(Radius
-                            .circular(
-                            4)),
-                        borderSide: BorderSide(
-                            width: 1,
-                            color: Colors
-                                .orange),
+                      disabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(4)),
+                        borderSide: BorderSide(width: 1, color: Colors.orange),
                       ),
-                      enabledBorder:
-                      OutlineInputBorder(
-                        borderRadius:
-                        BorderRadius
-                            .all(Radius
-                            .circular(
-                            4)),
-                        borderSide: BorderSide(
-                            width: 1,
-                            color: MyColors
-                                .textColorCode),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(4)),
+                        borderSide:
+                            BorderSide(width: 1, color: MyColors.textColorCode),
                       ),
-                      border:
-                      OutlineInputBorder(
-                          borderRadius:
-                          BorderRadius.all(Radius.circular(
-                              4)),
-                          borderSide:
-                          BorderSide(
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(4)),
+                          borderSide: BorderSide(
                             width: 1,
                           )),
                       errorBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius
-                              .all(Radius
-                              .circular(
-                              4)),
+                          borderRadius: BorderRadius.all(Radius.circular(4)),
                           borderSide: BorderSide(
                               width: 1,
-                              color: MyColors
-                                  .textBoxBorderColorCode)),
+                              color: MyColors.textBoxBorderColorCode)),
                       focusedErrorBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius
-                              .all(Radius
-                              .circular(
-                              4)),
+                          borderRadius: BorderRadius.all(Radius.circular(4)),
                           borderSide: BorderSide(
-                              width: 2,
-                              color: MyColors
-                                  .buttonColorCode)),
-                      hintText:
-                      "hh:mm:AM",
+                              width: 2, color: MyColors.buttonColorCode)),
+                      hintText: "hh:mm:AM",
                       suffixIcon: Icon(
-                        Icons
-                            .watch_later_outlined,
+                        Icons.watch_later_outlined,
                         size: 24,
-                        color: MyColors
-                            .dateIconColorCode,
+                        color: MyColors.dateIconColorCode,
                       ),
                       hintStyle: TextStyle(
-                          fontSize: 18,
-                          color: MyColors
-                              .searchTextColorCode),
+                          fontSize: 18, color: MyColors.searchTextColorCode),
                       errorText: "",
                     ),
-                    controller:
-                    toTimeInput,
+                    controller: toTimeInput,
                     // controller: _passwordController,
                     // onChanged: _authenticationFormBloc.onPasswordChanged,
                     obscureText: false,
@@ -1168,7 +982,6 @@ class _AddGatePassState extends State<AddGatePass> {
                             "Total Minutes",
                             style: TextStyle(fontSize: 18),
                           ),
-
                         ],
                       ),
                     )),
@@ -1181,7 +994,7 @@ class _AddGatePassState extends State<AddGatePass> {
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(4)),
                       borderSide:
-                      BorderSide(width: 1, color: MyColors.buttonColorCode),
+                          BorderSide(width: 1, color: MyColors.buttonColorCode),
                     ),
                     disabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(4)),
@@ -1236,21 +1049,17 @@ class _AddGatePassState extends State<AddGatePass> {
                     )),
                 GestureDetector(
                   onTap: () {
-
                     setState(() {});
                   },
-                  child:
-
-                  Padding(
+                  child: Padding(
                       padding: const EdgeInsets.only(bottom: 8),
-                      child:
-                      Container(
-                        margin: EdgeInsets.only(top: 10.0, right: 3.0, left: 3.0),
+                      child: Container(
+                        margin:
+                            EdgeInsets.only(top: 10.0, right: 3.0, left: 3.0),
                         height: 50.0,
                         width: double.infinity,
                         decoration: BoxDecoration(
                           border: Border.all(width: 1.0, color: Colors.grey),
-
                         ),
                         /* height: 40.0,
                             width: double.infinity,
@@ -1259,188 +1068,194 @@ class _AddGatePassState extends State<AddGatePass> {
                                 borderRadius: BorderRadius.circular(10.0),
                                 border: Border.all(color: Colors.grey)),*/
                         child: ListTile(
-                          leading: Text(gatePassReason ?? gatePassReason.toString(),style: TextStyle(fontSize: 15.0, )),
-                          trailing:
-                          isReasoncontainerselected?
-                          IconButton(
-                            icon: Icon(
-                              Icons.keyboard_arrow_up,
-                            ),
-                            onPressed: () {
-                              isReasoncontainerselected = false;
-                              setState(() {});
-                            },
-                          )
-                              :
-
-                          IconButton(
-                            icon: Icon(
-                                Icons.keyboard_arrow_down),
-
-                            onPressed: () {
-                              isReasoncontainerselected = true;
-                              setState(() {});
-                            },
-                          ),
-
+                          leading:
+                              Text(gatePassReason ?? gatePassReason.toString(),
+                                  style: TextStyle(
+                                    fontSize: 15.0,
+                                  )),
+                          trailing: isReasoncontainerselected
+                              ? IconButton(
+                                  icon: Icon(
+                                    Icons.keyboard_arrow_up,
+                                  ),
+                                  onPressed: () {
+                                    isReasoncontainerselected = false;
+                                    setState(() {});
+                                  },
+                                )
+                              : IconButton(
+                                  icon: Icon(Icons.keyboard_arrow_down),
+                                  onPressed: () {
+                                    isReasoncontainerselected = true;
+                                    setState(() {});
+                                  },
+                                ),
                         ),
-
                       )),
                 ),
                 isReasoncontainerselected
-                    ?
-                Card(
-                  elevation: 3.0,
-                  child: Container(
-                    height: 150.0,
-                    width: double.infinity,
-                    margin: EdgeInsets.only(left: 20.0, right: 20.0),
-                    child: ListView.builder(
-                      itemCount: gatepassReasonsList!.length,
-                      itemBuilder: (BuildContext context, int index) {
-                        return Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: GestureDetector(
-                              onTap: () {
+                    ? Card(
+                        elevation: 3.0,
+                        child: Container(
+                          height: 150.0,
+                          width: double.infinity,
+                          margin: EdgeInsets.only(left: 20.0, right: 20.0),
+                          child: ListView.builder(
+                            itemCount: gatepassReasonsList!.length,
+                            itemBuilder: (BuildContext context, int index) {
+                              return Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        isReasoncontainerselected = false;
 
-                                setState(() {
-                                  isReasoncontainerselected = false;
+                                        gatePassReason =
+                                            gatepassReasonsList[index]
+                                                .toString();
+                                      });
 
-                                  gatePassReason =gatepassReasonsList[index].toString();
-                                });
-
-                                String gatePassReasonn = gatepassReasonsList![index].toString();
-                                print("gatePassReason : "+gatePassReasonn);
-                              },
-                              child: SizedBox(
-                                height: 40.0,
-                                width: 50.0,
-                                child: Text(gatepassReasonsList![index].toString()),
-                              ),
-                            ));
-                      },
-                    ),
-                  ),
-                )
+                                      String gatePassReasonn =
+                                          gatepassReasonsList![index]
+                                              .toString();
+                                      print("gatePassReason : " +
+                                          gatePassReasonn);
+                                    },
+                                    child: SizedBox(
+                                      height: 40.0,
+                                      width: 50.0,
+                                      child: Text(gatepassReasonsList![index]
+                                          .toString()),
+                                    ),
+                                  ));
+                            },
+                          ),
+                        ),
+                      )
                     : SizedBox(),
-
                 Align(
                     alignment: Alignment.topCenter,
                     child: Padding(
-                        padding: const EdgeInsets.only(bottom: 8,left: 25),
-                        child:CheckboxListTile(
-                          title: Text("Please Check Mark To Enter Purpose",style: TextStyle(fontSize: 17.0, )), //    <-- label
+                        padding: const EdgeInsets.only(bottom: 8, left: 25),
+                        child: CheckboxListTile(
+                          title: Text("Please Check Mark To Enter Purpose",
+                              style: TextStyle(
+                                fontSize: 17.0,
+                              )),
+                          //    <-- label
                           value: ClickStatus,
                           activeColor: Colors.red,
                           checkColor: Colors.white,
                           onChanged: (newValue) {
-                            setState(()  {
-                              ClickStatus=newValue!;
+                            setState(() {
+                              ClickStatus = newValue!;
                               //   ClickStatus?_purposecontroller.clear():" Enter Purpose ";
-                              if(ClickStatus)
-                              {
-                                String value=_purposecontroller.text;
-                                print("purpose value---" +value.toString());
+                              if (ClickStatus) {
+                                String value = _purposecontroller.text;
+                                print("purpose value---" + value.toString());
 
                                 //    _purposecontroller.clear();
                                 //     _purposecontroller.text=" Enter Purpose ";
-                              }
-                              else{
+                              } else {
                                 _purposecontroller.clear();
                               }
-                              print("checkvalue---" +newValue.toString());
-
+                              print("checkvalue---" + newValue.toString());
                             });
-
                           },
                           dense: true,
                           controlAffinity: ListTileControlAffinity.leading,
                           contentPadding: EdgeInsets.all(0),
-                        ))   ),
-
-                ClickStatus?
-                Align(
-                    alignment: Alignment.centerLeft,
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: Row(
-                        children: [
-                          Text(
-                            "Purpose",
-                            style: TextStyle(fontSize: 18),
+                        ))),
+                ClickStatus
+                    ? Align(
+                        alignment: Alignment.centerLeft,
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Row(
+                            children: [
+                              Text(
+                                "Purpose",
+                                style: TextStyle(fontSize: 18),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                    )):Align(
-                    alignment: Alignment.centerLeft,
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: Row(
-                        children: [
-                          Text(
-                            "",
-                            style: TextStyle(fontSize: 18),
+                        ))
+                    : Align(
+                        alignment: Alignment.centerLeft,
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Row(
+                            children: [
+                              Text(
+                                "",
+                                style: TextStyle(fontSize: 18),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                    )),
-                ClickStatus?
-                TextField(
-                  controller: _purposecontroller,
-                  enabled: true, // to trigger disabledBorder
-
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: MyColors.whiteColorCode,
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(4)),
-                      borderSide:
-                      BorderSide(width: 1, color: MyColors.buttonColorCode),
-                    ),
-                    disabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(4)),
-                      borderSide: BorderSide(width: 1, color: Colors.orange),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(4)),
-                      borderSide: BorderSide(
-                          width: 1, color: MyColors.textBoxBorderColorCode),
-                    ),
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(4)),
-                        borderSide: BorderSide(
-                          width: 1,
                         )),
-                    errorBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(4)),
-                        borderSide: BorderSide(
-                            width: 1, color: MyColors.textBoxBorderColorCode)),
-                    focusedErrorBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(4)),
-                        borderSide: BorderSide(
-                            width: 2, color: MyColors.buttonColorCode)),
-                    // hintText: "HintText",
-                    hintStyle: TextStyle(
-                        fontSize: 16, color: MyColors.textBoxColorCode),
-                    errorText: "",
-                  ),
-                  // controller: _passwordController,
-                  // onChanged: _authenticationFormBloc.onPasswordChanged,
-                  obscureText: false,
-                ):Align(
-                    alignment: Alignment.centerLeft,
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: Row(
-                        children: [
-                          Text(
-                            "",
-                            style: TextStyle(fontSize: 18),
-                          ),
-                        ],
-                      ),
-                    ))
+                ClickStatus
+                    ? TextField(
+                        controller: _purposecontroller,
+                        enabled: true, // to trigger disabledBorder
 
+                        decoration: InputDecoration(
+                          filled: true,
+                          fillColor: MyColors.whiteColorCode,
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(4)),
+                            borderSide: BorderSide(
+                                width: 1, color: MyColors.buttonColorCode),
+                          ),
+                          disabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(4)),
+                            borderSide:
+                                BorderSide(width: 1, color: Colors.orange),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(4)),
+                            borderSide: BorderSide(
+                                width: 1,
+                                color: MyColors.textBoxBorderColorCode),
+                          ),
+                          border: OutlineInputBorder(
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(4)),
+                              borderSide: BorderSide(
+                                width: 1,
+                              )),
+                          errorBorder: OutlineInputBorder(
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(4)),
+                              borderSide: BorderSide(
+                                  width: 1,
+                                  color: MyColors.textBoxBorderColorCode)),
+                          focusedErrorBorder: OutlineInputBorder(
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(4)),
+                              borderSide: BorderSide(
+                                  width: 2, color: MyColors.buttonColorCode)),
+                          // hintText: "HintText",
+                          hintStyle: TextStyle(
+                              fontSize: 16, color: MyColors.textBoxColorCode),
+                          errorText: "",
+                        ),
+                        // controller: _passwordController,
+                        // onChanged: _authenticationFormBloc.onPasswordChanged,
+                        obscureText: false,
+                      )
+                    : Align(
+                        alignment: Alignment.centerLeft,
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Row(
+                            children: [
+                              Text(
+                                "",
+                                style: TextStyle(fontSize: 18),
+                              ),
+                            ],
+                          ),
+                        ))
               ],
             ),
           ),
@@ -1456,126 +1271,111 @@ class _AddGatePassState extends State<AddGatePass> {
         toastLength: Toast.LENGTH_SHORT,
         timeInSecForIosWeb: 1,
       );
-    } else if (gatePasstype=="Select") {
+    } else if (gatePasstype == "Select") {
       Fluttertoast.showToast(
         msg: "  Please Select GatePass Type...!  ",
         toastLength: Toast.LENGTH_SHORT,
         timeInSecForIosWeb: 1,
       );
-    } else if (fromTimeInput.text=="") {
+    } else if (fromTimeInput.text == "") {
       Fluttertoast.showToast(
         msg: "  Please Select GatePass FromTime...!  ",
         toastLength: Toast.LENGTH_SHORT,
         timeInSecForIosWeb: 1,
       );
-    }
-    else if (toTimeInput.text=="") {
+    } else if (toTimeInput.text == "") {
       Fluttertoast.showToast(
         msg: "  Please Select GatePass ToTime...!  ",
         toastLength: Toast.LENGTH_SHORT,
         timeInSecForIosWeb: 1,
       );
-    }
-    else if (_totalmincontroller.text=="") {
+    } else if (_totalmincontroller.text == "") {
       Fluttertoast.showToast(
         msg: "  Please Select From Time & To time...!  ",
         toastLength: Toast.LENGTH_SHORT,
         timeInSecForIosWeb: 1,
       );
-
-    }
-    else if (gatePassReason=="") {
-      Fluttertoast.showToast(
-        msg: "  Please Select GatePass Reason...!  ",
-        toastLength: Toast.LENGTH_SHORT,
-        timeInSecForIosWeb: 1,
-      );}
-    else if (gatePassReason=="Select") {
+    } else if (gatePassReason == "") {
       Fluttertoast.showToast(
         msg: "  Please Select GatePass Reason...!  ",
         toastLength: Toast.LENGTH_SHORT,
         timeInSecForIosWeb: 1,
       );
-    }
-    else if (ClickStatus==true) {
-
-      if(_purposecontroller.text.isEmpty) {
+    } else if (gatePassReason == "Select") {
+      Fluttertoast.showToast(
+        msg: "  Please Select GatePass Reason...!  ",
+        toastLength: Toast.LENGTH_SHORT,
+        timeInSecForIosWeb: 1,
+      );
+    } else if (ClickStatus == true) {
+      if (_purposecontroller.text.isEmpty) {
         Fluttertoast.showToast(
           msg: "  Please Enter Purpose...!  ",
           toastLength: Toast.LENGTH_SHORT,
           timeInSecForIosWeb: 1,
         );
-      }
-      else if (!RegExp(r'^[a-zA-Z\s-]{1,50}$').hasMatch(_purposecontroller.text))  {
+      } else if (!RegExp(r'^[a-zA-Z\s-]{1,50}$')
+          .hasMatch(_purposecontroller.text)) {
         // Handle invalid input (show an error message, etc.)
         Fluttertoast.showToast(
           msg: " Please enter valid purpose!!  ",
           toastLength: Toast.LENGTH_SHORT,
           timeInSecForIosWeb: 1,
         );
-      }
-      else{
+      } else {
         print(" ifffffff_else..............");
 
         _addGatePassData();
-
       }
-    }
-    else
-    {
+    } else {
       print(" _else..............");
 
       _addGatePassData();
     }
-
   }
-  _addGatePassData(){
-    print(" _addGatePassData() called ClickStatus.............."+ClickStatus.toString());
+
+  _addGatePassData() {
+    print(" _addGatePassData() called ClickStatus.............." +
+        ClickStatus.toString());
     print(_gatepassdatecontroller.text);
     print(fromTimeInput.text);
     print(toTimeInput.text);
 
-    if(widget.flag==1){
+    if (widget.flag == 1) {
       mainBloc.add(AddGatePassEvents(
           addGatepassRequest: AddGatepassRequest(
-              transactionID:_TransactionidController.text,
-              gatePassDate:_gatepassdatecontroller.text,
-              staffCode:_staffCodecontroller.text,
-              designation:designation,
-              dept:_departmentNamecontroller.text,
-              gatePassTypeCode:gatePasstype,
-              fromTime:fromTimeInput.text,
-              toTime:toTimeInput.text,
-              totalTime:int.parse(_totalmincontroller.text),
-              shiftCode:"GS",
-              reason:gatePassReason,
-              purpose:_purposecontroller.text,
-              chkActive:ClickStatus,
-              add:true
-          ),
-          token: Auth_Token!)
-
-      );
-
-    }
-    else if(widget.flag==2){
+              transactionID: _TransactionidController.text,
+              gatePassDate: _gatepassdatecontroller.text,
+              staffCode: _staffCodecontroller.text,
+              designation: designation,
+              dept: _departmentNamecontroller.text,
+              gatePassTypeCode: gatePasstype,
+              fromTime: fromTimeInput.text,
+              toTime: toTimeInput.text,
+              totalTime: int.parse(_totalmincontroller.text),
+              shiftCode: "GS",
+              reason: gatePassReason,
+              purpose: _purposecontroller.text,
+              chkActive: ClickStatus,
+              add: true),
+          token: Auth_Token!));
+    } else if (widget.flag == 2) {
       mainBloc.add(AddGatePassEvents(
           addGatepassRequest: AddGatepassRequest(
-              transactionID:_TransactionidController.text,
-              gatePassDate:_gatepassdatecontroller.text,
-              staffCode:_staffCodecontroller.text,
-              designation:designation,
-              dept:_departmentNamecontroller.text,
-              gatePassTypeCode:gatePasstype,
-              fromTime:fromTimeInput.text,
-              toTime:toTimeInput.text,
-              totalTime:int.parse(_totalmincontroller.text),
-              shiftCode:"GS",
-              reason:gatePassReason,
-              purpose:_purposecontroller.text,
-              chkActive:ClickStatus,
-              add:false
-          ),
+              transactionID: _TransactionidController.text,
+              gatePassDate: _gatepassdatecontroller.text,
+              staffCode: _staffCodecontroller.text,
+              designation: designation,
+              dept: _departmentNamecontroller.text,
+              gatePassTypeCode: gatePasstype,
+              fromTime: fromTimeInput.text,
+              toTime: toTimeInput.text,
+              totalTime: int.parse(_totalmincontroller.text),
+              shiftCode: "GS",
+              reason: gatePassReason,
+              purpose: _purposecontroller.text,
+              chkActive: ClickStatus,
+              add: false),
           token: Auth_Token!));
     }
   }
@@ -1601,24 +1401,46 @@ class _AddGatePassState extends State<AddGatePass> {
   //     });
   //   }
   // }
-
+  ///
+  // Future<void> _selectDate(BuildContext context) async {
+  //   final DateTime? picked = await showDatePicker(
+  //     context: context,
+  //     initialDate: selectedDate,
+  //     firstDate: selectedDate.subtract(Duration(days: 40)),
+  //     lastDate: DateTime(2030),
+  //   );
+  //
+  //   if (picked != null && picked != selectedDate) {
+  //     setState(() {
+  //       selectedDate = picked;
+  //
+  //       // Format the date as dd/MM/yyyy
+  //       final DateFormat formatter = DateFormat('dd/MM/yyyy');
+  //       _gatepassdatecontroller.text = formatter.format(selectedDate);
+  //
+  //       // Additional date formatting if needed
+  //       date = formatter.format(selectedDate);
+  //     });
+  //   }
+  // }
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: selectedDate,
-      firstDate: selectedDate.subtract(Duration(days: 40)),
-      lastDate: DateTime(2030),
+
+      // ✅ allow from 2010
+      firstDate: DateTime(2010),
+
+      // ✅ allow far future
+      lastDate: DateTime(2100),
     );
 
-    if (picked != null && picked != selectedDate) {
+    if (picked != null) {
       setState(() {
         selectedDate = picked;
 
-        // Format the date as dd/MM/yyyy
         final DateFormat formatter = DateFormat('dd/MM/yyyy');
         _gatepassdatecontroller.text = formatter.format(selectedDate);
-
-        // Additional date formatting if needed
         date = formatter.format(selectedDate);
       });
     }
@@ -1703,8 +1525,6 @@ class _AddGatePassState extends State<AddGatePass> {
     _totalmincontroller.text = minutes.toString();
   }
 
-
-
 // Helper function to parse time string into DateTime
   DateTime _parseTime(String timeStr) {
     // Split the time string into hours and minutes
@@ -1713,8 +1533,8 @@ class _AddGatePassState extends State<AddGatePass> {
     int minutes = int.parse(parts[1]);
 
     // Return a DateTime object with today's date and the given time
-    return DateTime(2024, 1, 1, hours, minutes); // Using arbitrary date (e.g., 2024-01-01)
+    return DateTime(
+        2024, 1, 1, hours, minutes); // Using arbitrary date (e.g., 2024-01-01)
   }
-
 }
 //shift not found---abhishek

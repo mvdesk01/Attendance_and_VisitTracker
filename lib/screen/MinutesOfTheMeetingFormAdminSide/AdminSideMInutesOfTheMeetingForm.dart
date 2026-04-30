@@ -1,16 +1,7 @@
-
 import 'package:attendance_system_ios/bloc/main_bloc.dart';
 import 'package:attendance_system_ios/bloc/main_event.dart';
 import 'package:attendance_system_ios/bloc/main_state.dart';
-import 'package:attendance_system_ios/main.dart';
 import 'package:attendance_system_ios/model/MinutesOfTheMettingForm/GetMinutesOfTheMeetingDataByVisitSrNoResponse.dart';
-import 'package:attendance_system_ios/model/MinutesOfTheMettingForm/DynamicRowData.dart';
-import 'package:attendance_system_ios/model/MinutesOfTheMettingForm/InsertMMALLDataRequest.dart';
-import 'package:attendance_system_ios/model/MinutesOfTheMettingForm/InsertMMRowDataRequest.dart';
-import 'package:attendance_system_ios/screen/Gate%20Pass/gate_pass.dart';
-import 'package:attendance_system_ios/screen/Home/home.dart';
-import 'package:attendance_system_ios/service/WebService.dart';
-import 'package:attendance_system_ios/util/DialogForUpdate.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -18,6 +9,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:loading_overlay/loading_overlay.dart';
+
 import '../../util/MyColor.dart';
 
 class AdminSideMinutesOfTheMeetingFormScreen extends StatefulWidget {
@@ -30,17 +22,15 @@ class AdminSideMinutesOfTheMeetingFormScreen extends StatefulWidget {
     required this.SrNo,
     required this.staffCode,
     required this.minuteforno,
-  }): super(key: key);
-
-
+  }) : super(key: key);
 
   @override
-  State<AdminSideMinutesOfTheMeetingFormScreen> createState() => _AdminSideMinutesOfTheMeetingFormScreenState();
+  State<AdminSideMinutesOfTheMeetingFormScreen> createState() =>
+      _AdminSideMinutesOfTheMeetingFormScreenState();
 }
 
-
-class _AdminSideMinutesOfTheMeetingFormScreenState extends State<AdminSideMinutesOfTheMeetingFormScreen> {
-
+class _AdminSideMinutesOfTheMeetingFormScreenState
+    extends State<AdminSideMinutesOfTheMeetingFormScreen> {
   TextEditingController _gatepassdatecontroller = new TextEditingController();
   TextEditingController _memberAbsentController = new TextEditingController();
   TextEditingController _memberPresentController = new TextEditingController();
@@ -80,7 +70,8 @@ class _AdminSideMinutesOfTheMeetingFormScreenState extends State<AdminSideMinute
   TextEditingController textFieldController3 = TextEditingController();
   TextEditingController textFieldController4 = TextEditingController();
   TextEditingController textFieldController5 = TextEditingController();
-  List<Message> listofRows=[];
+  TextEditingController customerNameController = TextEditingController();
+  List<Message> listofRows = [];
   int index = 0;
 
   @override
@@ -107,42 +98,35 @@ class _AdminSideMinutesOfTheMeetingFormScreenState extends State<AdminSideMinute
 
     print("Auth_Token-->" + Auth_Token!);
 
+    mainBloc.add(GetMinutesOfTheMeetingAllDataByVisitSrNoEvents(
+        token: Auth_Token!, SrNo: widget.SrNo));
 
-    mainBloc.add(GetMinutesOfTheMeetingAllDataByVisitSrNoEvents(token: Auth_Token!,SrNo: widget.SrNo));
-
-
-
-    mainBloc.add(GetMinutesOfTheMeetingDataByVisitSrNoEvents(token: Auth_Token!,VisitSrNo: widget.SrNo));
+    mainBloc.add(GetMinutesOfTheMeetingDataByVisitSrNoEvents(
+        token: Auth_Token!, VisitSrNo: widget.SrNo));
   }
 
-
-
   // Method to add a new row
-  void addRow(String pointsOrIssues,
+  void addRow(
+      String pointsOrIssues,
       String discussedWith,
       String decisionTaken,
       String responsibility,
       String statusOrRemark,
       String targetDate,
       String nextDate,
-      int index
-      ) {
-
-    print("index :"+index.toString());
+      int index) {
+    print("index :" + index.toString());
 
     setState(() {
       dynamicRows.add(DynamicRow(
-
         pointsOrIssues: pointsOrIssues,
-        discussedWith:discussedWith,
-        decisionTaken:decisionTaken,
+        discussedWith: discussedWith,
+        decisionTaken: decisionTaken,
         responsibility: responsibility,
-        statusOrRemark:statusOrRemark,
-        targetDate:targetDate,
-        nextDate:nextDate,
-
+        statusOrRemark: statusOrRemark,
+        targetDate: targetDate,
+        nextDate: nextDate,
       ));
-
     });
   }
 
@@ -160,25 +144,7 @@ class _AdminSideMinutesOfTheMeetingFormScreenState extends State<AdminSideMinute
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-
       appBar: AppBar(
-        /*    leading: IconButton(
-              icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
-              onPressed: () =>
-              (Navigator.canPop(context)) ? Navigator.pop(context) : Navigator
-                  .pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                      builder: (_) =>
-                          BlocProvider(
-                              create: (context) {
-                                return MainBloc(
-                                    webService: WebService());
-                              },
-                              child: AdminHomeScreen())))
-
-          ),*/
-
           title: const Text("Minutes Of The Meeting Form"),
           backgroundColor: MyColors.lightBlue,
           centerTitle: true,
@@ -187,16 +153,11 @@ class _AdminSideMinutesOfTheMeetingFormScreenState extends State<AdminSideMinute
             fontSize: 18.0,
           ).copyWith(
             color: Colors.white,
-          )
-      ),
-
-
-      body:
-      WillPopScope(
+          )),
+      body: WillPopScope(
         onWillPop: () async {
           /*   Navigator.pop(context, {"FilterAlert":false});
             return false;*/
-
 
           if (Navigator.canPop(context)) {
             Navigator.pop(context);
@@ -206,121 +167,12 @@ class _AdminSideMinutesOfTheMeetingFormScreenState extends State<AdminSideMinute
 
             print("Else Navigatorrrrrrrrrrrrr");
 
-            /*  Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                    builder: (_) =>
-                        BlocProvider(
-                            create: (context) {
-                              return MainBloc(
-                                  webService: WebService());
-                            },
-                            child: HomeScreen())));*/
             return false; // Prevent the app from closing
           }
           return true;
         },
-        child:
-        _addForm(),),
-      /* bottomNavigationBar: BottomAppBar(
-        child: SizedBox(
-          height: 70,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _gatepassdatecontroller.clear();
-                    gatePasstype = "Select";
-                    gatePassReason = "Select";
-                    ClickStatus = false;
-                    fromTimeInput.text = "";
-                    toTimeInput.text = "";
-                  });
-                },
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.phonelink_erase_rounded,
-                      color: MyColors.text4ColorCode,
-                    ),
-                    Text("Clear",
-                        style: TextStyle(
-                            color: MyColors.text4ColorCode,
-                            decoration: TextDecoration.underline,
-                            fontSize: 20)),
-                  ],
-                ),
-              ),
-              GestureDetector(
-                onTap: () {
-                  if (Navigator.canPop(context)) {
-                    Navigator.pop(context);
-                    print(" Navigatorrrrrrrrrrrrr");
-                  } else {
-                    // You can also handle custom back button logic here
-                    // For example, exit the app, show a confirmation dialog, etc.
-
-                    print("Else Navigatorrrrrrrrrrrrr");
-
-                    Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                            builder: (_) =>
-                                BlocProvider(
-                                    create: (context) {
-                                      return MainBloc(
-                                          webService: WebService());
-                                    },
-                                    child: GatePass()))
-                    );
-                    // Prevent the app from closing
-                  }
-                },
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.close, size: 25, color: MyColors.text4ColorCode),
-                    Text(
-                      "Cancel",
-                      style: TextStyle(
-                          color: MyColors.text4ColorCode,
-                          decoration: TextDecoration.underline,
-                          fontSize: 20),
-                    ),
-                  ],
-                ),
-              ),
-              GestureDetector(
-                onTap: () {
-                  _validation();
-                },
-                child: Container(
-                  alignment: Alignment.center,
-                  width: 148,
-                  height: 56,
-                  margin: const EdgeInsets.only(left: 15),
-                  padding: const EdgeInsets.only(
-                      top: 6.0, bottom: 6, left: 20, right: 20),
-                  decoration: BoxDecoration(
-                      color: MyColors.blueColorCode,
-                      borderRadius: BorderRadius.all(Radius.circular(10)),
-                      border:
-                      Border.all(color: MyColors.textBoxBorderColorCode)),
-                  child: Text(
-                    "Save",
-                    style:
-                    TextStyle(color: MyColors.whiteColorCode, fontSize: 20),
-                  ),
-                ),
-              )
-            ],
-          ),
-        ),
-      ),*/
+        child: _addForm(),
+      ),
     );
   }
 
@@ -339,8 +191,8 @@ class _AdminSideMinutesOfTheMeetingFormScreenState extends State<AdminSideMinute
             setState(() {
               _isLoading = true;
             });
-          }
-          else if (state is GetMinutesOfTheMeetingAllDataByVisitSrNoLoadedState) {
+          } else if (state
+              is GetMinutesOfTheMeetingAllDataByVisitSrNoLoadedState) {
             setState(() {
               _isLoading = false;
             });
@@ -350,26 +202,25 @@ class _AdminSideMinutesOfTheMeetingFormScreenState extends State<AdminSideMinute
               toastLength: Toast.LENGTH_SHORT,
               timeInSecForIosWeb: 1,
             );
-
+            final item = state
+                .getMinutesOfTheMeetingAllDataByVisitSrNoResponse.data!.first;
             setState(() {
-              if(state.getMinutesOfTheMeetingAllDataByVisitSrNoResponse!.message!.isNotEmpty)
-              {
-                _gatepassdatecontroller.text=state.getMinutesOfTheMeetingAllDataByVisitSrNoResponse.message!.first!.date!;
-                _memberAbsentController.text=state.getMinutesOfTheMeetingAllDataByVisitSrNoResponse.message!.first!.memberAbsent!;
-                _memberPresentController.text=state.getMinutesOfTheMeetingAllDataByVisitSrNoResponse.message!.first!.memberPresent!;
-                _subjectController.text=state.getMinutesOfTheMeetingAllDataByVisitSrNoResponse.message!.first!.subject!;
-                fromTimeInput.text=state.getMinutesOfTheMeetingAllDataByVisitSrNoResponse.message!.first!.time!;
-
+              if (state.getMinutesOfTheMeetingAllDataByVisitSrNoResponse!
+                  .message!.isNotEmpty) {
+                _gatepassdatecontroller.text = item.meetingData!.date!;
+                _memberAbsentController.text = item.meetingData!.memberAbsent!;
+                _memberPresentController.text =
+                    item.meetingData!.memberPresent!;
+                _subjectController.text = item.meetingData!.subject!;
+                fromTimeInput.text = item.meetingData!.time!;
+                customerNameController.text = item.customerName ?? "";
               }
             });
-
-
-          }
-          else if (state is GetMinutesOfTheMeetingAllDataByVisitSrNoErrorState) {
+          } else if (state
+              is GetMinutesOfTheMeetingAllDataByVisitSrNoErrorState) {
             setState(() {
               _isLoading = false;
             });
-
           }
 //GetMinutesOfTheMeetingDataByVisitSrNoEvents
 
@@ -378,9 +229,8 @@ class _AdminSideMinutesOfTheMeetingFormScreenState extends State<AdminSideMinute
               _isLoading = true;
             });
             print("GetMinutesOfTheMeetingDataByVisitSrNoLoadingState ");
-
-          }
-          else if (state is GetMinutesOfTheMeetingDataByVisitSrNoLoadedState) {
+          } else if (state
+              is GetMinutesOfTheMeetingDataByVisitSrNoLoadedState) {
             setState(() {
               _isLoading = false;
             });
@@ -391,50 +241,42 @@ class _AdminSideMinutesOfTheMeetingFormScreenState extends State<AdminSideMinute
               timeInSecForIosWeb: 1,
             );
 
-            listofRows.addAll(state.getMinutesOfTheMeetingDataByVisitSrNoResponse!.message!);
+            listofRows.addAll(
+                state.getMinutesOfTheMeetingDataByVisitSrNoResponse!.message!);
 
-            String? pointsOrIssues="";
-            String? discussedWith="";
-            String? decisionTaken="";
-            String? responsibility="";
-            String? statusOrRemark="";
-            String? targetDate="";
-            String? nextDate="";
-            print("listofRows size..."+listofRows.length.toString());
-            if(listofRows.length>0)
-            {
-              for(int i=0;i<listofRows.length;i++)
-              {
-                pointsOrIssues=listofRows[i].pointsOrIssues!;
-                discussedWith=listofRows[i].disccussedwith!;
-                decisionTaken=listofRows[i].decisionTaken!;
-                responsibility=listofRows[i].responsibility!;
-                statusOrRemark=listofRows[i].statusOrRemark!;
-                targetDate=listofRows[i].targateDate!;
-                nextDate=listofRows[i].nextDate!;
-                addRow(pointsOrIssues,discussedWith,decisionTaken,responsibility,statusOrRemark,
-                    targetDate,nextDate,i);
+            String? pointsOrIssues = "";
+            String? discussedWith = "";
+            String? decisionTaken = "";
+            String? responsibility = "";
+            String? statusOrRemark = "";
+            String? targetDate = "";
+            String? nextDate = "";
+            print("listofRows size..." + listofRows.length.toString());
+            if (listofRows.length > 0) {
+              for (int i = 0; i < listofRows.length; i++) {
+                pointsOrIssues = listofRows[i].pointsOrIssues!;
+                discussedWith = listofRows[i].disccussedwith!;
+                decisionTaken = listofRows[i].decisionTaken!;
+                responsibility = listofRows[i].responsibility!;
+                statusOrRemark = listofRows[i].statusOrRemark!;
+                targetDate = listofRows[i].targateDate!;
+                nextDate = listofRows[i].nextDate!;
+                addRow(pointsOrIssues, discussedWith, decisionTaken,
+                    responsibility, statusOrRemark, targetDate, nextDate, i);
               }
-
             }
-
-
-          }
-          else if (state is GetMinutesOfTheMeetingDataByVisitSrNoErrorState) {
+          } else if (state is GetMinutesOfTheMeetingDataByVisitSrNoErrorState) {
             setState(() {
               _isLoading = false;
             });
-
           }
         },
-        child:
-        SingleChildScrollView(
+        child: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.only(
                 top: 20.0, left: 15, right: 15, bottom: 20),
             child: Column(
               children: [
-
                 Align(
                     alignment: Alignment.centerLeft,
                     child: Padding(
@@ -468,8 +310,8 @@ class _AdminSideMinutesOfTheMeetingFormScreenState extends State<AdminSideMinute
                     fillColor: MyColors.whiteColorCode,
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(4)),
-                      borderSide: BorderSide(
-                          width: 1, color: MyColors.buttonColorCode),
+                      borderSide:
+                          BorderSide(width: 1, color: MyColors.buttonColorCode),
                     ),
                     disabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(4)),
@@ -482,26 +324,22 @@ class _AdminSideMinutesOfTheMeetingFormScreenState extends State<AdminSideMinute
                     ),
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(4)),
-                        borderSide: BorderSide(width: 1,)
-                    ),
+                        borderSide: BorderSide(
+                          width: 1,
+                        )),
                     errorBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(4)),
                         borderSide: BorderSide(
-                            width: 1, color: MyColors.textBoxBorderColorCode)
-                    ),
+                            width: 1, color: MyColors.textBoxBorderColorCode)),
                     focusedErrorBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(4)),
                         borderSide: BorderSide(
-                            width: 2, color: MyColors.buttonColorCode)
-                    ),
+                            width: 2, color: MyColors.buttonColorCode)),
                     hintText: "DD/MM/YYYY",
-                    suffixIcon:
-                    Icon(
-                      Icons
-                          .calendar_month,
+                    suffixIcon: Icon(
+                      Icons.calendar_month,
                       size: 24,
-                      color: MyColors
-                          .dateIconColorCode,
+                      color: MyColors.dateIconColorCode,
                     ),
                     hintStyle: TextStyle(
                         fontSize: 16, color: MyColors.datePlacehoderColorCode),
@@ -536,156 +374,82 @@ class _AdminSideMinutesOfTheMeetingFormScreenState extends State<AdminSideMinute
                     )),
                 Padding(
                   padding: const EdgeInsets.only(left: 4.0),
-                  child:
-                  TextField(
+                  child: TextField(
                     // onChanged: (value) {
                     //   fromTimeController = value;
                     // },
                     onTap: () async {
-                      final DateFormat
-                      formatter =
-                      DateFormat(
-                          'H:mm',
-                          Localizations.localeOf(
-                              context)
-                              .toLanguageTag());
-                      final TimeOfDay? picked =
-                      await showTimePicker(
-                          context:
-                          context,
-                          initialTime:
-                          TimeOfDay
-                              .now());
+                      final DateFormat formatter = DateFormat('H:mm',
+                          Localizations.localeOf(context).toLanguageTag());
+                      final TimeOfDay? picked = await showTimePicker(
+                          context: context, initialTime: TimeOfDay.now());
                       builder:
-                          (BuildContext
-                      context,
-                          Widget? child) {
+                      (BuildContext context, Widget? child) {
                         return MediaQuery(
-                            data: MediaQuery.of(
-                                context)
-                                .copyWith(
-                                alwaysUse24HourFormat:
-                                true),
-                            child:
-                            child!);
+                            data: MediaQuery.of(context)
+                                .copyWith(alwaysUse24HourFormat: true),
+                            child: child!);
                       };
-                      if (picked !=
-                          null) {
-                        final String
-                        fromTime =
-                        formatter.format(
-                            DateTime(
-                                0,
-                                1,
-                                1,
-                                picked
-                                    .hour,
-                                picked
-                                    .minute));
-                        fromTimeController =
-                            fromTime;
+                      if (picked != null) {
+                        final String fromTime = formatter.format(
+                            DateTime(0, 1, 1, picked.hour, picked.minute));
+                        fromTimeController = fromTime;
                         setState(() {
-                          fromTimeInput
-                              .text =
-                              fromTimeController;
+                          fromTimeInput.text = fromTimeController;
                         });
                       }
                     },
                     readOnly: true,
-                    enabled:
-                    false,
+                    enabled: false,
                     // to trigger disabledBorder
-                    decoration:
-                    const InputDecoration(
+                    decoration: const InputDecoration(
                       filled: true,
-                      fillColor: MyColors
-                          .whiteColorCode,
-                      focusedBorder:
-                      OutlineInputBorder(
-                        borderRadius:
-                        BorderRadius
-                            .all(Radius
-                            .circular(
-                            4)),
+                      fillColor: MyColors.whiteColorCode,
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(4)),
                         borderSide: BorderSide(
-                            width: 1,
-                            color: MyColors
-                                .buttonColorCode),
+                            width: 1, color: MyColors.buttonColorCode),
                       ),
-                      disabledBorder:
-                      OutlineInputBorder(
-                        borderRadius:
-                        BorderRadius
-                            .all(Radius
-                            .circular(
-                            4)),
-                        borderSide: BorderSide(
-                            width: 1,
-                            color: Colors
-                                .orange),
+                      disabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(4)),
+                        borderSide: BorderSide(width: 1, color: Colors.orange),
                       ),
-                      enabledBorder:
-                      OutlineInputBorder(
-                        borderRadius:
-                        BorderRadius
-                            .all(Radius
-                            .circular(
-                            4)),
-                        borderSide: BorderSide(
-                            width: 1,
-                            color: MyColors
-                                .textColorCode),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(4)),
+                        borderSide:
+                            BorderSide(width: 1, color: MyColors.textColorCode),
                       ),
-                      border:
-                      OutlineInputBorder(
-                          borderRadius:
-                          BorderRadius.all(Radius.circular(
-                              4)),
-                          borderSide:
-                          BorderSide(
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(4)),
+                          borderSide: BorderSide(
                             width: 1,
                           )),
                       errorBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius
-                              .all(Radius
-                              .circular(
-                              4)),
+                          borderRadius: BorderRadius.all(Radius.circular(4)),
                           borderSide: BorderSide(
                               width: 1,
-                              color: MyColors
-                                  .textBoxBorderColorCode)),
+                              color: MyColors.textBoxBorderColorCode)),
                       focusedErrorBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius
-                              .all(Radius
-                              .circular(
-                              4)),
+                          borderRadius: BorderRadius.all(Radius.circular(4)),
                           borderSide: BorderSide(
-                              width: 2,
-                              color: MyColors
-                                  .buttonColorCode)),
-                      hintText:
-                      "hh:mm:AM",
-                      suffixIcon:
-                      Icon(
-                        Icons
-                            .watch_later_outlined,
+                              width: 2, color: MyColors.buttonColorCode)),
+                      hintText: "hh:mm:AM",
+                      suffixIcon: Icon(
+                        Icons.watch_later_outlined,
                         size: 24,
-                        color: MyColors
-                            .dateIconColorCode,
+                        color: MyColors.dateIconColorCode,
                       ),
                       hintStyle: TextStyle(
-                          fontSize: 18,
-                          color: MyColors
-                              .searchTextColorCode),
+                          fontSize: 18, color: MyColors.searchTextColorCode),
                       errorText: "",
                     ),
-                    controller:
-                    fromTimeInput,
+                    controller: fromTimeInput,
                     // controller: _passwordController,
                     // onChanged: _authenticationFormBloc.onPasswordChanged,
                     obscureText: false,
                     style: TextStyle(
-                      color: Colors.black, // Change this to any color you prefer
+                      color:
+                          Colors.black, // Change this to any color you prefer
                     ),
                   ),
                 ),
@@ -711,14 +475,15 @@ class _AdminSideMinutesOfTheMeetingFormScreenState extends State<AdminSideMinute
                     )),
                 TextField(
                   controller: _subjectController,
-                  enabled: false, // to trigger disabledBorder
+                  enabled: false,
+                  // to trigger disabledBorder
                   decoration: InputDecoration(
                     filled: true,
                     fillColor: MyColors.whiteColorCode,
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(4)),
                       borderSide:
-                      BorderSide(width: 1, color: MyColors.buttonColorCode),
+                          BorderSide(width: 1, color: MyColors.buttonColorCode),
                     ),
                     disabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(4)),
@@ -777,14 +542,15 @@ class _AdminSideMinutesOfTheMeetingFormScreenState extends State<AdminSideMinute
                     )),
                 TextField(
                   controller: _memberPresentController,
-                  enabled: false, // to trigger disabledBorder
+                  enabled: false,
+                  // to trigger disabledBorder
                   decoration: InputDecoration(
                     filled: true,
                     fillColor: MyColors.whiteColorCode,
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(4)),
                       borderSide:
-                      BorderSide(width: 1, color: MyColors.buttonColorCode),
+                          BorderSide(width: 1, color: MyColors.buttonColorCode),
                     ),
                     disabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(4)),
@@ -842,14 +608,15 @@ class _AdminSideMinutesOfTheMeetingFormScreenState extends State<AdminSideMinute
                     )),
                 TextField(
                   controller: _memberAbsentController,
-                  enabled: false, // to trigger disabledBorder
+                  enabled: false,
+                  // to trigger disabledBorder
                   decoration: InputDecoration(
                     filled: true,
                     fillColor: MyColors.whiteColorCode,
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(4)),
                       borderSide:
-                      BorderSide(width: 1, color: MyColors.buttonColorCode),
+                          BorderSide(width: 1, color: MyColors.buttonColorCode),
                     ),
                     disabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(4)),
@@ -886,6 +653,73 @@ class _AdminSideMinutesOfTheMeetingFormScreenState extends State<AdminSideMinute
                   ),
                 ),
 
+                Align(
+                    alignment: Alignment.centerLeft,
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Row(
+                        children: [
+                          Text(
+                            "Client Name",
+                            style: TextStyle(fontSize: 18),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(left: 3.0),
+                            child: Text("*",
+                                style: TextStyle(
+                                    fontSize: 18,
+                                    color: MyColors.redColorCode)),
+                          )
+                        ],
+                      ),
+                    )),
+                TextField(
+                  controller: customerNameController,
+                  enabled: false,
+                  // to trigger disabledBorder
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: MyColors.whiteColorCode,
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(4)),
+                      borderSide:
+                          BorderSide(width: 1, color: MyColors.buttonColorCode),
+                    ),
+                    disabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(4)),
+                      borderSide: BorderSide(width: 1, color: Colors.orange),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(4)),
+                      borderSide: BorderSide(
+                          width: 1, color: MyColors.textBoxBorderColorCode),
+                    ),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(4)),
+                        borderSide: BorderSide(
+                          width: 1,
+                        )),
+                    errorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(4)),
+                        borderSide: BorderSide(
+                            width: 1, color: MyColors.textBoxBorderColorCode)),
+                    focusedErrorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(4)),
+                        borderSide: BorderSide(
+                            width: 2, color: MyColors.buttonColorCode)),
+                    // hintText: "HintText",
+                    hintStyle: TextStyle(
+                        fontSize: 16, color: MyColors.textBoxColorCode),
+                    errorText: "",
+                  ),
+                  style: TextStyle(
+                    color: Colors.black, // Change this to any color you prefer
+                  ),
+                  // controller: _passwordController,
+                  // onChanged: _authenticationFormBloc.onPasswordChanged,
+                  obscureText: false,
+                ),
+
                 ////////////////////////////
                 /*  SingleChildScrollView(
                   scrollDirection: Axis.vertical, // Horizontal scroll
@@ -897,8 +731,7 @@ class _AdminSideMinutesOfTheMeetingFormScreenState extends State<AdminSideMinute
                 //   ),
                 //    ),
                 Container(
-                  width: MediaQuery
-                      .of(context)
+                  width: MediaQuery.of(context)
                       .size
                       .width, // You can adjust the width of each row
                   padding: const EdgeInsets.all(8),
@@ -906,92 +739,62 @@ class _AdminSideMinutesOfTheMeetingFormScreenState extends State<AdminSideMinute
                     border: Border.all(color: Colors.grey),
                     borderRadius: BorderRadius.circular(4),
                   ),
-                  child:
-
-
-                  Column(
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-
-
                     children: [
-
-
                       SizedBox(height: 8),
-
                       SingleChildScrollView(
                           scrollDirection: Axis.horizontal,
                           // Horizontal scrolling for the Row
-                          child:
-                          Column(
+                          child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-
                               Row(
                                 children: [
-
                                   SizedBox(
                                     width: 180, // Adjust the width as needed
                                     child: _buildDynamicTextField(
                                         "Field 1", textFieldController1),
-
                                   ),
                                   SizedBox(
                                     width: 200, // Adjust the width as needed
-                                    child:
-                                    _buildDynamicTextField(
+                                    child: _buildDynamicTextField(
                                         "Field 2", textFieldController2),
                                   ),
                                   SizedBox(
                                     width: 300, // Adjust the width as needed
-                                    child:
-                                    _buildDynamicTextField(
+                                    child: _buildDynamicTextField(
                                         "Field 3", textFieldController3),
                                   ),
                                   SizedBox(
                                     width: 200, // Adjust the width as needed
-                                    child:
-                                    _buildDynamicTextField(
+                                    child: _buildDynamicTextField(
                                         "Field 4", textFieldController4),
                                   ),
                                   SizedBox(
                                     width: 200, // Adjust the width as needed
-                                    child:
-                                    _buildDynamicTextField(
-                                        "Field 5", textFieldController5),),
+                                    child: _buildDynamicTextField(
+                                        "Field 5", textFieldController5),
+                                  ),
                                   SizedBox(
                                     width: 150, // Adjust the width as needed
                                     child: _buildDynamicTextField(
                                         "POINT/ISSUE", dateController1),
                                   ),
-
                                   SizedBox(
                                     width: 200, // Adjust the width as needed
 
-
                                     child: _buildDynamicTextField(
                                         "Field 5", dateController2),
-
                                   ),
-
                                 ],
-
                               ),
                               ...dynamicRows,
-
-
                             ],
-                          )
-
-
-                      ),
-
+                          )),
                     ],
                   ),
-
-
                 ),
-
-
               ],
             ),
           ),
@@ -1000,20 +803,18 @@ class _AdminSideMinutesOfTheMeetingFormScreenState extends State<AdminSideMinute
     );
   }
 
-  Widget _buildDynamicTextField(String label,
-      TextEditingController controller) {
+  Widget _buildDynamicTextField(
+      String label, TextEditingController controller) {
     return TextField(
       controller: controller,
       enabled: false,
       // to trigger disabledBorder
-      decoration:
-      InputDecoration(
+      decoration: InputDecoration(
         filled: true,
         fillColor: MyColors.textFieldBackgroundColorCode,
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(4)),
-          borderSide:
-          BorderSide(width: 1, color: MyColors.buttonColorCode),
+          borderSide: BorderSide(width: 1, color: MyColors.buttonColorCode),
         ),
         disabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(4)),
@@ -1021,8 +822,8 @@ class _AdminSideMinutesOfTheMeetingFormScreenState extends State<AdminSideMinute
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(4)),
-          borderSide: BorderSide(
-              width: 1, color: MyColors.textBoxBorderColorCode),
+          borderSide:
+              BorderSide(width: 1, color: MyColors.textBoxBorderColorCode),
         ),
         border: OutlineInputBorder(
             borderRadius: BorderRadius.all(Radius.circular(4)),
@@ -1031,15 +832,13 @@ class _AdminSideMinutesOfTheMeetingFormScreenState extends State<AdminSideMinute
             )),
         errorBorder: OutlineInputBorder(
             borderRadius: BorderRadius.all(Radius.circular(4)),
-            borderSide: BorderSide(
-                width: 1, color: MyColors.textBoxBorderColorCode)),
+            borderSide:
+                BorderSide(width: 1, color: MyColors.textBoxBorderColorCode)),
         focusedErrorBorder: OutlineInputBorder(
             borderRadius: BorderRadius.all(Radius.circular(4)),
-            borderSide: BorderSide(
-                width: 2, color: MyColors.buttonColorCode)),
+            borderSide: BorderSide(width: 2, color: MyColors.buttonColorCode)),
         // hintText: "HintText",
-        hintStyle: TextStyle(
-            fontSize: 16, color: MyColors.black),
+        hintStyle: TextStyle(fontSize: 16, color: MyColors.black),
         errorText: "",
       ),
       style: TextStyle(
@@ -1052,9 +851,6 @@ class _AdminSideMinutesOfTheMeetingFormScreenState extends State<AdminSideMinute
     );
   }
 
-
-
-
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -1065,22 +861,23 @@ class _AdminSideMinutesOfTheMeetingFormScreenState extends State<AdminSideMinute
     if (picked != null && picked != selectedDate) {
       setState(() {
         selectedDate = picked;
-        _gatepassdatecontroller.text =
-            selectedDate.day.toString() + "/" + selectedDate.month.toString() +
-                "/" + selectedDate.year.toString();
-        date =
-            selectedDate.year.toString() + "-" + selectedDate.month.toString() +
-                "-" + selectedDate.day.toString();
+        _gatepassdatecontroller.text = selectedDate.day.toString() +
+            "/" +
+            selectedDate.month.toString() +
+            "/" +
+            selectedDate.year.toString();
+        date = selectedDate.year.toString() +
+            "-" +
+            selectedDate.month.toString() +
+            "-" +
+            selectedDate.day.toString();
       });
     }
   }
-
 }
 
 class DynamicRow extends StatefulWidget {
 //  final VoidCallback onDelete;
-
-
 
   String pointsOrIssues;
   String discussedWith;
@@ -1090,20 +887,17 @@ class DynamicRow extends StatefulWidget {
   String targetDate;
   String nextDate;
 
+  DynamicRow(
+      {Key? key,
+      required this.pointsOrIssues,
+      required this.discussedWith,
+      required this.decisionTaken,
+      required this.responsibility,
+      required this.statusOrRemark,
+      required this.targetDate,
+      required this.nextDate})
+      : super(key: key);
 
-
-  DynamicRow({Key? key
-    ,required this.pointsOrIssues,
-    required this.discussedWith,
-    required this.decisionTaken,
-    required this.responsibility,
-    required this.statusOrRemark,
-    required this.targetDate
-    ,required this.nextDate
-
-
-
-  }) : super(key: key);
   @override
   _DynamicRowState createState() => _DynamicRowState();
 }
@@ -1116,6 +910,7 @@ class _DynamicRowState extends State<DynamicRow> {
   TextEditingController textFieldController3 = TextEditingController();
   TextEditingController textFieldController4 = TextEditingController();
   TextEditingController textFieldController5 = TextEditingController();
+
   Map<String, String> getRowData() {
     return {
       'pointsOrIssues': textFieldController1.text,
@@ -1128,17 +923,15 @@ class _DynamicRowState extends State<DynamicRow> {
     };
   }
 
-
   @override
   void initState() {
-    textFieldController1.text=widget.pointsOrIssues;
-    textFieldController2.text=widget.discussedWith;
-    textFieldController3.text=widget.decisionTaken;
-    textFieldController4.text=widget.responsibility;
-    textFieldController5.text=widget.statusOrRemark;
-    dateController1.text=widget.targetDate;
-    dateController2.text=widget.nextDate;
-
+    textFieldController1.text = widget.pointsOrIssues;
+    textFieldController2.text = widget.discussedWith;
+    textFieldController3.text = widget.decisionTaken;
+    textFieldController4.text = widget.responsibility;
+    textFieldController5.text = widget.statusOrRemark;
+    dateController1.text = widget.targetDate;
+    dateController2.text = widget.nextDate;
   }
 
   @override
@@ -1149,7 +942,8 @@ class _DynamicRowState extends State<DynamicRow> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SingleChildScrollView(
-            scrollDirection: Axis.horizontal, // Horizontal scrolling for the Row
+            scrollDirection: Axis.horizontal,
+            // Horizontal scrolling for the Row
             child: Row(
               children: [
                 // No need for SizedBox or Expanded here, just use TextField directly
@@ -1157,23 +951,28 @@ class _DynamicRowState extends State<DynamicRow> {
                 // Removing Expanded from here
                 SizedBox(
                   width: 180,
-                  child: _buildDynamicTextField("Field 1", textFieldController1),
+                  child:
+                      _buildDynamicTextField("Field 1", textFieldController1),
                 ),
                 SizedBox(
                   width: 200,
-                  child: _buildDynamicTextField("Field 2", textFieldController2),
+                  child:
+                      _buildDynamicTextField("Field 2", textFieldController2),
                 ),
                 SizedBox(
                   width: 300,
-                  child: _buildDynamicTextField("Field 3", textFieldController3),
+                  child:
+                      _buildDynamicTextField("Field 3", textFieldController3),
                 ),
                 SizedBox(
                   width: 200,
-                  child: _buildDynamicTextField("Field 4", textFieldController4),
+                  child:
+                      _buildDynamicTextField("Field 4", textFieldController4),
                 ),
                 SizedBox(
                   width: 200,
-                  child: _buildDynamicTextField("Field 5", textFieldController5),
+                  child:
+                      _buildDynamicTextField("Field 5", textFieldController5),
                 ),
                 SizedBox(
                   width: 150, // Adjust the width as needed
@@ -1183,13 +982,15 @@ class _DynamicRowState extends State<DynamicRow> {
                     onTap: () {
                       FocusScope.of(context).requestFocus(FocusNode());
                       _selectDate(context, dateController1);
-                    }, // to trigger disabledBorder
+                    },
+                    // to trigger disabledBorder
                     decoration: InputDecoration(
                       filled: true,
                       fillColor: MyColors.whiteColorCode,
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(4)),
-                        borderSide: BorderSide(width: 1, color: MyColors.buttonColorCode),
+                        borderSide: BorderSide(
+                            width: 1, color: MyColors.buttonColorCode),
                       ),
                       disabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(4)),
@@ -1197,7 +998,8 @@ class _DynamicRowState extends State<DynamicRow> {
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(4)),
-                        borderSide: BorderSide(width: 1, color: MyColors.textBoxBorderColorCode),
+                        borderSide: BorderSide(
+                            width: 1, color: MyColors.textBoxBorderColorCode),
                       ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(4)),
@@ -1205,11 +1007,13 @@ class _DynamicRowState extends State<DynamicRow> {
                       ),
                       errorBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(4)),
-                        borderSide: BorderSide(width: 1, color: MyColors.textBoxBorderColorCode),
+                        borderSide: BorderSide(
+                            width: 1, color: MyColors.textBoxBorderColorCode),
                       ),
                       focusedErrorBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(4)),
-                        borderSide: BorderSide(width: 2, color: MyColors.buttonColorCode),
+                        borderSide: BorderSide(
+                            width: 2, color: MyColors.buttonColorCode),
                       ),
                       hintText: "DD/MM/YYYY",
                       suffixIcon: Icon(
@@ -1217,9 +1021,14 @@ class _DynamicRowState extends State<DynamicRow> {
                         size: 24,
                         color: MyColors.dateIconColorCode,
                       ),
-                      hintStyle: TextStyle(fontSize: 16, color: MyColors.datePlacehoderColorCode),
+                      hintStyle: TextStyle(
+                          fontSize: 16,
+                          color: MyColors.datePlacehoderColorCode),
                       errorText: "",
-                      contentPadding: EdgeInsets.symmetric(vertical: 30.0, horizontal: 10.0), // Increase vertical padding to increase height
+                      contentPadding: EdgeInsets.symmetric(
+                          vertical: 30.0,
+                          horizontal:
+                              10.0), // Increase vertical padding to increase height
                     ),
                     obscureText: false,
                   ),
@@ -1238,7 +1047,8 @@ class _DynamicRowState extends State<DynamicRow> {
                       fillColor: MyColors.whiteColorCode,
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(4)),
-                        borderSide: BorderSide(width: 1, color: MyColors.buttonColorCode),
+                        borderSide: BorderSide(
+                            width: 1, color: MyColors.buttonColorCode),
                       ),
                       disabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(4)),
@@ -1246,7 +1056,8 @@ class _DynamicRowState extends State<DynamicRow> {
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(4)),
-                        borderSide: BorderSide(width: 1, color: MyColors.textBoxBorderColorCode),
+                        borderSide: BorderSide(
+                            width: 1, color: MyColors.textBoxBorderColorCode),
                       ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(4)),
@@ -1254,11 +1065,13 @@ class _DynamicRowState extends State<DynamicRow> {
                       ),
                       errorBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(4)),
-                        borderSide: BorderSide(width: 1, color: MyColors.textBoxBorderColorCode),
+                        borderSide: BorderSide(
+                            width: 1, color: MyColors.textBoxBorderColorCode),
                       ),
                       focusedErrorBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(4)),
-                        borderSide: BorderSide(width: 2, color: MyColors.buttonColorCode),
+                        borderSide: BorderSide(
+                            width: 2, color: MyColors.buttonColorCode),
                       ),
                       hintText: "DD/MM/YYYY",
                       suffixIcon: Icon(
@@ -1266,14 +1079,16 @@ class _DynamicRowState extends State<DynamicRow> {
                         size: 24,
                         color: MyColors.dateIconColorCode,
                       ),
-                      hintStyle: TextStyle(fontSize: 16, color: MyColors.datePlacehoderColorCode),
+                      hintStyle: TextStyle(
+                          fontSize: 16,
+                          color: MyColors.datePlacehoderColorCode),
                       errorText: "",
-                      contentPadding: EdgeInsets.symmetric(vertical: 30.0, horizontal: 10.0),
+                      contentPadding: EdgeInsets.symmetric(
+                          vertical: 30.0, horizontal: 10.0),
                     ),
                     obscureText: false,
                   ),
                 ),
-
               ],
             ),
           ),
@@ -1283,8 +1098,8 @@ class _DynamicRowState extends State<DynamicRow> {
   }
 
   // Method to open a date picker
-  void _selectDate(BuildContext context,
-      TextEditingController controller) async {
+  void _selectDate(
+      BuildContext context, TextEditingController controller) async {
     DateTime? pickedDate = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
@@ -1298,46 +1113,45 @@ class _DynamicRowState extends State<DynamicRow> {
     }
   }
 
-  Widget _buildDynamicTextField(String label, TextEditingController controller) {
-    return
-
-      TextField(
-        controller: controller,
-        enabled: false, // to trigger disabledBorder
-        decoration: InputDecoration(
-          filled: true,
-          fillColor: MyColors.whiteColorCode,
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.all(Radius.circular(4)),
-            borderSide: BorderSide(width: 1, color: MyColors.buttonColorCode),
-          ),
-          disabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.all(Radius.circular(4)),
-            borderSide: BorderSide(width: 1, color: Colors.orange),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.all(Radius.circular(4)),
-            borderSide: BorderSide(width: 1, color: MyColors.textBoxBorderColorCode),
-          ),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.all(Radius.circular(4)),
-            borderSide: BorderSide(width: 1),
-          ),
-          errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.all(Radius.circular(4)),
-            borderSide: BorderSide(width: 1, color: MyColors.textBoxBorderColorCode),
-          ),
-          focusedErrorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.all(Radius.circular(4)),
-            borderSide: BorderSide(width: 2, color: MyColors.buttonColorCode),
-          ),
-          hintStyle: TextStyle(fontSize: 16, color: MyColors.black),
-          errorText: "",
-          contentPadding: EdgeInsets.symmetric(vertical: 30.0, horizontal: 10.0),
+  Widget _buildDynamicTextField(
+      String label, TextEditingController controller) {
+    return TextField(
+      controller: controller,
+      enabled: false, // to trigger disabledBorder
+      decoration: InputDecoration(
+        filled: true,
+        fillColor: MyColors.whiteColorCode,
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(4)),
+          borderSide: BorderSide(width: 1, color: MyColors.buttonColorCode),
         ),
-        obscureText: false,
-      );
-
+        disabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(4)),
+          borderSide: BorderSide(width: 1, color: Colors.orange),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(4)),
+          borderSide:
+              BorderSide(width: 1, color: MyColors.textBoxBorderColorCode),
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(4)),
+          borderSide: BorderSide(width: 1),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(4)),
+          borderSide:
+              BorderSide(width: 1, color: MyColors.textBoxBorderColorCode),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(4)),
+          borderSide: BorderSide(width: 2, color: MyColors.buttonColorCode),
+        ),
+        hintStyle: TextStyle(fontSize: 16, color: MyColors.black),
+        errorText: "",
+        contentPadding: EdgeInsets.symmetric(vertical: 30.0, horizontal: 10.0),
+      ),
+      obscureText: false,
+    );
   }
-
 }

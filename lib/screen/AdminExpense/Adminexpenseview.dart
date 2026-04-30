@@ -2,16 +2,15 @@ import 'dart:convert';
 import 'dart:io';
 // import 'dart:nativewrappers/_internal/vm/lib/typed_data_patch.dart';
 import 'dart:typed_data';
+
 import 'package:attendance_system_ios/bloc/main_bloc.dart';
 import 'package:attendance_system_ios/bloc/main_event.dart';
-import 'package:attendance_system_ios/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../bloc/main_state.dart';
 import '../../model/Expense/ViewexpenseAdmin.dart';
@@ -22,17 +21,13 @@ import '../../model/UsersList/GetAllusersListResponse.dart';
 class AdminexpenseView extends StatefulWidget {
   Message datum;
 
-  AdminexpenseView(
-      {
-        Key? key,
-        required this.datum,
-      })
-      : super(key: key);
+  AdminexpenseView({
+    Key? key,
+    required this.datum,
+  }) : super(key: key);
 
   @override
-  State<AdminexpenseView> createState() =>
-      _createadminexpensescreen();
-
+  State<AdminexpenseView> createState() => _createadminexpensescreen();
 }
 // --- NOTE ---
 // This file is a cleaned, refactored and UI-enhanced version of the
@@ -47,11 +42,14 @@ class _createadminexpensescreen extends State<AdminexpenseView> {
   final TextEditingController applieddateController = TextEditingController();
   final TextEditingController visitlocationController = TextEditingController();
   final TextEditingController visitpurposeController = TextEditingController();
-  final TextEditingController calculatedexpenseController = TextEditingController();
+  final TextEditingController calculatedexpenseController =
+      TextEditingController();
   final TextEditingController balanceamountController = TextEditingController();
   final TextEditingController srnoController = TextEditingController();
-  final TextEditingController expendituredateController = TextEditingController();
-  final TextEditingController expenditureamountController = TextEditingController();
+  final TextEditingController expendituredateController =
+      TextEditingController();
+  final TextEditingController expenditureamountController =
+      TextEditingController();
   final TextEditingController detailsController = TextEditingController();
   final TextEditingController documentController = TextEditingController();
 
@@ -70,7 +68,8 @@ class _createadminexpensescreen extends State<AdminexpenseView> {
   Future<void> getData() async {
     auth_token = await storage.read(key: 'Auth_Token');
     // Keep existing behaviour - dispatch event to load expenses
-    mainbloc.add(ShowexpenseAdmin(staffcode: widget.datum.staffCode!, token: auth_token!));
+    mainbloc.add(ShowexpenseAdmin(
+        staffcode: widget.datum.staffCode!, token: auth_token!));
   }
 
   @override
@@ -79,8 +78,7 @@ class _createadminexpensescreen extends State<AdminexpenseView> {
       appBar: AppBar(
           title: const Text('Expense Management'),
           elevation: 2,
-          backgroundColor: Colors.white24
-      ),
+          backgroundColor: Colors.white24),
       backgroundColor: Colors.grey[50],
       body: SafeArea(
         child: BlocBuilder<MainBloc, MainState>(
@@ -106,7 +104,8 @@ class _createadminexpensescreen extends State<AdminexpenseView> {
     );
   }
 
-  Widget _buildExpenseDetailsUI(BuildContext context, List<ViewExpenseModel> data) {
+  Widget _buildExpenseDetailsUI(
+      BuildContext context, List<ViewExpenseModel> data) {
     if (data.isEmpty) {
       Fluttertoast.showToast(
         msg: "No data available",
@@ -133,7 +132,8 @@ class _createadminexpensescreen extends State<AdminexpenseView> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
           child: Card(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             elevation: 3,
             child: Padding(
               padding: const EdgeInsets.all(14.0),
@@ -144,8 +144,13 @@ class _createadminexpensescreen extends State<AdminexpenseView> {
                     radius: 28,
                     backgroundColor: Colors.blue.shade100,
                     child: Text(
-                      (header?.staffName ?? "").isNotEmpty ? header!.staffName![0].toUpperCase() : "A",
-                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.blue),
+                      (header?.staffName ?? "").isNotEmpty
+                          ? header!.staffName![0].toUpperCase()
+                          : "A",
+                      style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -154,7 +159,8 @@ class _createadminexpensescreen extends State<AdminexpenseView> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(header?.staffName ?? 'Unknown Staff',
-                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                            style: const TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.bold)),
                         const SizedBox(height: 4),
                         Text('Staff Code: ${widget.datum.staffCode ?? "N/A"}',
                             style: const TextStyle(color: Colors.black87)),
@@ -163,7 +169,8 @@ class _createadminexpensescreen extends State<AdminexpenseView> {
                           children: [
                             Chip(
                               backgroundColor: Colors.green.shade50,
-                              label: Text(header?.todayDate ?? '', style: const TextStyle(color: Colors.green)),
+                              label: Text(header?.todayDate ?? '',
+                                  style: const TextStyle(color: Colors.green)),
                             ),
                             const SizedBox(width: 8),
                             /*Expanded(
@@ -187,7 +194,8 @@ class _createadminexpensescreen extends State<AdminexpenseView> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: const [
-              Text('Financial Details', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              Text('Financial Details',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             ],
           ),
         ),
@@ -212,7 +220,8 @@ class _createadminexpensescreen extends State<AdminexpenseView> {
     );
   }
 
-  Widget _buildExpenseCard(ExpenditureDetails? expDetails, FinancialDetails detail) {
+  Widget _buildExpenseCard(
+      ExpenditureDetails? expDetails, FinancialDetails detail) {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8.0),
       elevation: 2,
@@ -229,16 +238,24 @@ class _createadminexpensescreen extends State<AdminexpenseView> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(expDetails?.todayDate ?? '-', style: const TextStyle(fontSize: 15, color: Colors.black)),
+                      Text(expDetails?.todayDate ?? '-',
+                          style: const TextStyle(
+                              fontSize: 15, color: Colors.black)),
                       const SizedBox(height: 6),
-                      Text(expDetails?.visitPurpose ?? '-', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+                      Text(expDetails?.visitPurpose ?? '-',
+                          style: const TextStyle(
+                              fontSize: 15, fontWeight: FontWeight.w600)),
                     ],
                   ),
                 ),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text('₹ ${detail.amount?.toString() ?? '0'}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue)),
+                    Text('₹ ${detail.amount?.toString() ?? '0'}',
+                        style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue)),
                     const SizedBox(height: 6),
                     // Text(detail.expenditureDate ?? '-', style: const TextStyle(fontSize: 12, color: Colors.black45)),
                   ],
@@ -259,22 +276,26 @@ class _createadminexpensescreen extends State<AdminexpenseView> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 // left: sr no / id
-                Text('SrNo: ${detail.srNo ?? '-'}', style: const TextStyle(fontSize: 15, color: Colors.black)),
+                Text('SrNo: ${detail.srNo ?? '-'}',
+                    style: const TextStyle(fontSize: 15, color: Colors.black)),
                 // right: download
-                if (detail.document != null) ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                if (detail.document != null)
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8)),
+                    ),
+                    icon: const Icon(Icons.download, color: Colors.white),
+                    label: const Text('Download',
+                        style: TextStyle(color: Colors.white)),
+                    onPressed: () {
+                      String base64Data = detail.document!;
+                      String fileType = getFileExtensionFromBase64(base64Data);
+                      String fileName = 'downloaded_file.$fileType';
+                      downloadAndOpenFile(base64Data, fileName, fileType);
+                    },
                   ),
-                  icon: const Icon(Icons.download, color: Colors.white),
-                  label: const Text('Download', style: TextStyle(color: Colors.white)),
-                  onPressed: () {
-                    String base64Data = detail.document!;
-                    String fileType = getFileExtensionFromBase64(base64Data);
-                    String fileName = 'downloaded_file.$fileType';
-                    downloadAndOpenFile(base64Data, fileName, fileType);
-                  },
-                ),
               ],
             ),
           ],
@@ -283,9 +304,11 @@ class _createadminexpensescreen extends State<AdminexpenseView> {
     );
   }
 
-  Future<void> downloadAndOpenFile(String base64String, String fileName, String fileType) async {
+  Future<void> downloadAndOpenFile(
+      String base64String, String fileName, String fileType) async {
     try {
-      String normalizedBase64 = base64String.replaceAll("\n", "").replaceAll("\r", "");
+      String normalizedBase64 =
+          base64String.replaceAll("\n", "").replaceAll("\r", "");
       while (normalizedBase64.length % 4 != 0) {
         normalizedBase64 += "=";
       }
@@ -303,7 +326,9 @@ class _createadminexpensescreen extends State<AdminexpenseView> {
 
       if (fileTypeDetected == "pdf") {
         await OpenFile.open(filePath);
-      } else if (fileTypeDetected == "jpg" || fileTypeDetected == "jpeg" || fileTypeDetected == "png") {
+      } else if (fileTypeDetected == "jpg" ||
+          fileTypeDetected == "jpeg" ||
+          fileTypeDetected == "png") {
         await OpenFile.open(filePath);
       } else {
         Fluttertoast.showToast(
@@ -348,8 +373,6 @@ class _createadminexpensescreen extends State<AdminexpenseView> {
 
 // NOTE: The above file uses your existing models: AdminexpenseView, ViewExpenseModel,
 // ExpenditureDetails and FinancialDetails. Ensure they remain unchanged.
-
-
 
 /*class _createadminexpensescreen extends   State<AdminexpenseView>  {
 
@@ -622,7 +645,6 @@ class _createadminexpensescreen extends State<AdminexpenseView> {
 
 
 }*/
-
 
 // Widget buildFinancialDetailsForm(List<FinancialDetails?>? financialDetails) {
 //   if (financialDetails == null || financialDetails.isEmpty) {

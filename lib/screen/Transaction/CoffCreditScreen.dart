@@ -13,6 +13,7 @@ import 'package:loading_overlay/loading_overlay.dart';
 
 import '../../model/CoffCredit/FetchCoffTransactionsResponse.dart';
 import '../../util/MyColor.dart';
+import '../../util/custome_dialog.dart';
 
 class Coffcreditscreen extends StatefulWidget {
   const Coffcreditscreen({super.key});
@@ -193,7 +194,8 @@ class _CoffcreditscreenState extends State<Coffcreditscreen> {
               setState(() {
                 CoffList.clear();
               });
-
+              CustomDialog()
+                  .popUp(context, "Well done! Your DOff is Canceled....!!");
               // ✅ Fetch fresh data
               mainBloc.add(FetchCoffTransactionsEvents(
                   satffCode: staffCode!, token: Auth_Token!));
@@ -379,9 +381,9 @@ class _CoffcreditscreenState extends State<Coffcreditscreen> {
                                                           // padding: const EdgeInsets.only(left:15.0,right: 15,top: 4,bottom: 4),
                                                           onPressed: () {
                                                             // ✅ Close the dialog first
-                                                            Navigator.of(
-                                                                    context)
-                                                                .pop();
+                                                            // Navigator.of(
+                                                            //         context)
+                                                            //     .pop();
 
                                                             // ✅ Call delete API
                                                             mainBloc.add(

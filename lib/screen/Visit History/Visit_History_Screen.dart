@@ -4,7 +4,6 @@ import 'package:attendance_system_ios/bloc/main_state.dart';
 import 'package:attendance_system_ios/screen/Visit%20History/VisitHistoryTrack_Screen.dart';
 import 'package:attendance_system_ios/service/WebService.dart';
 import 'package:attendance_system_ios/util/MyColor.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -13,26 +12,27 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:jiffy/jiffy.dart';
 import 'package:loading_overlay/loading_overlay.dart';
+
 // import '../../model/CoffCredit/FetchCoffTransactionsResponse.dart';
 import '../../database/database_helper.dart';
 import '../../main.dart';
-import '../../model/VisitReport/VisitRecordsResponse.dart';
 import '../../model/VisitReport/VisitDetailedRecordsResponse.dart';
+import '../../model/VisitReport/VisitRecordsResponse.dart';
 import '../MinutesOfTheMeetingForm.dart';
 
-class VisitHistoryScreen extends StatefulWidget
-{
+class VisitHistoryScreen extends StatefulWidget {
   const VisitHistoryScreen({super.key});
+
   @override
   State<VisitHistoryScreen> createState() => _VisitHistoryScreenState();
 }
 
-class _VisitHistoryScreenState extends State<VisitHistoryScreen>{
+class _VisitHistoryScreenState extends State<VisitHistoryScreen> {
   late MainBloc mainBloc;
   final storage = FlutterSecureStorage();
   String? staffCode = "";
   String? Auth_Token = "";
-  late List<Message> latLongList=[];
+  late List<Message> latLongList = [];
   late bool _isLoading = false;
   final controller = ScrollController();
   TextEditingController _fromdatecontroller = new TextEditingController();
@@ -46,9 +46,10 @@ class _VisitHistoryScreenState extends State<VisitHistoryScreen>{
   DateTime selectedToDate = DateTime.now();
   TimeOfDay selectedTime = TimeOfDay.now();
   TimeOfDay selectedToTime = TimeOfDay.now();
-  List<Data> visitList=[];
-  ScrollController visitRecordController=new ScrollController();
+  List<Data> visitList = [];
+  ScrollController visitRecordController = new ScrollController();
   final formatter = DateFormat("dd/MM/yyyy hh:mm a");
+  bool _hasNavigated = false;
 
   String? value;
   bool isVisitRunning = false;
@@ -62,19 +63,19 @@ class _VisitHistoryScreenState extends State<VisitHistoryScreen>{
     //  data=widget.datum;
     setState(() {
       // Format the current date with Jiffy using the correct constructor
-      todate= Jiffy.now().format(pattern: 'dd/MM/yyyy'); // Mar 2nd 21
-      date=Jiffy.now().format(pattern: 'd/MM/yyyy');
+      todate = Jiffy.now().format(pattern: 'dd/MM/yyyy'); // Mar 2nd 21
+      date = Jiffy.now().format(pattern: 'd/MM/yyyy');
       fromTime = "0:1";
       toTime = "23:59";
 
-      todate1 =Jiffy.now().format(pattern: 'dd/MM/yyyy');
-      date1 =Jiffy.now().format(pattern: 'dd/MM/yyyy');
+      todate1 = Jiffy.now().format(pattern: 'dd/MM/yyyy');
+      date1 = Jiffy.now().format(pattern: 'dd/MM/yyyy');
       fromTime1 = "0:1";
       toTime1 = "23:59";
     });
     getData();
     remaningCountOfTrackingData();
-     // isVisitRunning = value == "true";
+    // isVisitRunning = value == "true";
   }
 
   Future<void> remaningCountOfTrackingData() async {
@@ -91,9 +92,10 @@ class _VisitHistoryScreenState extends State<VisitHistoryScreen>{
     print("Auth_Token-->$Auth_Token");
 
     // setState(() {
-      isVisitRunning = value == "true";
+    isVisitRunning = value == "true";
     // });
-    mainBloc.add(GetVisitByFromDateToDate(UserId: staffCode!,
+    mainBloc.add(GetVisitByFromDateToDate(
+        UserId: staffCode!,
         pageNumber: 1,
         pageSize: 50,
         fromDate: date1,
@@ -140,8 +142,7 @@ class _VisitHistoryScreenState extends State<VisitHistoryScreen>{
                 setState(() {
                   _isLoading = true;
                 });
-              }
-              else if (state is GetVisitByFromDateToDateLoadedState) {
+              } else if (state is GetVisitByFromDateToDateLoadedState) {
                 print("GetVisitByFromDateToDateLoadedState called...");
 
                 setState(() {
@@ -154,14 +155,12 @@ class _VisitHistoryScreenState extends State<VisitHistoryScreen>{
                   timeInSecForIosWeb: 1,
                 );*/
                 print("visitList Size....${visitList.length}");
-                if(state.visitRecordsResponse!.data !=null) {
+                if (state.visitRecordsResponse!.data != null) {
                   setState(() {
                     visitList.addAll(state.visitRecordsResponse!.data!);
-
                   });
                   print("visitList Size...........${visitList.length}");
-
-                }else{
+                } else {
                   print("visitList Size....${visitList.length}");
                 }
 
@@ -173,8 +172,7 @@ class _VisitHistoryScreenState extends State<VisitHistoryScreen>{
                 //     timeInSecForIosWeb: 1,
                 //   );
                 // }
-              }
-              else if (state is GetVisitByFromDateToDateErrorState) {
+              } else if (state is GetVisitByFromDateToDateErrorState) {
                 print("GetVisitByFromDateToDateErrorState called...");
 
                 setState(() {
@@ -242,29 +240,28 @@ class _VisitHistoryScreenState extends State<VisitHistoryScreen>{
                 // }
 
                 // Handle valid data case
-                if (state.visitDetailedRecordsResponse!.message is List<Message>) {
-                  latLongList.addAll(state.visitDetailedRecordsResponse!.message as List<Message>);
+                if (state.visitDetailedRecordsResponse!.message
+                    is List<Message>) {
+                  latLongList.addAll(state.visitDetailedRecordsResponse!.message
+                      as List<Message>);
                   print("latLongList Size....${latLongList.length}");
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (_) => BlocProvider(
                         create: (context) => MainBloc(webService: WebService()),
-                        child: VisitHistoryTrackScreen(latLongList: latLongList),
+                        child:
+                            VisitHistoryTrackScreen(latLongList: latLongList),
                       ),
                     ),
                   );
                 } else {
                   Fluttertoast.showToast(msg: "Invalid data format");
                 }
-              }
-
-              else if (state is GetVisitDetailedRecordsErrorState)
-              {
+              } else if (state is GetVisitDetailedRecordsErrorState) {
                 setState(() {
                   _isLoading = false;
                 });
-
               }
 
               if (state is GetMinutesOfMeetingFormNoLoadingState) {
@@ -272,75 +269,154 @@ class _VisitHistoryScreenState extends State<VisitHistoryScreen>{
                   _isLoading = true;
                 });
               }
-              else if (state is GetMinutesOfMeetingFormNoLoadedState)
-              {
+              // else if (state is GetMinutesOfMeetingFormNoLoadedState) {
+              //   setState(() {
+              //     _isLoading = false;
+              //   });
+              //   print("GetMinutesOfMeetingFormNoLoadedState.........");
+              //   //   int formVal=state.getMinutesOfMeetingFormNoResponse.message!.srNo;
+              //   // print("GetMinutesOfMeetingFormNoLoadedState........."+formVal.toString());
+              //
+              //   if (state.getMinutesOfMeetingFormNoResponse.message!.srNo ==
+              //           null ||
+              //       state.getMinutesOfMeetingFormNoResponse.message!
+              //               .minutesofMeetFormNo ==
+              //           null) {
+              //     Navigator.push(
+              //         context,
+              //         MaterialPageRoute(
+              //             builder: (_) => BlocProvider(
+              //                 create: (context) {
+              //                   return MainBloc(webService: WebService());
+              //                 },
+              //                 child: MinutesOfTheMeetingFormScreen(
+              //                     visitSrNo: state
+              //                         .getMinutesOfMeetingFormNoResponse
+              //                         .message!
+              //                         .srNo
+              //                         .toString(),
+              //                     minuteforno: state
+              //                         .getMinutesOfMeetingFormNoResponse
+              //                         .message!
+              //                         .minutesofMeetFormNo
+              //                         .toString(),
+              //                     visitDateMOM: visitDateMOM,
+              //                     toTimeMOM: toTimeMOM,
+              //                     visitNameMOM: vistNameMOM))));
+              //
+              //     print("not Filled yet...");
+              //   } else {
+              //     print("Form is Filled ..");
+              //
+              //     Fluttertoast.showToast(
+              //       msg:
+              //           "   Minutes of the Meeting form has already been filled out for this visit...!   ",
+              //       toastLength: Toast.LENGTH_SHORT,
+              //       timeInSecForIosWeb: 1,
+              //     );
+              //     Navigator.push(
+              //         context,
+              //         MaterialPageRoute(
+              //             builder: (_) => BlocProvider(
+              //                 create: (context) {
+              //                   return MainBloc(webService: WebService());
+              //                 },
+              //                 child: MinutesOfTheMeetingFormScreen(
+              //                     visitSrNo: state
+              //                         .getMinutesOfMeetingFormNoResponse
+              //                         .message!
+              //                         .srNo
+              //                         .toString(),
+              //                     minuteforno: state
+              //                         .getMinutesOfMeetingFormNoResponse
+              //                         .message!
+              //                         .minutesofMeetFormNo
+              //                         .toString(),
+              //                     visitDateMOM: visitDateMOM,
+              //                     toTimeMOM: toTimeMOM,
+              //                     visitNameMOM: vistNameMOM))));
+              //   }
+              // }
+              else if (state is GetMinutesOfMeetingFormNoLoadedState) {
+                if (_hasNavigated) return; // prevent duplicate calls
+                _hasNavigated = true;
+
                 setState(() {
                   _isLoading = false;
                 });
-                print("GetMinutesOfMeetingFormNoLoadedState.........");
-                //   int formVal=state.getMinutesOfMeetingFormNoResponse.message!.srNo;
-                // print("GetMinutesOfMeetingFormNoLoadedState........."+formVal.toString());
 
-                if(state.getMinutesOfMeetingFormNoResponse.message!.srNo ==null ||
-                    state.getMinutesOfMeetingFormNoResponse.message!.minutesofMeetFormNo ==null
-                )
-                {
-                  Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                          builder: (_) => BlocProvider(
-                              create: (context) {
-                                return MainBloc(
-                                    webService: WebService());
-                              },
-                              child: MinutesOfTheMeetingFormScreen(visitSrNo:  state.getMinutesOfMeetingFormNoResponse.message!.srNo.toString(), minuteforno: state.getMinutesOfMeetingFormNoResponse.message!.minutesofMeetFormNo.toString(), visitDateMOM: visitDateMOM,toTimeMOM: toTimeMOM,visitNameMOM: vistNameMOM))));
+                final data = state.getMinutesOfMeetingFormNoResponse.message!;
 
-                  print("not Filled yet...");
+                bool isFormFilled =
+                    data.srNo != null && data.minutesofMeetFormNo != null;
 
-                }
-                else
-                {
+                if (isFormFilled) {
                   print("Form is Filled ..");
 
                   Fluttertoast.showToast(
-                    msg: "   Minutes of the Meeting form has already been filled out for this visit...!   ",
-                    toastLength: Toast.LENGTH_SHORT,
-                    timeInSecForIosWeb: 1,
+                    msg: "Minutes of the Meeting form already filled!",
                   );
-                  Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                          builder: (_) => BlocProvider(
-                              create: (context) {
-                                return MainBloc(
-                                    webService: WebService());
-                              },
-                              child: MinutesOfTheMeetingFormScreen(visitSrNo: state.getMinutesOfMeetingFormNoResponse.message!.srNo.toString(),minuteforno: state.getMinutesOfMeetingFormNoResponse.message!.minutesofMeetFormNo.toString(), visitDateMOM: visitDateMOM,toTimeMOM: toTimeMOM,visitNameMOM: vistNameMOM))));
+                } else {
+                  print("Form NOT filled...");
                 }
 
-              }
-              else if (state is GetMinutesOfMeetingFormNoErrorState)
-              {
+                // ✅ NAVIGATION ONLY ONCE
+                // Navigator.push(
+                //   context,
+                //   MaterialPageRoute(
+                //     builder: (_) => BlocProvider(
+                //       create: (_) => MainBloc(webService: WebService()),
+                //       child: MinutesOfTheMeetingFormScreen(
+                //         visitSrNo: data.srNo?.toString() ?? "",
+                //         minuteforno: data.minutesofMeetFormNo?.toString() ?? "",
+                //         visitDateMOM: visitDateMOM,
+                //         toTimeMOM: toTimeMOM,
+                //         visitNameMOM: vistNameMOM,
+                //       ),
+                //     ),
+                //   ),
+                // );
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => BlocProvider(
+                      create: (_) => MainBloc(webService: WebService()),
+                      child: MinutesOfTheMeetingFormScreen(
+                        visitSrNo: data.srNo?.toString() ?? "",
+                        minuteforno: data.minutesofMeetFormNo?.toString() ?? "",
+                        visitDateMOM: visitDateMOM,
+                        toTimeMOM: toTimeMOM,
+                        visitNameMOM: vistNameMOM,
+                      ),
+                    ),
+                  ),
+                ).then((_) {
+                  // ✅ Reset flag and loading when user comes back
+                  setState(() {
+                    _hasNavigated = false;
+                    _isLoading = false;
+                  });
+                });
+              } else if (state is GetMinutesOfMeetingFormNoErrorState) {
                 setState(() {
                   _isLoading = false;
                 });
                 print("GetMinutesOfMeetingFormNoErrorState........");
-
               }
-
             },
             child: SingleChildScrollView(
               controller: controller,
               child: Column(
                 children: [
                   Container(
-                    padding:
-                    EdgeInsets.only(left: 10, right: 10, top: 10, bottom: 10),
+                    padding: EdgeInsets.only(
+                        left: 10, right: 10, top: 10, bottom: 10),
                     decoration: BoxDecoration(
                         color: MyColors.lightgreyColorCode,
                         boxShadow: [
                           BoxShadow(
-                              blurRadius: 10, color: MyColors.shadowGreyColorCode)
+                              blurRadius: 10,
+                              color: MyColors.shadowGreyColorCode)
                         ]),
                     // width: MediaQuery.of(context).size.width,
                     child: Row(
@@ -349,7 +425,9 @@ class _VisitHistoryScreenState extends State<VisitHistoryScreen>{
                         Expanded(
                           child: Column(
                             children: [
-                              Text("From date", style: TextStyle(fontWeight: FontWeight.bold)),
+                              Text("From date",
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.bold)),
                               GestureDetector(
                                 onTap: () async {
                                   // Open date picker for from date
@@ -361,13 +439,15 @@ class _VisitHistoryScreenState extends State<VisitHistoryScreen>{
                                   );
                                   if (selectedDate != null) {
                                     setState(() {
-                                      date1 = DateFormat('dd/MM/yyyy').format(selectedDate);
+                                      date1 = DateFormat('dd/MM/yyyy')
+                                          .format(selectedDate);
                                     });
                                     // After selecting the date, fetch data
                                     getData();
                                   }
                                 },
-                                child: Text(date1), // Display selected date or today's date
+                                child: Text(
+                                    date1), // Display selected date or today's date
                               ),
                             ],
                           ),
@@ -376,7 +456,9 @@ class _VisitHistoryScreenState extends State<VisitHistoryScreen>{
                         Expanded(
                           child: Column(
                             children: [
-                              Text("To date", style: TextStyle(fontWeight: FontWeight.bold)),
+                              Text("To date",
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.bold)),
                               GestureDetector(
                                 onTap: () async {
                                   // Open date picker for to date
@@ -388,13 +470,15 @@ class _VisitHistoryScreenState extends State<VisitHistoryScreen>{
                                   );
                                   if (selectedDate != null) {
                                     setState(() {
-                                      todate1 = DateFormat('dd/MM/yyyy').format(selectedDate);
+                                      todate1 = DateFormat('dd/MM/yyyy')
+                                          .format(selectedDate);
                                     });
                                     // After selecting the date, fetch data
                                     getData();
                                   }
                                 },
-                                child: Text(todate1), // Display selected date or today's date
+                                child: Text(
+                                    todate1), // Display selected date or today's date
                               ),
                             ],
                           ),
@@ -407,91 +491,161 @@ class _VisitHistoryScreenState extends State<VisitHistoryScreen>{
                   ),
                   visitList.isEmpty
                       ? Center(
-                    child: Column(
-                      // crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const SizedBox(height: 100),
-                        Image.asset(
-                          "assets/icons/no_data.png", // Ensure this image exists in your assets
-                          height: 100,
-                        ),
-                        const SizedBox(height: 20),
-                        const Text(
-                          "No Data Available",
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.blue,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ):
-                  Card(
-                    margin: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                    shape: RoundedRectangleBorder(
-                      side: BorderSide(width: 1, color: MyColors.lightBlue),
-                      borderRadius: BorderRadius.circular(10.0),
-                    ),
-                    child: ListView.builder(
-                        controller: visitRecordController,
-                        shrinkWrap: true,
-                        itemCount: visitList.length,
-                        itemBuilder: (context,index){
-                          return GestureDetector(onTap: (){
-                          },
-                              child:
-                              Card(
-                                shape: RoundedRectangleBorder(
-                                  side: BorderSide(width: 1,color: MyColors.textBoxBorderColorCode),
-                                  borderRadius: BorderRadius.circular(10.0),
+                          child: Column(
+                            // crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const SizedBox(height: 100),
+                              Image.asset(
+                                "assets/icons/no_data.png",
+                                // Ensure this image exists in your assets
+                                height: 100,
+                              ),
+                              const SizedBox(height: 20),
+                              const Text(
+                                "No Data Available",
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.blue,
                                 ),
-                                child:
-                                Container(
-                                  padding: EdgeInsets.only(top:15,left:14,right:14,bottom: 15),
-                                  width: MediaQuery.of(context).size.width,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.all(Radius.circular(10)),
-                                  ),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Container(
-                                              child:
-                                              visitList[index].status=="S" && formatter.parse("${visitList[index].selectDate} ${visitList[index].totime}").isBefore(DateTime.now()) ?
-                                              Icon(Icons.circle,size:10,color: MyColors.blueColorCode):
-                                              visitList[index].status=="S"?
-                                              Icon(Icons.circle,size:10,color: MyColors.greenColorCode)
-                                                  :
-                                              visitList[index].status=="I"?
-
-                                              Icon(Icons.circle,size:10,color: MyColors.orangeColorCode)
-
-                                                  :
-                                              Icon(Icons.circle,size:10,color: MyColors.orangeColorCode)
-
-                                          ),
-                                          Expanded(
-                                            child: visitList[index].status=="S" && formatter.parse("${visitList[index].selectDate} ${visitList[index].totime}").isBefore(DateTime.now()) ?
-                                            Padding(
-                                              padding: const EdgeInsets.only(left: 8.0),
-                                              child: Text("Completed",style: TextStyle(color: MyColors.blueColorCode,fontWeight: FontWeight.bold,
-                                                fontSize: 18.0,),
-                                              ),
-                                            )
-                                                : visitList[index].status=="S"?
-                                                ( isVisitRunning! ?
-                                                 Text("Started",style: TextStyle(color: MyColors.greenColorCode,fontWeight: FontWeight.bold,fontSize: 18.0,),)
-                                                : Text("Stopped",style: TextStyle(color: Colors.red,fontWeight: FontWeight.bold,fontSize: 18.0,),)
-                                                )
-                                            // Text("Started",style: TextStyle(color: MyColors.greenColorCode,fontWeight: FontWeight.bold,fontSize: 18.0,),)
-                                            /// this will listen the state changes in visit start stop bool
-                                         /*   ValueListenableBuilder<bool>(
+                              ),
+                            ],
+                          ),
+                        )
+                      : Card(
+                          margin: EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 10),
+                          shape: RoundedRectangleBorder(
+                            side:
+                                BorderSide(width: 1, color: MyColors.lightBlue),
+                            borderRadius: BorderRadius.circular(10.0),
+                          ),
+                          child: ListView.builder(
+                              controller: visitRecordController,
+                              shrinkWrap: true,
+                              itemCount: visitList.length,
+                              itemBuilder: (context, index) {
+                                return GestureDetector(
+                                    onTap: () {},
+                                    child: Card(
+                                      shape: RoundedRectangleBorder(
+                                        side: BorderSide(
+                                            width: 1,
+                                            color: MyColors
+                                                .textBoxBorderColorCode),
+                                        borderRadius:
+                                            BorderRadius.circular(10.0),
+                                      ),
+                                      child: Container(
+                                        padding: EdgeInsets.only(
+                                            top: 15,
+                                            left: 14,
+                                            right: 14,
+                                            bottom: 15),
+                                        width:
+                                            MediaQuery.of(context).size.width,
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.all(
+                                              Radius.circular(10)),
+                                        ),
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: [
+                                                Container(
+                                                    child: visitList[index]
+                                                                    .status ==
+                                                                "S" &&
+                                                            formatter.parse("${visitList[index].selectDate} ${visitList[index].totime}").isBefore(
+                                                                DateTime.now())
+                                                        ? Icon(Icons.circle,
+                                                            size: 10,
+                                                            color: MyColors
+                                                                .blueColorCode)
+                                                        : visitList[index].status ==
+                                                                "S"
+                                                            ? Icon(Icons.circle,
+                                                                size: 10,
+                                                                color: MyColors
+                                                                    .greenColorCode)
+                                                            : visitList[index]
+                                                                        .status ==
+                                                                    "I"
+                                                                ? Icon(Icons.circle,
+                                                                    size: 10,
+                                                                    color: MyColors
+                                                                        .orangeColorCode)
+                                                                : Icon(Icons.circle,
+                                                                    size: 10,
+                                                                    color: MyColors
+                                                                        .orangeColorCode)),
+                                                Expanded(
+                                                  child: visitList[index]
+                                                                  .status ==
+                                                              "S" &&
+                                                          formatter
+                                                              .parse(
+                                                                  "${visitList[index].selectDate} ${visitList[index].totime}")
+                                                              .isBefore(DateTime
+                                                                  .now())
+                                                      ? Padding(
+                                                          padding:
+                                                              const EdgeInsets
+                                                                  .only(
+                                                                  left: 8.0),
+                                                          child: Text(
+                                                            "Completed",
+                                                            style: TextStyle(
+                                                              color: MyColors
+                                                                  .blueColorCode,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              fontSize: 18.0,
+                                                            ),
+                                                          ),
+                                                        )
+                                                      : visitList[index]
+                                                                  .status ==
+                                                              "S"
+                                                          ? (isVisitRunning!
+                                                              ? Text(
+                                                                  "Started",
+                                                                  style:
+                                                                      TextStyle(
+                                                                    color: MyColors
+                                                                        .greenColorCode,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .bold,
+                                                                    fontSize:
+                                                                        18.0,
+                                                                  ),
+                                                                )
+                                                              : Text(
+                                                                  "Stopped",
+                                                                  style:
+                                                                      TextStyle(
+                                                                    color: Colors
+                                                                        .red,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .bold,
+                                                                    fontSize:
+                                                                        18.0,
+                                                                  ),
+                                                                ))
+                                                          // Text("Started",style: TextStyle(color: MyColors.greenColorCode,fontWeight: FontWeight.bold,fontSize: 18.0,),)
+                                                          /// this will listen the state changes in visit start stop bool
+                                                          /*   ValueListenableBuilder<bool>(
                                               valueListenable: VisitState.isVisitRunning,
                                               builder: (context, running, _) {
                                                 return Text(
@@ -504,184 +658,396 @@ class _VisitHistoryScreenState extends State<VisitHistoryScreen>{
                                                 );
                                               },
                                             )*/
-                                                : visitList[index].status=="I" ?
-                                            Text("Not Started",style: TextStyle(color: MyColors.orangeColorCode,fontWeight: FontWeight.bold,
-                                              fontSize: 18.0,),):
-                                            Text("",style: TextStyle(color: MyColors.orangeColorCode,fontWeight: FontWeight.bold,
-                                              fontSize: 18.0,),),
-                                          ),
-                                        ],
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.only(top: 15.0,bottom: 15),
-                                        child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                          children: [
-                                            Expanded(
-                                              child: Column(
-                                                mainAxisAlignment: MainAxisAlignment.start,
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: [
-                                                  Text("Visit Destination",style: TextStyle(color: MyColors.textprofiledetailColorCode,fontSize: 18),),
-                                                  Text(visitList[index].source.toString()!=null ? visitList[index].source.toString()+" - "+visitList[index].destination.toString() : "NA",style: TextStyle(color: MyColors.text5ColorCode,fontSize: 18),),
-                                                ],
-                                              ),
+                                                          : visitList[index]
+                                                                      .status ==
+                                                                  "I"
+                                                              ? Text(
+                                                                  "Not Started",
+                                                                  style:
+                                                                      TextStyle(
+                                                                    color: MyColors
+                                                                        .orangeColorCode,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .bold,
+                                                                    fontSize:
+                                                                        18.0,
+                                                                  ),
+                                                                )
+                                                              : Text(
+                                                                  "",
+                                                                  style:
+                                                                      TextStyle(
+                                                                    color: MyColors
+                                                                        .orangeColorCode,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .bold,
+                                                                    fontSize:
+                                                                        18.0,
+                                                                  ),
+                                                                ),
+                                                ),
+                                              ],
                                             ),
-                                            Expanded(
-                                                child: Column(
-                                                  mainAxisAlignment: MainAxisAlignment.start,
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text("Visit Date",style: TextStyle(color: MyColors.textprofiledetailColorCode,fontSize: 18),),
-                                                    Text(visitList[index].selectDate!=null ? visitList[index].selectDate! :  "",textAlign:TextAlign.left,style: TextStyle(color: MyColors.text5ColorCode,fontSize: 18),),
-                                                  ],
-                                                )
-                                            ),
-                                            Expanded(
-                                              child: Column(
-                                                mainAxisAlignment: MainAxisAlignment.end,
-                                                crossAxisAlignment: CrossAxisAlignment.end,
+                                            Padding(
+                                              padding: const EdgeInsets.only(
+                                                  top: 15.0, bottom: 15),
+                                              child: Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceAround,
                                                 children: [
-                                                  visitList[index].status=="C" ||visitList[index].status=="S"?
-                                                  MaterialButton(
-                                                    onPressed: () {
-                                                      String inputDate = visitList[index].selectDate!;
-
-                                                      // Parse the input date into a DateTime object
-                                                      DateTime parsedDate = DateFormat("dd/MM/yyyy").parse(inputDate);
-
-                                                      // Format the date into the desired format "dd-MMM-yyyy"
-                                                      String formattedDate = DateFormat("dd-MMM-yyyy").format(parsedDate);  //yyyy-MM-dd correct formate
-
-                                                      // Set values to prefilled in MOM screen
-                                                      visitDateMOM = visitList[index].visitDate.toString();
-                                                      toTimeMOM = visitList[index].totime.toString();
-                                                      vistNameMOM = visitList[index].reason.toString();
-
-                                                      // mainBloc.add(VisitlatLongListEvents(StaffCode: staffCode!, ActualDate: formattedDate, SrNoVal: visitList[index].srNo!.toString(), token: Auth_Token!));
-                                                      mainBloc.add(GetMinutesOfMeetingFormNoEvents(UserId: staffCode!,SrNo: visitList[index].srNo!.toString(),token: Auth_Token!));
-                                                    },
-                                                    shape: const RoundedRectangleBorder(
-                                                        borderRadius:
-                                                        BorderRadius.all(Radius.circular(10))),
-                                                    child: Padding(
-                                                      padding: const EdgeInsets.only(
-                                                          left: 2.0, right: 8, top: 8, bottom: 8),
-                                                      child: Text(
-                                                        "MOM ",
-                                                        style: TextStyle(
-                                                            fontSize: 18,
-                                                            color: MyColors.whiteColorCode),
-                                                      ),
+                                                  Expanded(
+                                                    child: Column(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .start,
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        Text(
+                                                          "Visit Destination",
+                                                          style: TextStyle(
+                                                              color: MyColors
+                                                                  .textprofiledetailColorCode,
+                                                              fontSize: 18),
+                                                        ),
+                                                        Text(
+                                                          visitList[index]
+                                                                      .source
+                                                                      .toString() !=
+                                                                  null
+                                                              ? visitList[index]
+                                                                      .source
+                                                                      .toString() +
+                                                                  " - " +
+                                                                  visitList[
+                                                                          index]
+                                                                      .destination
+                                                                      .toString()
+                                                              : "NA",
+                                                          style: TextStyle(
+                                                              color: MyColors
+                                                                  .text5ColorCode,
+                                                              fontSize: 18),
+                                                        ),
+                                                      ],
                                                     ),
-                                                    color: MyColors.fontBlue,
-                                                  ):
-                                                  SizedBox()
+                                                  ),
+                                                  Expanded(
+                                                      child: Column(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment.start,
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    children: [
+                                                      Text(
+                                                        "Visit Date",
+                                                        style: TextStyle(
+                                                            color: MyColors
+                                                                .textprofiledetailColorCode,
+                                                            fontSize: 18),
+                                                      ),
+                                                      Text(
+                                                        visitList[index]
+                                                                    .selectDate !=
+                                                                null
+                                                            ? visitList[index]
+                                                                .selectDate!
+                                                            : "",
+                                                        textAlign:
+                                                            TextAlign.left,
+                                                        style: TextStyle(
+                                                            color: MyColors
+                                                                .text5ColorCode,
+                                                            fontSize: 18),
+                                                      ),
+                                                    ],
+                                                  )),
+                                                  Expanded(
+                                                    child: Column(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment.end,
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .end,
+                                                      children: [
+                                                        visitList[index].status ==
+                                                                    "C" ||
+                                                                visitList[index]
+                                                                        .status ==
+                                                                    "S"
+                                                            ? MaterialButton(
+                                                                onPressed: () {
+                                                                  String
+                                                                      inputDate =
+                                                                      visitList[
+                                                                              index]
+                                                                          .selectDate!;
+
+                                                                  // Parse the input date into a DateTime object
+                                                                  DateTime
+                                                                      parsedDate =
+                                                                      DateFormat(
+                                                                              "dd/MM/yyyy")
+                                                                          .parse(
+                                                                              inputDate);
+
+                                                                  // Format the date into the desired format "dd-MMM-yyyy"
+                                                                  String
+                                                                      formattedDate =
+                                                                      DateFormat(
+                                                                              "dd-MMM-yyyy")
+                                                                          .format(
+                                                                              parsedDate); //yyyy-MM-dd correct formate
+
+                                                                  // Set values to prefilled in MOM screen
+                                                                  visitDateMOM = visitList[
+                                                                          index]
+                                                                      .visitDate
+                                                                      .toString();
+                                                                  toTimeMOM = visitList[
+                                                                          index]
+                                                                      .totime
+                                                                      .toString();
+                                                                  vistNameMOM =
+                                                                      visitList[
+                                                                              index]
+                                                                          .reason
+                                                                          .toString();
+
+                                                                  // mainBloc.add(VisitlatLongListEvents(StaffCode: staffCode!, ActualDate: formattedDate, SrNoVal: visitList[index].srNo!.toString(), token: Auth_Token!));
+                                                                  mainBloc.add(GetMinutesOfMeetingFormNoEvents(
+                                                                      UserId:
+                                                                          staffCode!,
+                                                                      SrNo: visitList[
+                                                                              index]
+                                                                          .srNo!
+                                                                          .toString(),
+                                                                      token:
+                                                                          Auth_Token!));
+                                                                },
+                                                                shape: const RoundedRectangleBorder(
+                                                                    borderRadius:
+                                                                        BorderRadius.all(
+                                                                            Radius.circular(10))),
+                                                                child: Padding(
+                                                                  padding: const EdgeInsets
+                                                                      .only(
+                                                                      left: 2.0,
+                                                                      right: 8,
+                                                                      top: 8,
+                                                                      bottom:
+                                                                          8),
+                                                                  child: Text(
+                                                                    "MOM ",
+                                                                    style: TextStyle(
+                                                                        fontSize:
+                                                                            18,
+                                                                        color: MyColors
+                                                                            .whiteColorCode),
+                                                                  ),
+                                                                ),
+                                                                color: MyColors
+                                                                    .fontBlue,
+                                                              )
+                                                            : SizedBox()
+                                                      ],
+                                                    ),
+                                                    //   child: Column(
+                                                    //     mainBloc.add(GetMinutesOfMeetingFormNoEvents(UserId: staffCode,SrNo: visitList[index].srNo!.toString(),token: Auth_Token!));
+                                                    //
+                                                    //   // mainBloc.add(GetVisitDetailedRecordsEvent( StaffCode: staffCode!, FromDate: formattedDate, ToDate: formattedDate,
+                                                    //   //         SrNoVal: visitList[index].srNo!.toString(),token: Auth_Token!));
+                                                    //
+                                                    // ),
+                                                  )
                                                 ],
                                               ),
-                                              //   child: Column(
-                                              //     mainBloc.add(GetMinutesOfMeetingFormNoEvents(UserId: staffCode,SrNo: visitList[index].srNo!.toString(),token: Auth_Token!));
-                                              //
-                                              //   // mainBloc.add(GetVisitDetailedRecordsEvent( StaffCode: staffCode!, FromDate: formattedDate, ToDate: formattedDate,
-                                              //   //         SrNoVal: visitList[index].srNo!.toString(),token: Auth_Token!));
-                                              //
-                                              // ),
+                                            ),
+                                            Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.spaceAround,
+                                              children: [
+                                                Expanded(
+                                                    child: Column(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.start,
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      "FromTime-ToTime",
+                                                      style: TextStyle(
+                                                          color: MyColors
+                                                              .textprofiledetailColorCode,
+                                                          fontSize: 18),
+                                                    ),
+                                                    Text(
+                                                      visitList[index]
+                                                                  .fromtime !=
+                                                              null
+                                                          ? visitList[index]
+                                                                  .fromtime! +
+                                                              " - " +
+                                                              visitList[index]
+                                                                  .totime!
+                                                          : "",
+                                                      textAlign: TextAlign.left,
+                                                      style: TextStyle(
+                                                          color: MyColors
+                                                              .text5ColorCode,
+                                                          fontSize: 18),
+                                                    ),
+                                                  ],
+                                                )),
+                                                Expanded(
+                                                  child: Column(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment.end,
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment.end,
+                                                    children: [
+                                                      Text(
+                                                        "Visit Name",
+                                                        style: TextStyle(
+                                                            color: MyColors
+                                                                .textprofiledetailColorCode,
+                                                            fontSize: 18),
+                                                      ),
+                                                      Text(
+                                                        visitList[index]
+                                                                    .reason !=
+                                                                null
+                                                            ? visitList[index]
+                                                                .reason!
+                                                            : "",
+                                                        style: TextStyle(
+                                                            color: MyColors
+                                                                .text5ColorCode,
+                                                            fontSize: 18),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                                Expanded(
+                                                  child: Column(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment.end,
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment.end,
+                                                    children: [
+                                                      visitList[index].status ==
+                                                                  "C" ||
+                                                              visitList[index]
+                                                                      .status ==
+                                                                  "S"
+                                                          ? MaterialButton(
+                                                              onPressed: () {
+                                                                String
+                                                                    inputDate =
+                                                                    visitList[
+                                                                            index]
+                                                                        .selectDate!;
 
-                                            )
+                                                                // Parse the input date into a DateTime object
+                                                                DateTime
+                                                                    parsedDate =
+                                                                    DateFormat(
+                                                                            "dd/MM/yyyy")
+                                                                        .parse(
+                                                                            inputDate);
+
+                                                                // Format the date into the desired format "dd-MMM-yyyy"
+                                                                String
+                                                                    formattedDate =
+                                                                    DateFormat(
+                                                                            "dd-MMM-yyyy")
+                                                                        .format(
+                                                                            parsedDate); //yyyy-MM-dd correct formate
+
+                                                                // mainBloc.add(VisitlatLongListEvents(StaffCode: staffCode!, ActualDate: formattedDate, SrNoVal: visitList[index].srNo!.toString(), token: Auth_Token!));
+                                                                mainBloc.add(GetVisitDetailedRecordsEvent(
+                                                                    StaffCode:
+                                                                        staffCode!,
+                                                                    FromDate:
+                                                                        formattedDate,
+                                                                    ToDate:
+                                                                        formattedDate,
+                                                                    SrNoVal: visitList[
+                                                                            index]
+                                                                        .srNo!
+                                                                        .toString(),
+                                                                    token:
+                                                                        Auth_Token!));
+                                                              },
+                                                              shape: const RoundedRectangleBorder(
+                                                                  borderRadius:
+                                                                      BorderRadius.all(
+                                                                          Radius.circular(
+                                                                              10))),
+                                                              child: Padding(
+                                                                padding:
+                                                                    const EdgeInsets
+                                                                        .only(
+                                                                        left:
+                                                                            2.0,
+                                                                        right:
+                                                                            8,
+                                                                        top: 8,
+                                                                        bottom:
+                                                                            8),
+                                                                child: Text(
+                                                                  "Track   ",
+                                                                  style: TextStyle(
+                                                                      fontSize:
+                                                                          18,
+                                                                      color: MyColors
+                                                                          .whiteColorCode),
+                                                                ),
+                                                              ),
+                                                              color: MyColors
+                                                                  .fontBlue,
+                                                            )
+                                                          : const SizedBox(),
+                                                      ValueListenableBuilder<
+                                                          int>(
+                                                        valueListenable: VisitState
+                                                            .countRemainingLatLong,
+                                                        builder: (context,
+                                                            count, _) {
+                                                          return Text(
+                                                            count > 0
+                                                                ? "Unsetteled records $count"
+                                                                : "",
+                                                            style: const TextStyle(
+                                                                color: Colors
+                                                                    .black87,
+                                                                fontSize: 12),
+                                                          );
+                                                        },
+                                                      )
+                                                    ],
+                                                  ),
+                                                )
+                                              ],
+                                            ),
                                           ],
                                         ),
                                       ),
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                        children: [
-                                          Expanded(
-                                              child: Column(
-                                                mainAxisAlignment: MainAxisAlignment.start,
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: [
-                                                  Text("FromTime-ToTime",style: TextStyle(color: MyColors.textprofiledetailColorCode,fontSize: 18),),
-                                                  Text(visitList[index].fromtime!=null ? visitList[index].fromtime!+" - "+visitList[index].totime! :  "",textAlign:TextAlign.left,style: TextStyle(color: MyColors.text5ColorCode,fontSize: 18),),
-                                                ],
-                                              )
-                                          ),
-                                          Expanded(
-                                            child: Column(
-                                              mainAxisAlignment: MainAxisAlignment.end,
-                                              crossAxisAlignment: CrossAxisAlignment.end,
-                                              children: [
-                                                Text("Visit Name",style: TextStyle(color: MyColors.textprofiledetailColorCode,fontSize: 18),),
-                                                Text(visitList[index].reason!=null ? visitList[index].reason! : "",style: TextStyle(color: MyColors.text5ColorCode,fontSize: 18),),
-                                              ],
-                                            ),
-                                          ),
-                                          Expanded(
-                                            child:
-                                            Column(
-                                              mainAxisAlignment: MainAxisAlignment.end,
-                                              crossAxisAlignment: CrossAxisAlignment.end,
-                                              children: [
-                                                visitList[index].status=="C" ||visitList[index].status=="S"?
-                                                MaterialButton(
-                                                  onPressed: () {
-                                                    String inputDate = visitList[index].selectDate!;
-
-                                                    // Parse the input date into a DateTime object
-                                                    DateTime parsedDate = DateFormat("dd/MM/yyyy").parse(inputDate);
-
-                                                    // Format the date into the desired format "dd-MMM-yyyy"
-                                                    String formattedDate = DateFormat("dd-MMM-yyyy").format(parsedDate);  //yyyy-MM-dd correct formate
-
-                                                    // mainBloc.add(VisitlatLongListEvents(StaffCode: staffCode!, ActualDate: formattedDate, SrNoVal: visitList[index].srNo!.toString(), token: Auth_Token!));
-                                                    mainBloc.add(GetVisitDetailedRecordsEvent( StaffCode: staffCode!, FromDate: formattedDate, ToDate: formattedDate,
-                                                        SrNoVal: visitList[index].srNo!.toString(),token: Auth_Token!));
-
-                                                  },
-                                                  shape: const RoundedRectangleBorder(
-                                                      borderRadius: BorderRadius.all(Radius.circular(10))),
-                                                  child: Padding(
-                                                    padding: const EdgeInsets.only(
-                                                        left: 2.0, right: 8, top: 8, bottom: 8),
-                                                    child: Text(
-                                                      "Track   ",
-                                                      style: TextStyle(
-                                                          fontSize: 18,
-                                                          color: MyColors.whiteColorCode),
-                                                    ),
-                                                  ),
-                                                  color: MyColors.fontBlue,
-                                                ):
-                                                const SizedBox(),
-                                                ValueListenableBuilder<int>(
-                                                  valueListenable: VisitState.countRemainingLatLong,
-                                                  builder: (context, count, _) {
-                                                    return Text(
-                                                      count > 0 ? "Unsetteled records $count" : "",
-                                                      style: const TextStyle(color: Colors.black87, fontSize: 12),
-                                                    );
-                                                  },
-                                                )
-                                              ],
-                                            ),)
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ));
-
-                        }
-                    ),
-                  ),
+                                    ));
+                              }),
+                        ),
                 ],
               ),
             ),
-
-
           ),
         ),
       ),
     );
-
   }
 
   changeDatepopUp(BuildContext context) {
@@ -715,43 +1081,44 @@ class _VisitHistoryScreenState extends State<VisitHistoryScreen>{
                           flex: 3,
                           child: TextField(
                             controller: _fromdatecontroller,
-                            enabled: true, // to trigger disabledBorder
+                            enabled: true,
+                            // to trigger disabledBorder
                             decoration: const InputDecoration(
                               filled: true,
                               fillColor: MyColors.whiteColorCode,
                               focusedBorder: OutlineInputBorder(
                                 borderRadius:
-                                BorderRadius.all(Radius.circular(4)),
+                                    BorderRadius.all(Radius.circular(4)),
                                 borderSide: BorderSide(
                                     width: 1, color: MyColors.buttonColorCode),
                               ),
                               disabledBorder: OutlineInputBorder(
                                 borderRadius:
-                                BorderRadius.all(Radius.circular(4)),
+                                    BorderRadius.all(Radius.circular(4)),
                                 borderSide:
-                                BorderSide(width: 1, color: Colors.orange),
+                                    BorderSide(width: 1, color: Colors.orange),
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius:
-                                BorderRadius.all(Radius.circular(4)),
+                                    BorderRadius.all(Radius.circular(4)),
                                 borderSide: BorderSide(
                                     width: 1, color: MyColors.textColorCode),
                               ),
                               border: OutlineInputBorder(
                                   borderRadius:
-                                  BorderRadius.all(Radius.circular(4)),
+                                      BorderRadius.all(Radius.circular(4)),
                                   borderSide: BorderSide(
                                     width: 1,
                                   )),
                               errorBorder: OutlineInputBorder(
                                   borderRadius:
-                                  BorderRadius.all(Radius.circular(4)),
+                                      BorderRadius.all(Radius.circular(4)),
                                   borderSide: BorderSide(
                                       width: 1,
                                       color: MyColors.textBoxBorderColorCode)),
                               focusedErrorBorder: OutlineInputBorder(
                                   borderRadius:
-                                  BorderRadius.all(Radius.circular(4)),
+                                      BorderRadius.all(Radius.circular(4)),
                                   borderSide: BorderSide(
                                       width: 2,
                                       color: MyColors.buttonColorCode)),
@@ -776,7 +1143,6 @@ class _VisitHistoryScreenState extends State<VisitHistoryScreen>{
                             },
                           ),
                         ),
-
                       ],
                     ),
                     Padding(
@@ -794,43 +1160,44 @@ class _VisitHistoryScreenState extends State<VisitHistoryScreen>{
                           flex: 3,
                           child: TextField(
                             controller: _todatecontroller,
-                            enabled: true, // to trigger disabledBorder
+                            enabled: true,
+                            // to trigger disabledBorder
                             decoration: InputDecoration(
                               filled: true,
                               fillColor: MyColors.whiteColorCode,
                               focusedBorder: OutlineInputBorder(
                                 borderRadius:
-                                BorderRadius.all(Radius.circular(4)),
+                                    BorderRadius.all(Radius.circular(4)),
                                 borderSide: BorderSide(
                                     width: 1, color: MyColors.buttonColorCode),
                               ),
                               disabledBorder: OutlineInputBorder(
                                 borderRadius:
-                                BorderRadius.all(Radius.circular(4)),
+                                    BorderRadius.all(Radius.circular(4)),
                                 borderSide:
-                                BorderSide(width: 1, color: Colors.orange),
+                                    BorderSide(width: 1, color: Colors.orange),
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius:
-                                BorderRadius.all(Radius.circular(4)),
+                                    BorderRadius.all(Radius.circular(4)),
                                 borderSide: BorderSide(
                                     width: 1, color: MyColors.textColorCode),
                               ),
                               border: OutlineInputBorder(
                                   borderRadius:
-                                  BorderRadius.all(Radius.circular(4)),
+                                      BorderRadius.all(Radius.circular(4)),
                                   borderSide: BorderSide(
                                     width: 1,
                                   )),
                               errorBorder: OutlineInputBorder(
                                   borderRadius:
-                                  BorderRadius.all(Radius.circular(4)),
+                                      BorderRadius.all(Radius.circular(4)),
                                   borderSide: BorderSide(
                                       width: 1,
                                       color: MyColors.textBoxBorderColorCode)),
                               focusedErrorBorder: OutlineInputBorder(
                                   borderRadius:
-                                  BorderRadius.all(Radius.circular(4)),
+                                      BorderRadius.all(Radius.circular(4)),
                                   borderSide: BorderSide(
                                       width: 2,
                                       color: MyColors.buttonColorCode)),
@@ -855,7 +1222,6 @@ class _VisitHistoryScreenState extends State<VisitHistoryScreen>{
                             },
                           ),
                         ),
-
                       ],
                     ),
                     Row(
@@ -929,7 +1295,7 @@ class _VisitHistoryScreenState extends State<VisitHistoryScreen>{
                             },
                             shape: RoundedRectangleBorder(
                                 borderRadius:
-                                BorderRadius.all(Radius.circular(10))),
+                                    BorderRadius.all(Radius.circular(10))),
                             child: Padding(
                               padding: const EdgeInsets.only(
                                   left: 8.0, right: 8, top: 8, bottom: 8),
@@ -967,9 +1333,9 @@ class _VisitHistoryScreenState extends State<VisitHistoryScreen>{
 
         date = DateFormat('dd/MM/yyyy').format(selectedDate);
 
-        print("fromDate---"+date);
-        _fromdatecontroller.text=date;
-        date1=_fromdatecontroller.text;
+        print("fromDate---" + date);
+        _fromdatecontroller.text = date;
+        date1 = _fromdatecontroller.text;
         //print(date);
       });
     }
@@ -986,9 +1352,9 @@ class _VisitHistoryScreenState extends State<VisitHistoryScreen>{
         selectedToDate = picked;
 
         todate = DateFormat('dd/MM/yyyy').format(selectedToDate);
-        _todatecontroller.text=todate;
-        print("toDate---"+todate);
-        todate1= _todatecontroller.text;
+        _todatecontroller.text = todate;
+        print("toDate---" + todate);
+        todate1 = _todatecontroller.text;
       });
     }
   }
@@ -1021,24 +1387,22 @@ class _VisitHistoryScreenState extends State<VisitHistoryScreen>{
     } else if (selectedDate.compareTo(selectedToDate) == 1) {
       Fluttertoast.showToast(
         msg:
-        "Please check Start & End date! Start date should be less than to End date...!",
+            "Please check Start & End date! Start date should be less than to End date...!",
         toastLength: Toast.LENGTH_SHORT,
         timeInSecForIosWeb: 1,
       );
-    }
-    else if (selectedDate.day == selectedToDate.day && fromTime1 == toTime1) {
+    } else if (selectedDate.day == selectedToDate.day && fromTime1 == toTime1) {
       Fluttertoast.showToast(
         msg:
-        "Please Select From & To Time! FromTime And ToTime Should Not Be Same...!",
+            "Please Select From & To Time! FromTime And ToTime Should Not Be Same...!",
         toastLength: Toast.LENGTH_SHORT,
         timeInSecForIosWeb: 1,
       );
-    }
-    else {
-
+    } else {
       Navigator.pop(context);
 
-      mainBloc.add(GetVisitByFromDateToDate(UserId: staffCode!,
+      mainBloc.add(GetVisitByFromDateToDate(
+          UserId: staffCode!,
           pageNumber: 1,
           pageSize: 50,
           fromDate: _fromdatecontroller.text,
@@ -1046,12 +1410,7 @@ class _VisitHistoryScreenState extends State<VisitHistoryScreen>{
           token: Auth_Token!));
     }
   }
-
 }
-
-
-
-
 
 //                /* Expanded(
 //                           child: GestureDetector(

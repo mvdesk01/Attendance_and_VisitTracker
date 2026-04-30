@@ -1,8 +1,6 @@
-import 'dart:math';
 import 'package:attendance_system_ios/bloc/main_event.dart';
 import 'package:attendance_system_ios/bloc/main_state.dart';
 import 'package:attendance_system_ios/model/Expense/ViewexpenseAdmin.dart';
-import 'package:attendance_system_ios/model/UsersList/SearchbystaffcodeResponse.dart';
 import 'package:attendance_system_ios/service/WebService.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -17,11 +15,8 @@ import '../model/CancellationRequestData/SubmitCoffCancellation.dart';
 import '../model/CancellationRequestData/SubmitGatepassCancellation.dart';
 import '../model/CancellationRequestData/SubmitTourCancellation.dart';
 import '../model/CancellationRequestData/TourCancellationRequest.dart';
-import '../model/Expense/Submitexpenserecords.dart';
 import '../model/SanctionModel/SanctionApprove.dart';
 import '../util/customExceptions.dart';
-
-
 
 class MainBloc extends Bloc<MainEvent, MainState> {
   WebService webService;
@@ -38,73 +33,76 @@ class MainBloc extends Bloc<MainEvent, MainState> {
       if (event is LoginEvents) {
         try {
           yield LoginLoadingState();
-          var loginresponse = await webService.userLogin(event.username, event.password);
+          var loginresponse =
+              await webService.userLogin(event.username, event.password);
           yield LoginLoadedState(loginResponse: loginresponse);
         } catch (e) {
           //print(e.toString());
           yield LoginErrorState(msg: e.toString());
         }
-      }
-      else   if (event is GetStaffDetailsEvents) {
+      } else if (event is GetStaffDetailsEvents) {
         try {
           yield GetStaffDetailsLoadingState();
           var staffdetailsresponse =
-          await webService.getStaffDetails(event.StaffCode, event.token);
-          yield GetStaffDetailsLoadedState(staffDetailsResponse: staffdetailsresponse);
+              await webService.getStaffDetails(event.StaffCode, event.token);
+          yield GetStaffDetailsLoadedState(
+              staffDetailsResponse: staffdetailsresponse);
         } catch (e) {
           //print(e.toString());
           yield GetStaffDetailsErrorState(msg: e.toString());
         }
-      }
-      else if(event is RequestDataDeletionEvents){
-        try{
+      } else if (event is RequestDataDeletionEvents) {
+        try {
           yield RequestDataDeletionLoadingState();
-          var requestDataDeletionResponse = await webService.requestDataDeletion(event.token, event.StaffCode);
-          yield RequestDataDeletionLoadedState(result: requestDataDeletionResponse);
-        } catch (e){
+          var requestDataDeletionResponse = await webService
+              .requestDataDeletion(event.token, event.StaffCode);
+          yield RequestDataDeletionLoadedState(
+              result: requestDataDeletionResponse);
+        } catch (e) {
           yield RequestDataDeletionErrorState(msg: e.toString());
         }
-      }
-      else   if (event is GetPendingGatePassEvents) {
+      } else if (event is GetPendingGatePassEvents) {
         try {
           yield GetPendingGatePassLoadingState();
           var gatePassResponse =
-          await webService.getPendingGatepass(event.StaffCode, event.token);
-          yield GetPendingGatePassLoadedState(gatePassResponse: gatePassResponse);
+              await webService.getPendingGatepass(event.StaffCode, event.token);
+          yield GetPendingGatePassLoadedState(
+              gatePassResponse: gatePassResponse);
         } catch (e) {
           //print(e.toString());
           yield GetPendingGatePassErrorState(msg: e.toString());
         }
-      }
-      else   if (event is AddGatePassEvents) {
+      } else if (event is AddGatePassEvents) {
         try {
           yield AddGatePassLoadingState();
-          var cancelGatepassResponse =
-          await webService.addGatePass(event.addGatepassRequest, event.token);
-          yield AddGatePassLoadedState(cancelGatepassResponse: cancelGatepassResponse);
+          var cancelGatepassResponse = await webService.addGatePass(
+              event.addGatepassRequest, event.token);
+          yield AddGatePassLoadedState(
+              cancelGatepassResponse: cancelGatepassResponse);
         } catch (e) {
           //print(e.toString());
           yield AddGatePassErrorState(msg: e.toString());
         }
-      }
-      else   if (event is CancelGatePassEvents) {
+      } else if (event is CancelGatePassEvents) {
         try {
           yield CancelGatePassLoadingState();
-          var cancelGatePassResponse =
-          await webService.cancelGatePass(event.cancelGatepassRequest, event.token);
-          yield CancelGatePassLoadedState(cancelGatePassResponse: cancelGatePassResponse);
+          var cancelGatePassResponse = await webService.cancelGatePass(
+              event.cancelGatepassRequest, event.token);
+          yield CancelGatePassLoadedState(
+              cancelGatePassResponse: cancelGatePassResponse);
         } catch (e) {
           //print(e.toString());
           yield CancelGatePassErrorState(msg: e.toString());
         }
       }
       //Add Staff
-      else   if (event is AddStaffEntryEvents) {
+      else if (event is AddStaffEntryEvents) {
         try {
           yield AddStaffEntryLoadingState();
-          var addStaffRequest =
-          await webService.addStaffEntry(event.addStaffRequest, event.token);
-          yield AddStaffEntryLoadedState(cancelGatepassResponse: addStaffRequest);
+          var addStaffRequest = await webService.addStaffEntry(
+              event.addStaffRequest, event.token);
+          yield AddStaffEntryLoadedState(
+              cancelGatepassResponse: addStaffRequest);
         } catch (e) {
           //print(e.toString());
           yield AddStaffEntryErrorState(msg: e.toString());
@@ -112,24 +110,27 @@ class MainBloc extends Bloc<MainEvent, MainState> {
       }
       //delete Staffentry
 
-      else   if (event is DeleteStaffEntryEvents) {
+      else if (event is DeleteStaffEntryEvents) {
         try {
           yield DeleteStaffEntryLoadingState();
           var deleteStaffRequest =
-          await webService.deleteStaffEntry(event.staffCode, event.token);
-          yield DeleteStaffEntryLoadedState(cancelGatepassResponse: deleteStaffRequest);
+              await webService.deleteStaffEntry(event.staffCode, event.token);
+          yield DeleteStaffEntryLoadedState(
+              cancelGatepassResponse: deleteStaffRequest);
         } catch (e) {
           //print(e.toString());
           yield DeleteStaffEntryErrorState(msg: e.toString());
         }
       }
 //GetStaffDetailsForCoff
-      else   if (event is GetStaffDetailsForCoffEvents) {
+      else if (event is GetStaffDetailsForCoffEvents) {
         try {
           yield GetStaffDetailsForCoffLoadingState();
           var getStaffDetailsForCoffResponse =
-          await webService.GetStaffDetailsForCoff(event.type,event.staffCode,event.date, event.token);
-          yield GetStaffDetailsForCoffLoadedState(getStaffDetailsForCoffResponse: getStaffDetailsForCoffResponse);
+              await webService.GetStaffDetailsForCoff(
+                  event.type, event.staffCode, event.date, event.token);
+          yield GetStaffDetailsForCoffLoadedState(
+              getStaffDetailsForCoffResponse: getStaffDetailsForCoffResponse);
         } catch (e) {
           //print(e.toString());
           yield DeleteStaffEntryErrorState(msg: e.toString());
@@ -137,35 +138,37 @@ class MainBloc extends Bloc<MainEvent, MainState> {
       }
 //Submit Coff
 
-      else   if (event is SubmitCoffEvents) {
+      else if (event is SubmitCoffEvents) {
         try {
           yield SubmitCoffEventsLoadingState();
-          var getStaffDetailsForCoffResponse =
-          await webService.SubmitCOffEntry(event.creditCOffEntryRequest, event.token);
-          yield SubmitCoffEventsLoadedState(cancelGatepassResponse: getStaffDetailsForCoffResponse);
+          var getStaffDetailsForCoffResponse = await webService.SubmitCOffEntry(
+              event.creditCOffEntryRequest, event.token);
+          yield SubmitCoffEventsLoadedState(
+              cancelGatepassResponse: getStaffDetailsForCoffResponse);
         } catch (e) {
           //print(e.toString());
           yield SubmitCoffEventsErrorState(msg: e.toString());
         }
       }
 //FetchCoffTransactions
-      else   if (event is FetchCoffTransactionsEvents) {
+      else if (event is FetchCoffTransactionsEvents) {
         try {
           yield FetchCoffTransactionsLoadingState();
           var fetchCoffTransactionsResponse =
-          await webService.FetchCoffTransactions(event.satffCode,event.token);
-          yield FetchCoffTransactionsLoadedState(fetchCoffTransactionsResponse: fetchCoffTransactionsResponse);
+              await webService.FetchCoffTransactions(
+                  event.satffCode, event.token);
+          yield FetchCoffTransactionsLoadedState(
+              fetchCoffTransactionsResponse: fetchCoffTransactionsResponse);
         } catch (e) {
           //print(e.toString());
           yield FetchCoffTransactionsErrorState(msg: e.toString());
         }
       }
 //CancelCoff
-      else   if (event is CancelCoffOTHWOFFEvents) {
+      else if (event is CancelCoffOTHWOFFEvents) {
         try {
           yield CancelCoffOTHWOFFLoadingState();
-          var cancelGatepassResponse =
-          await webService.CancelCoffOTHWOFF(
+          var cancelGatepassResponse = await webService.CancelCoffOTHWOFF(
               event.staffCode, event.transactionId, event.token);
           yield CancelCoffOTHWOFFLoadedState(
               cancelGatepassResponse: cancelGatepassResponse);
@@ -176,12 +179,12 @@ class MainBloc extends Bloc<MainEvent, MainState> {
       }
 //GetCoffsTransactions
 
-      else   if (event is GetCoffsTransactionsEvents) {
+      else if (event is GetCoffsTransactionsEvents) {
         try {
           yield GetCoffsTransactionsLoadingState();
           var getCoffsTransactionsResponse =
-          await webService.GetCoffsTransactions(
-              event.staffCode, event.token);
+              await webService.GetCoffsTransactions(
+                  event.staffCode, event.token);
           yield GetCoffsTransactionsLoadedState(
               getCoffsTransactionsResponse: getCoffsTransactionsResponse);
         } catch (e) {
@@ -191,12 +194,11 @@ class MainBloc extends Bloc<MainEvent, MainState> {
       }
 
 //CancelCoff
-      else   if (event is CancelCoffEvents) {
+      else if (event is CancelCoffEvents) {
         try {
           yield CancelCoffLoadingState();
-          var cancelGatepassResponse =
-          await webService.CancelCoff(
-              event.staffCode,event.CoffId, event.token);
+          var cancelGatepassResponse = await webService.CancelCoff(
+              event.staffCode, event.CoffId, event.token);
           yield CancelCoffLoadedState(
               cancelGatepassResponse: cancelGatepassResponse);
         } catch (e) {
@@ -205,12 +207,11 @@ class MainBloc extends Bloc<MainEvent, MainState> {
         }
       }
 
- //SubmitCoffDebit
-      else   if (event is SubmitCoffDebitEvents) {
+      //SubmitCoffDebit
+      else if (event is SubmitCoffDebitEvents) {
         try {
           yield SubmitCoffDebitLoadingState();
-          var cancelGatepassResponse =
-          await webService.SubmitCoffDebit(
+          var cancelGatepassResponse = await webService.SubmitCoffDebit(
               event.submitCoffDebitRequest, event.token);
           yield SubmitCoffDebitLoadedState(
               cancelGatepassResponse: cancelGatepassResponse);
@@ -219,12 +220,11 @@ class MainBloc extends Bloc<MainEvent, MainState> {
           yield SubmitCoffDebitErrorState(msg: e.toString());
         }
       }
-     //InsertMMRowsData
-      else   if (event is InsertMMRowsDataEvents) {
+      //InsertMMRowsData
+      else if (event is InsertMMRowsDataEvents) {
         try {
           yield InsertMMRowsDataLoadingState();
-          var cancelGatepassResponse =
-          await webService.InsertMMRowsData(
+          var cancelGatepassResponse = await webService.InsertMMRowsData(
               event.insertMMRowDataRequest, event.token);
           yield SubmitCoffDebitLoadedState(
               cancelGatepassResponse: cancelGatepassResponse);
@@ -234,11 +234,10 @@ class MainBloc extends Bloc<MainEvent, MainState> {
         }
       }
 //InsertMMAllData
-      else   if (event is InsertMMAllDataEvents) {
+      else if (event is InsertMMAllDataEvents) {
         try {
           yield InsertMMAllDataLoadingState();
-          String cancelGatepassResponse =
-          await webService.InsertMMAllData(
+          String cancelGatepassResponse = await webService.InsertMMAllData(
               event.insertMMALLDataRequest, event.token);
           yield InsertMMAllDataLoadedState(
               cancelGatepassResponse: cancelGatepassResponse);
@@ -248,12 +247,11 @@ class MainBloc extends Bloc<MainEvent, MainState> {
         }
       }
       //UpdateMeetingFormNo
-      else   if (event is UpdateMeetingFormNoEvents) {
+      else if (event is UpdateMeetingFormNoEvents) {
         try {
           yield UpdateMeetingFormNoLoadingState();
-          var cancelGatepassResponse =
-          await webService.UpdateMeetingFormNo(
-              event.FormNo,event.SrNo, event.token);
+          var cancelGatepassResponse = await webService.UpdateMeetingFormNo(
+              event.FormNo, event.SrNo, event.token);
           yield UpdateMeetingFormNoLoadedState(
               cancelGatepassResponse: cancelGatepassResponse);
         } catch (e) {
@@ -262,54 +260,57 @@ class MainBloc extends Bloc<MainEvent, MainState> {
         }
       }
       //GetMinutesOfMeetingFormNo
-      else   if (event is GetMinutesOfMeetingFormNoEvents) {
+      else if (event is GetMinutesOfMeetingFormNoEvents) {
         try {
           yield GetMinutesOfMeetingFormNoLoadingState();
           var getMinutesOfMeetingFormNoResponse =
-          await webService.GetMinutesOfMeetingFormNo(
-              event.UserId,event.SrNo, event.token);
+              await webService.GetMinutesOfMeetingFormNo(
+                  event.UserId, event.SrNo, event.token);
           yield GetMinutesOfMeetingFormNoLoadedState(
-              getMinutesOfMeetingFormNoResponse: getMinutesOfMeetingFormNoResponse);
+              getMinutesOfMeetingFormNoResponse:
+                  getMinutesOfMeetingFormNoResponse);
         } catch (e) {
           //print(e.toString());
           yield GetMinutesOfMeetingFormNoErrorState(msg: e.toString());
         }
       }
       //GetMinutesOfTheMeetingAllDataByVisitSrNo
-      else   if (event is GetMinutesOfTheMeetingAllDataByVisitSrNoEvents) {
+      else if (event is GetMinutesOfTheMeetingAllDataByVisitSrNoEvents) {
         try {
           yield GetMinutesOfTheMeetingAllDataByVisitSrNoLoadingState();
           var getMinutesOfTheMeetingAllDataByVisitSrNoResponse =
-          await webService.GetMinutesOfTheMeetingAllDataByVisitSrNo(
-              event.SrNo, event.token);
+              await webService.GetMinutesOfTheMeetingAllDataByVisitSrNo(
+                  event.SrNo, event.token);
           yield GetMinutesOfTheMeetingAllDataByVisitSrNoLoadedState(
-              getMinutesOfTheMeetingAllDataByVisitSrNoResponse: getMinutesOfTheMeetingAllDataByVisitSrNoResponse);
+              getMinutesOfTheMeetingAllDataByVisitSrNoResponse:
+                  getMinutesOfTheMeetingAllDataByVisitSrNoResponse);
         } catch (e) {
           //print(e.toString());
-          yield GetMinutesOfTheMeetingAllDataByVisitSrNoErrorState(msg: e.toString());
+          yield GetMinutesOfTheMeetingAllDataByVisitSrNoErrorState(
+              msg: e.toString());
         }
       }
       //GetMinutesOfTheMeetingDataByVisitSrNo
 
-      else   if (event is GetMinutesOfTheMeetingDataByVisitSrNoEvents) {
+      else if (event is GetMinutesOfTheMeetingDataByVisitSrNoEvents) {
         try {
           yield GetMinutesOfTheMeetingDataByVisitSrNoLoadingState();
           var getMinutesOfTheMeetingDataByVisitSrNoResponse =
-          await webService.GetMinutesOfTheMeetingDataByVisitSrNo(
-              event.VisitSrNo, event.token);
+              await webService.GetMinutesOfTheMeetingDataByVisitSrNo(
+                  event.VisitSrNo, event.token);
           yield GetMinutesOfTheMeetingDataByVisitSrNoLoadedState(
-              getMinutesOfTheMeetingDataByVisitSrNoResponse: getMinutesOfTheMeetingDataByVisitSrNoResponse);
+              getMinutesOfTheMeetingDataByVisitSrNoResponse:
+                  getMinutesOfTheMeetingDataByVisitSrNoResponse);
         } catch (e) {
           //print(e.toString());
-          yield GetMinutesOfTheMeetingDataByVisitSrNoErrorState(msg: e.toString());
+          yield GetMinutesOfTheMeetingDataByVisitSrNoErrorState(
+              msg: e.toString());
         }
-      }
-
-      else   if (event is VisitHistoryEvents) {
+      } else if (event is VisitHistoryEvents) {
         try {
           yield VisitHistoryLoadingState();
-          var visitDataResponse =
-          await webService.GetAllVisits(event.userId,event.pagenumber,event.pageSize, event.token);
+          var visitDataResponse = await webService.GetAllVisits(
+              event.userId, event.pagenumber, event.pageSize, event.token);
           yield VisitHistoryLoadedState(visitDataResponse: visitDataResponse);
         } catch (e) {
           //print(e.toString());
@@ -317,28 +318,31 @@ class MainBloc extends Bloc<MainEvent, MainState> {
         }
       }
       //VisitlatLongListEvents
-      else   if (event is VisitlatLongListEvents) {
+      else if (event is VisitlatLongListEvents) {
         try {
           yield VisitlatLongListLoadingState();
-          var visitLatLongListResponse =
-          await webService.GetVisiLatLongList(event.StaffCode,event.ActualDate,event.SrNoVal, event.token);
-          yield VisitlatLongListLoadedState(visitLatLongListResponse: visitLatLongListResponse);
+          var visitLatLongListResponse = await webService.GetVisiLatLongList(
+              event.StaffCode, event.ActualDate, event.SrNoVal, event.token);
+          yield VisitlatLongListLoadedState(
+              visitLatLongListResponse: visitLatLongListResponse);
         } catch (e) {
           //print(e.toString());
           yield VisitlatLongListErrorState(msg: e.toString());
         }
       }
       //GetVisitByFromDateToDate
-      else   if (event is GetVisitByFromDateToDate) {
+      else if (event is GetVisitByFromDateToDate) {
         try {
           yield GetVisitByFromDateToDateLoadingState();
-          var visitRecordsResponse =
-          await webService.GetVisitByFromDateToDate(event.UserId
-              ,event.pageNumber  ,
-              event.pageSize ,
+          var visitRecordsResponse = await webService.GetVisitByFromDateToDate(
+              event.UserId,
+              event.pageNumber,
+              event.pageSize,
               event.fromDate,
-              event.toDate,event.token);
-          yield GetVisitByFromDateToDateLoadedState(visitRecordsResponse: visitRecordsResponse);
+              event.toDate,
+              event.token);
+          yield GetVisitByFromDateToDateLoadedState(
+              visitRecordsResponse: visitRecordsResponse);
         } catch (e) {
           //print(e.toString());
           yield GetVisitByFromDateToDateErrorState(msg: e.toString());
@@ -346,113 +350,113 @@ class MainBloc extends Bloc<MainEvent, MainState> {
       }
 
       //GetVisitDetailedRecords
-      else   if (event is GetVisitDetailedRecordsEvent) {
+      else if (event is GetVisitDetailedRecordsEvent) {
         try {
           yield GetVisitDetailedRecordsLoadingState();
-          var visitDetailedRecordsResponse =
-          await webService.GetVisitRecords(event.StaffCode
-              ,event.FromDate  ,
-              event.ToDate ,
-              event.SrNoVal
-           ,event.token);
-          yield GetVisitDetailedRecordsLoadedState(visitDetailedRecordsResponse: visitDetailedRecordsResponse);
+          var visitDetailedRecordsResponse = await webService.GetVisitRecords(
+              event.StaffCode,
+              event.FromDate,
+              event.ToDate,
+              event.SrNoVal,
+              event.token);
+          yield GetVisitDetailedRecordsLoadedState(
+              visitDetailedRecordsResponse: visitDetailedRecordsResponse);
         } catch (e) {
           //print(e.toString());
           yield GetVisitDetailedRecordsErrorState(msg: e.toString());
         }
-      }
-      else if(event is GetLeaveStaffDetails){
-        try{
+      } else if (event is GetLeaveStaffDetails) {
+        try {
           yield GetLeaveStaffDetailsLoadingtstate();
-          var staffdetails = await webService.getleavestaffdetails(event.StaffCode, event.token);
+          var staffdetails = await webService.getleavestaffdetails(
+              event.StaffCode, event.token);
           yield GetLeaveStaffDetailsLoadedtstate(staffdetails: staffdetails);
-        }catch(e){
+        } catch (e) {
           //print(e.toString());
           yield GetLeaveStaffDetailsErrorState(msg: e.toString());
         }
-      }
-      else if(event is GetPendingLeaveEvents){
-        try{
+      } else if (event is GetPendingLeaveEvents) {
+        try {
           yield GetPendingLeaveLoadingStatae();
-          var pendingdetails = await webService.getpendingleave(event.StaffCode, event.token, event.ApprovedFlag);
-          yield GetPendingLeaveLoadedState(leavependingresponse:pendingdetails);
-        }catch(e){
+          var pendingdetails = await webService.getpendingleave(
+              event.StaffCode, event.token, event.ApprovedFlag);
+          yield GetPendingLeaveLoadedState(
+              leavependingresponse: pendingdetails);
+        } catch (e) {
           yield GetPendingLeaveErrorState(msg: e.toString());
         }
-      }
-      else if(event is GetLeavetypeEvents){
-        try{
+      } else if (event is GetLeavetypeEvents) {
+        try {
           yield GetLeaveTypeLoadingState();
-          var leavetypedetails = await webService.getleavetypelist(event.StaffCode,event.token,event.Year);
+          var leavetypedetails = await webService.getleavetypelist(
+              event.StaffCode, event.token, event.Year);
           yield GetLeaveTypeLoadedState(leavedetails: leavetypedetails);
-        }catch(e){
+        } catch (e) {
           yield GetLeaveTypeErrorState(msg: e.toString());
         }
-      }
-      else if(event is SubmitLeaveEvents){
-        try{
+      } else if (event is SubmitLeaveEvents) {
+        try {
           yield GetSubmitLeaveLoadingState();
-          var submitleaves = await webService.submitLeaveDetails(event.submitleavedetails, event.token);
+          var submitleaves = await webService.submitLeaveDetails(
+              event.submitleavedetails, event.token);
           yield GetSubmitLeaveLoadedState(submitLeaveDetails: submitleaves);
-        }catch(e){
+        } catch (e) {
           yield GetSubmitLeaveErrorState(msg: e.toString());
         }
-      }
-      else if(event is CancelLeaveEvents){
-        try{
+      } else if (event is CancelLeaveEvents) {
+        try {
           yield GetCancelLeaveLoadingState();
-          var cancelleave =await webService.cancelleave(event.cancelleavebody, event.token);
+          var cancelleave =
+              await webService.cancelleave(event.cancelleavebody, event.token);
           yield GetCancelLeaveLoadedState(cancelleavebodyy: cancelleave);
-        }catch(e){
+        } catch (e) {
           yield GetCancelLeaveErrorState(msg: e.toString());
         }
-      }
-      else if(event is GetUserInfoEvents){
-        try{
+      } else if (event is GetUserInfoEvents) {
+        try {
           yield GetUserinfoLoadingState();
-          var userinfo =await webService.userinfo(event.Staffcode , event.token);
+          var userinfo =
+              await webService.userinfo(event.Staffcode, event.token);
           yield GetUserinfoLoadedState(profileuserinfo: userinfo);
-        }on ApiException catch(e){
+        } on ApiException catch (e) {
           emit(GetUserinfoErrorState(msg: e.message));
-        }
-        catch(e){
+        } catch (e) {
           yield GetUserinfoErrorState(msg: e.toString());
         }
-      }
-
-      else if(event is UpdateProfileDetailsEvents){
-        try{
+      } else if (event is UpdateProfileDetailsEvents) {
+        try {
           yield UpdateUserinfoLoadingState();
-          var updateuserinfo =await webService.updateuserinfo(event.updateuserinfo, event.token);
+          var updateuserinfo = await webService.updateuserinfo(
+              event.updateuserinfo, event.token);
           yield UpdateUserinfoLoadedState(updateuserinfo: updateuserinfo);
-        }catch(e){
+        } catch (e) {
           yield UpdateUserinfoErrorState(msg: e.toString());
         }
       }
 
-
-
       if (event is AllApproveSanctionEvents) {
-        try{
-          yield(ApproveSanctionLoadingState());
+        try {
+          yield (ApproveSanctionLoadingState());
           print("ReportingLevelStaffCode: ${event.ReportingLevelStaffCode}");
           print("Flag: ${event.Flag.trim()}");
           print("Token: ${event.token}");
-          List<ApprovedSanctionRecords> records = await webService.approvesanctionlist(
+          List<ApprovedSanctionRecords> records =
+              await webService.approvesanctionlist(
             event.ReportingLevelStaffCode,
             event.Flag.trim(), // Trim to ensure proper matching
             event.token,
           );
-          yield(ApproveSanctionLoadedState(approvedsanctionrecords: records));
+          yield (ApproveSanctionLoadedState(approvedsanctionrecords: records));
         } catch (e) {
-          yield(ApproveSanctionErrorState(msg: e.toString()));
+          yield (ApproveSanctionErrorState(msg: e.toString()));
         }
       }
 
       if (event is SubmitSactionEvents) {
         try {
           yield SubmitApprovesanctionLoadingState();
-          await webService.submitsanctionsapprovals(event.sanctionmodels, event.token); // Pass the list
+          await webService.submitsanctionsapprovals(
+              event.sanctionmodels, event.token); // Pass the list
           yield SubmitApprovesanctionLoadedState();
         } catch (e) {
           yield SubmitApproveSanctionErrorState(msg: e.toString());
@@ -463,7 +467,8 @@ class MainBloc extends Bloc<MainEvent, MainState> {
       else if (event is FetchCancellationDetails) {
         yield FetchCancellationDetailsLoadingState();
         try {
-          final List<CancellationstaffDetails> cancellationRequestt = await webService.fetcancellationdetails(
+          final List<CancellationstaffDetails> cancellationRequestt =
+              await webService.fetcancellationdetails(
             event.staffCode,
             event.fromDate,
             event.toDate,
@@ -471,47 +476,49 @@ class MainBloc extends Bloc<MainEvent, MainState> {
             event.token,
           );
 
-          yield FetchCancellationDetailsLoadedState(cancellationRequest: cancellationRequestt);
+          yield FetchCancellationDetailsLoadedState(
+              cancellationRequest: cancellationRequestt);
         } catch (e) {
           yield FetCancellationDetailsErrorState(msg: e.toString());
         }
-      }
-      else if(event is SubmitOTcancelRequest){
-        try{
+      } else if (event is SubmitOTcancelRequest) {
+        try {
           yield submitOTLoadingState();
-          var submitOT = await webService.submitOT(event.otcancellationsubmit, event.token);
+          var submitOT = await webService.submitOT(
+              event.otcancellationsubmit, event.token);
           yield submitOTLoadedState(otcancellationsubmit: submitOT);
-
-        }catch(e){
+        } catch (e) {
           yield submitOTErrorState(msg: e.toString());
         }
-
       }
 
       //Leave
       else if (event is FetchCancellationDetails) {
         yield FetchLeaveCancellationLoadingState();
         try {
-          final List<LeaveCancelRequest> cancellationleaveRequestt = await webService.fetchleavecancellationdetails(
+          final List<LeaveCancelRequest> cancellationleaveRequestt =
+              await webService.fetchleavecancellationdetails(
             event.staffCode,
             event.fromDate,
             event.toDate,
             event.requestType,
             event.token,
           );
-          yield FetchLeaveCancellationLoadedState(cancelleaverequest: cancellationleaveRequestt);
+          yield FetchLeaveCancellationLoadedState(
+              cancelleaverequest: cancellationleaveRequestt);
         } catch (e) {
           yield FetCancellationDetailsErrorState(msg: e.toString());
         }
-      }
-      else if(event is SubmitLeaveCancellationRequest){
-        try{
+      } else if (event is SubmitLeaveCancellationRequest) {
+        try {
           yield SubmitLeaveCancellationLoadingState();
-          final List<LeaveCancellationDetail> leavecancellation = await webService.submitLeave(event.leavecancellationsubmit, event.token);
-          yield SubmitLeaveCancellationLoadedState(leavecancellationsubmit: leavecancellation);
-        }catch(e){
+          final List<LeaveCancellationDetail> leavecancellation =
+              await webService.submitLeave(
+                  event.leavecancellationsubmit, event.token);
+          yield SubmitLeaveCancellationLoadedState(
+              leavecancellationsubmit: leavecancellation);
+        } catch (e) {
           yield SubmitLeaveCancellationErrorState(msg: e.toString());
-
         }
       }
 
@@ -519,276 +526,289 @@ class MainBloc extends Bloc<MainEvent, MainState> {
       else if (event is FetchCancellationDetails) {
         yield FetchGatepassCancellationLoadingState();
         try {
-          final List<GatepassCancelRequest> cancellationleaveRequestt = await webService.fetchgatepasscancellationdetails(
+          final List<GatepassCancelRequest> cancellationleaveRequestt =
+              await webService.fetchgatepasscancellationdetails(
             event.staffCode,
             event.fromDate,
             event.toDate,
             event.requestType,
             event.token,
           );
-          yield FetchGatepassCancellationLoadedState(cancelgatepassrequest: cancellationleaveRequestt);
+          yield FetchGatepassCancellationLoadedState(
+              cancelgatepassrequest: cancellationleaveRequestt);
         } catch (e) {
           yield FetCancellationDetailsErrorState(msg: e.toString());
         }
-      }
-      else if(event is SubmitGatepassCancellationrequest){
+      } else if (event is SubmitGatepassCancellationrequest) {
         try {
           yield SubmitgatepassCancellationLoadingState();
-          final List<GatepassCancellationDetail> gatepasscancellation = await webService.submitgatepass(event.gatepasscancellationsubmit, event.token);
-          yield SubmitgatepassCancellationLoadedState(gatepasscancellationsubmit: gatepasscancellation);
-        }
-        catch(e){
+          final List<GatepassCancellationDetail> gatepasscancellation =
+              await webService.submitgatepass(
+                  event.gatepasscancellationsubmit, event.token);
+          yield SubmitgatepassCancellationLoadedState(
+              gatepasscancellationsubmit: gatepasscancellation);
+        } catch (e) {
           yield SubmitGatepassCancellationErrorState(msg: e.toString());
         }
       }
 
       //Coff
-      else if (event is FetchCancellationDetails){
-        try{
+      else if (event is FetchCancellationDetails) {
+        try {
           yield FetchCoffCancellationLoadingState();
-          final List<CCreditCancellationRequest>coffcancellation = await webService.fetchccoffcancellationdetails(
+          final List<CCreditCancellationRequest> coffcancellation =
+              await webService.fetchccoffcancellationdetails(
             event.staffCode,
             event.fromDate,
             event.toDate,
             event.requestType,
             event.token,
           );
-          yield FetchCoffCancellationLoadedState(cancelcoffrequest: coffcancellation);
-
-        }catch(e){
+          yield FetchCoffCancellationLoadedState(
+              cancelcoffrequest: coffcancellation);
+        } catch (e) {
           yield FetchCoffCancellationErrorState(msg: e.toString());
         }
-      }
-      else if(event is SubmitCoffCancellationrequest){
-        try{
+      } else if (event is SubmitCoffCancellationrequest) {
+        try {
           yield SubmitCoffCancellationLoadingState();
-          final List<Coffcancellation>coffcancellation = await webService.submitcoff(event.coffcancellationsubmit, event.token);
-          yield SubmitCoffCancellationLoadedState(coffcancellationsubmit: coffcancellation);
-        }catch(e){
+          final List<Coffcancellation> coffcancellation = await webService
+              .submitcoff(event.coffcancellationsubmit, event.token);
+          yield SubmitCoffCancellationLoadedState(
+              coffcancellationsubmit: coffcancellation);
+        } catch (e) {
           yield SubmitCoffCancellationerrorState(msg: e.toString());
         }
       }
       //Cdebit
-      else if (event is FetchCancellationDetails){
-        try{
+      else if (event is FetchCancellationDetails) {
+        try {
           yield FetchCDebitCancellationLoadingState();
-          final List<CDebitCancellationRequest>cdebitcancellation = await webService.fetchcdebitcancellationdetails(
+          final List<CDebitCancellationRequest> cdebitcancellation =
+              await webService.fetchcdebitcancellationdetails(
             event.staffCode,
             event.fromDate,
             event.toDate,
             event.requestType,
-            event.token,);
-          yield FetchCDebitCancellationLoadedState(cancelcdebitrequest: cdebitcancellation);
-
-        }catch(e){
+            event.token,
+          );
+          yield FetchCDebitCancellationLoadedState(
+              cancelcdebitrequest: cdebitcancellation);
+        } catch (e) {
           yield FetchCDebitCancellationErrorState(msg: e.toString());
         }
-      }
-      else if(event is SubmitCdebitCancellationrequest){
-        try{
+      } else if (event is SubmitCdebitCancellationrequest) {
+        try {
           yield SubmitCdebitCancellationLoadingState();
-          final List<CDebitcancellation>cdebitcancell = await webService.submitcdebit(event.cdebitcancellationsubmit, event.token);
-          yield SubmitCdebitCancellationLoadedState(cdebitcancellationsubmit: cdebitcancell);
-        }catch(e){
+          final List<CDebitcancellation> cdebitcancell = await webService
+              .submitcdebit(event.cdebitcancellationsubmit, event.token);
+          yield SubmitCdebitCancellationLoadedState(
+              cdebitcancellationsubmit: cdebitcancell);
+        } catch (e) {
           yield SubmitCdebitCancellationErrorState(msg: e.toString());
         }
       }
       //Tour
-      else if (event is FetchCancellationDetails){
+      else if (event is FetchCancellationDetails) {
         try {
           yield FetchTourLoadingState();
-          final List<TourCanceelationRequest>tourcancellation = await webService.fetchtourcancellationdetails(
+          final List<TourCanceelationRequest> tourcancellation =
+              await webService.fetchtourcancellationdetails(
             event.staffCode,
             event.fromDate,
             event.toDate,
             event.requestType,
-            event.token,);
+            event.token,
+          );
           yield FetchTourLoadedState(canceltourrequest: tourcancellation);
-        }catch(e){
+        } catch (e) {
           yield FetchTourErrorState(msg: e.toString());
         }
-      }
-      else if(event is SubmitTourCancellationrequest){
-        try{
+      } else if (event is SubmitTourCancellationrequest) {
+        try {
           yield SubmitTourCancellationLoadingState();
-          final List<TourCancellationDetail>tourcancellation = await webService.submittour(event.tourcancellationsubmit, event.token);
-          yield SubmitTourCancellationLoadedState(tourcancellationsubmit: tourcancellation);
-        }catch(e){
+          final List<TourCancellationDetail> tourcancellation = await webService
+              .submittour(event.tourcancellationsubmit, event.token);
+          yield SubmitTourCancellationLoadedState(
+              tourcancellationsubmit: tourcancellation);
+        } catch (e) {
           yield SubmitTourCancellationErrorState(msg: e.toString());
         }
-      }
-      else if(event is SubmitExpensedata){
-        try{
+      } else if (event is SubmitExpensedata) {
+        try {
           yield SubmitexpenseLoadingState();
-          var expensedetails = await webService.submitExpenseRecords(event.expensemodell, event.token);
-          yield SubmitexpenseLoadedState(cancelGatepassResponse: expensedetails);
-        }catch(e){
+          var expensedetails = await webService.submitExpenseRecords(
+              event.expensemodell, event.token);
+          yield SubmitexpenseLoadedState(
+              cancelGatepassResponse: expensedetails);
+        } catch (e) {
           yield SubmitexpenseErrorstate(msg: e.toString());
         }
-      }
-      else if(event is Fetchstafftourdetails){
-        try{
+      } else if (event is Fetchstafftourdetails) {
+        try {
           yield GetTourstaffdetailLoadingState();
-          var staffdetails = await webService.gettourstaffdetails(event.Staffcode, event.token);
+          var staffdetails = await webService.gettourstaffdetails(
+              event.Staffcode, event.token);
           yield GetTourstaffdetailsLoadedState(staffdetails: staffdetails);
-        }catch(e){
+        } catch (e) {
           yield GetTourstaffdetailsErrorState(msg: e.toString());
         }
-      }
-      else if(event is Submittourdetailsevent){
-        try{
+      } else if (event is Submittourdetailsevent) {
+        try {
           yield SubmittourdetailsLoadingState();
-          var submitdetails = await webService.submittourdetails(event.submittour, event.token);
+          var submitdetails =
+              await webService.submittourdetails(event.submittour, event.token);
           yield SubmitTourdetailsLoadedState(toursubmission: submitdetails);
-        }catch(e){
+        } catch (e) {
           yield SubmitTourdetailsErrorState(msg: e.toString());
         }
-      }
-      else if(event is FetchappliedTourevent){
-        try{
+      } else if (event is FetchappliedTourevent) {
+        try {
           yield FetchappliedTourLoadingState();
-          var appliedtour = await webService.appliedtourlist(event.Staffcode, event.token);
+          var appliedtour =
+              await webService.appliedtourlist(event.Staffcode, event.token);
           yield FetchappliedTourLoadedState(appliedtourdetails: appliedtour);
-        }catch(e){
+        } catch (e) {
           yield FetchappliedTourErrorstate(msg: e.toString());
         }
-      }
-      else if(event is CancelTourevents){
-        try{
+      } else if (event is CancelTourevents) {
+        try {
           yield CancelappliedtourLoadingState();
-          String canceltour = await webService.canceltour(event.staffCode, event.slipId, event.token);
+          String canceltour = await webService.canceltour(
+              event.staffCode, event.slipId, event.token);
           yield CancelappliedtourLoadedState(canceltour: canceltour);
-
-        }catch(e){
+        } catch (e) {
           yield CancelappliedtourErrorState(msg: e.toString());
         }
-      }
-
-      else if(event is ShowexpenseAdmin){
-        try{
+      } else if (event is ShowexpenseAdmin) {
+        try {
           yield showexpensedetailsadminLoadingState();
-          final List<ViewExpenseModel> expenseview = await webService.showExpenseDetails(event.staffcode, event.token);
+          final List<ViewExpenseModel> expenseview =
+              await webService.showExpenseDetails(event.staffcode, event.token);
           yield showexpensedetailsadminLoadedState(expenses: expenseview);
-
-        }catch(e){
+        } catch (e) {
           yield showexpensedetailsadminErrorState(msg: e.toString());
         }
-      }
-      else if(event is Remotelocation){
-        try{
+      } else if (event is Remotelocation) {
+        try {
           yield remotelocationLoadingState();
-          var remoteupdate = await webService.remotelocationrequest(event.remotelocation, event.token);
+          var remoteupdate = await webService.remotelocationrequest(
+              event.remotelocation, event.token);
           yield remotelocationLoadedState(remotelocationresponse: remoteupdate);
-
-        }catch(e){
+        } catch (e) {
           yield remotelocationErrorState(msg: e.toString());
         }
-      }
-      else if(event is AcceptlocationRequest){
-        try{
+      } else if (event is AcceptlocationRequest) {
+        try {
           yield acceptrequestLoadingState();
-          var acceptremoterequest = await webService.acceptremotelocation(event.staffcode, event.approvedflag,event.token);
-          yield acceptrequestLoadedState(cancelGatepassResponse: acceptremoterequest);
-
-        }catch(e){
+          var acceptremoterequest = await webService.acceptremotelocation(
+              event.staffcode, event.approvedflag, event.token);
+          yield acceptrequestLoadedState(
+              cancelGatepassResponse: acceptremoterequest);
+        } catch (e) {
           yield acceptrequestErrorState(msg: e.toString());
         }
-      }
-      else if(event is Showremotelocation){
-        try{
+      } else if (event is Showremotelocation) {
+        try {
           yield showremotelocationLoadingState();
-          var showremoteaddress = await webService.showremotelocation(event.staffcode, event.token);
-          yield showremotelocationLoadedState(cancelGatepassResponse: showremoteaddress);
-        }catch(e){
+          var showremoteaddress =
+              await webService.showremotelocation(event.staffcode, event.token);
+          yield showremotelocationLoadedState(
+              cancelGatepassResponse: showremoteaddress);
+        } catch (e) {
           yield showremotelocationErrorState(msg: e.toString());
         }
-      }
-      else if(event is NonDistancecheckRequest){
-        try{
+      } else if (event is NonDistancecheckRequest) {
+        try {
           yield nondistancecheckLoadingState();
-          var nondistancecheckrequest = await webService.nondistancecheck(event.staffcode, event.approvedflag,event.token);
-          yield nondistancecheckLoadedState(cancelGatepassResponse: nondistancecheckrequest);
-
-        }catch(e){
+          var nondistancecheckrequest = await webService.nondistancecheck(
+              event.staffcode, event.approvedflag, event.token);
+          yield nondistancecheckLoadedState(
+              cancelGatepassResponse: nondistancecheckrequest);
+        } catch (e) {
           yield nondistancecheckErrorState(msg: e.toString());
         }
-      }
-      else if(event is UpdateUUID){
-        try{
+      } else if (event is UpdateUUID) {
+        try {
           yield updateUUIDLoadingState();
-          var updateuuidrequest = await webService.updateuuid(event.UserId, event.UUID);
+          var updateuuidrequest =
+              await webService.updateuuid(event.UserId, event.UUID);
           yield updateUUIDLoadedState(apiresponsee: updateuuidrequest);
-
-        }catch(e){
+        } catch (e) {
           // yield updateUUIDErrorState(apiresponse: );
         }
-      }
-
-
-      else if(event is UpdateUserFlagATS){
-        try{
+      } else if (event is UpdateUserFlagATS) {
+        try {
           yield updateUserAtsFlagLoadingState();
-          var updateatsflag = await webService.updateatsflagg(event.UserId, event.AtsFlag);
+          var updateatsflag =
+              await webService.updateatsflagg(event.UserId, event.AtsFlag);
           yield updateUserAtsFlagLoadedState(apiresponsee: updateatsflag);
-
-        }catch(e){
-          yield updateUserAtsFlagErrorState(msg:e.toString() );
+        } catch (e) {
+          yield updateUserAtsFlagErrorState(msg: e.toString());
         }
-      }
-
-      else if(event is UpdateMMALLDataEvents){
-        try{
+      } else if (event is UpdateMMALLDataEvents) {
+        try {
           yield UpdateMMALlDataLoadingState();
-          var cancelGatepassResponse = await webService.UpdateMMAllDataa(event.updateMMAllData, event.token);
-          yield UpdateMMAllDataLoadedState(cancelGatepassResponse: cancelGatepassResponse);
-        }catch(e){
+          var cancelGatepassResponse = await webService.UpdateMMAllDataa(
+              event.updateMMAllData, event.token);
+          yield UpdateMMAllDataLoadedState(
+              cancelGatepassResponse: cancelGatepassResponse);
+        } catch (e) {
           yield UpdateMMAllDataErrorState(msg: e.toString());
         }
       }
       //updateMMData
-      else if(event is UpdateMMDataEvents){
-        try{
+      else if (event is UpdateMMDataEvents) {
+        try {
           yield UpdateMMDataLoadingState();
-          var cancelGatepassResponse = await webService.UpdateMMDataa(event.updateMMData, event.token);
-          yield UpdateMMDataLoadedState(cancelGatepassResponse: cancelGatepassResponse);
-        }catch(e){
+          var cancelGatepassResponse =
+              await webService.UpdateMMDataa(event.updateMMData, event.token);
+          yield UpdateMMDataLoadedState(
+              cancelGatepassResponse: cancelGatepassResponse);
+        } catch (e) {
           yield UpdateMMDataErrorState(msg: e.toString());
         }
-
-      }
-      else if (event is SearchbyStaffcodeEvents) {
+      } else if (event is SearchbyStaffcodeEvents) {
         try {
           yield SearchbyStaffcodeLoadingPage();
 
-          var userResponse = await webService.searchuserbystaffcode(event.token, event.staffcode);
+          var userResponse = await webService.searchuserbystaffcode(
+              event.token, event.staffcode);
 
           yield SearchbyStaffcodeLoadedPage(userResponse: userResponse);
-
         } catch (e) {
-          yield SearchbyStaffcodeErrorPage(
-              message: e.toString());
+          yield SearchbyStaffcodeErrorPage(message: e.toString());
         }
       }
 
-
       //GetAllUsersDataList
-      else   if (event is GetAllUsersListEvent) {
+      else if (event is GetAllUsersListEvent) {
         try {
           yield GetAllUsersListLoadingState();
-          var getAllusersListResponse =
-          await webService.GetAllUsers(event.token, event.pagenumber, event.pagesize);
-          yield GetAllUsersListLoadedState(getAllusersListResponse: getAllusersListResponse);
+          var getAllusersListResponse = await webService.GetAllUsers(
+              event.token, event.pagenumber, event.pagesize);
+          yield GetAllUsersListLoadedState(
+              getAllusersListResponse: getAllusersListResponse);
         } catch (e) {
           //print(e.toString());
           yield GetAllUsersListErrorState(msg: e.toString());
         }
+      } else if (event is GetVisitClientListEvent) {
+        try {
+          yield GetAllClientLoadingState();
+
+          var response = await webService.getAllCustomers(
+              event.pagenumber, event.pagesize);
+
+          if (response != null && response.status == true) {
+            yield GetAllClientLoadedState(response: response);
+          } else {
+            yield GetAllClientErrorState(error: "No Data Found");
+          }
+        } catch (e) {
+          yield GetAllClientErrorState(error: e.toString());
+        }
       }
-
-
-
-
-
     }
   }
-
 }

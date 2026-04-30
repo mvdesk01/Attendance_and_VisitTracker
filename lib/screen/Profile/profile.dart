@@ -1,22 +1,21 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
-import 'package:shimmer/shimmer.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:shimmer/shimmer.dart';
 
 import '../../bloc/main_bloc.dart';
 import '../../bloc/main_event.dart';
 import '../../bloc/main_state.dart';
 import '../../model/Profile/UpdateUserinfo.dart';
-import '../../service/WebService.dart';
 import '../../screen/Home/home.dart';
+import '../../service/WebService.dart';
 import '../../util/MyColor.dart';
 
 class Profile extends StatefulWidget {
@@ -158,7 +157,8 @@ class _ProfileState extends State<Profile> with SingleTickerProviderStateMixin {
             ...List.generate(
               6,
               (index) => Container(
-                margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                margin:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                 height: 70,
                 decoration: BoxDecoration(
                   color: Colors.white,
@@ -172,7 +172,8 @@ class _ProfileState extends State<Profile> with SingleTickerProviderStateMixin {
     );
   }
 
-  Widget infoField(String title, TextEditingController controller, IconData icon) {
+  Widget infoField(
+      String title, TextEditingController controller, IconData icon) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       decoration: BoxDecoration(
@@ -189,13 +190,16 @@ class _ProfileState extends State<Profile> with SingleTickerProviderStateMixin {
       child: TextField(
         controller: controller,
         enabled: false,
-        style: const TextStyle(fontWeight: FontWeight.w500, color: MyColors.black),
+        style:
+            const TextStyle(fontWeight: FontWeight.w500, color: MyColors.black),
         decoration: InputDecoration(
           labelText: title,
-          labelStyle: const TextStyle(color: MyColors.text3greyColorCode, fontSize: 14),
+          labelStyle:
+              const TextStyle(color: MyColors.text3greyColorCode, fontSize: 14),
           prefixIcon: Icon(icon, color: MyColors.lightBlue, size: 20),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         ),
       ),
     );
@@ -280,9 +284,12 @@ class _ProfileState extends State<Profile> with SingleTickerProviderStateMixin {
                     child: CircleAvatar(
                       radius: 65,
                       backgroundColor: Colors.grey.shade200,
-                      backgroundImage: profileImage != null && profileImage!.isNotEmpty
-                          ? MemoryImage(base64Decode(cleanBase64(profileImage!)))
-                          : const AssetImage("assets/icons/profileicon.png") as ImageProvider,
+                      backgroundImage:
+                          profileImage != null && profileImage!.isNotEmpty
+                              ? MemoryImage(
+                                  base64Decode(cleanBase64(profileImage!)))
+                              : const AssetImage("assets/icons/profileicon.png")
+                                  as ImageProvider,
                     ),
                   ),
                   Container(
@@ -315,9 +322,19 @@ class _ProfileState extends State<Profile> with SingleTickerProviderStateMixin {
           nameController.text = user?.displayName ?? "";
           staffController.text = user?.staffCode ?? "";
           emailController.text = user?.emailId ?? "";
-          mobileController.text = user?.mobileNo ?? "";
+          //mobileController.text = user?.mobileNo ?? "";
           addressController.text = user?.currAddress ?? "";
-          remoteController.text = user?.newRemoteLocation ?? "";
+          //remoteController.text = user?.newRemoteLocation ?? "";
+
+          if (user?.newRemoteLocation == null ||
+              user!.newRemoteLocation!.trim().isEmpty ||
+              user.newRemoteLocation == "null") {
+            remoteController.text = "N/A";
+            print("N/A");
+          } else {
+            print(user.newRemoteLocation);
+            remoteController.text = user.newRemoteLocation!;
+          }
 
           if (user?.createdOn != null) {
             try {
@@ -326,6 +343,15 @@ class _ProfileState extends State<Profile> with SingleTickerProviderStateMixin {
             } catch (e) {
               joinController.text = user?.createdOn ?? "";
             }
+          }
+          if (user?.mobileNo == null ||
+              user!.mobileNo!.trim().isEmpty ||
+              user.mobileNo == "null") {
+            mobileController.text = "N/A";
+            print("N/A");
+          } else {
+            print(user.mobileNo);
+            mobileController.text = user.mobileNo!;
           }
 
           if (user?.profilePic != null && user!.profilePic!.isNotEmpty) {
@@ -354,24 +380,33 @@ class _ProfileState extends State<Profile> with SingleTickerProviderStateMixin {
                         padding: const EdgeInsets.only(bottom: 30),
                         child: Column(
                           children: [
-                            infoField("Full Name", nameController, Icons.person_outline),
-                            infoField("Staff Code", staffController, Icons.badge_outlined),
-                            infoField("Email Address", emailController, Icons.email_outlined),
-                            infoField("Mobile Number", mobileController, Icons.phone_android_outlined),
-                            infoField("Joining Date", joinController, Icons.calendar_today_outlined),
-                            infoField("Current Address", addressController, Icons.location_on_outlined),
-                            infoField("Remote Location", remoteController, Icons.map_outlined),
+                            infoField("Full Name", nameController,
+                                Icons.person_outline),
+                            infoField("Staff Code", staffController,
+                                Icons.badge_outlined),
+                            infoField("Email Address", emailController,
+                                Icons.email_outlined),
+                            infoField("Mobile Number", mobileController,
+                                Icons.phone_android_outlined),
+                            infoField("Joining Date", joinController,
+                                Icons.calendar_today_outlined),
+                            infoField("Current Address", addressController,
+                                Icons.location_on_outlined),
+                            infoField("Remote Location", remoteController,
+                                Icons.map_outlined),
                             const SizedBox(height: 30),
                             if (showUpdate)
                               Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 20),
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 20),
                                 child: SizedBox(
                                   width: double.infinity,
                                   child: ElevatedButton(
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: MyColors.lightBlue,
                                       foregroundColor: Colors.white,
-                                      padding: const EdgeInsets.symmetric(vertical: 16),
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 16),
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(12),
                                       ),
@@ -382,7 +417,8 @@ class _ProfileState extends State<Profile> with SingleTickerProviderStateMixin {
                                         context,
                                         MaterialPageRoute(
                                           builder: (_) => BlocProvider(
-                                            create: (_) => MainBloc(webService: WebService()),
+                                            create: (_) => MainBloc(
+                                                webService: WebService()),
                                             child: const HomeScreen(),
                                           ),
                                         ),
@@ -390,7 +426,9 @@ class _ProfileState extends State<Profile> with SingleTickerProviderStateMixin {
                                     },
                                     child: const Text(
                                       "Update Profile",
-                                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                      style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold),
                                     ),
                                   ),
                                 ),

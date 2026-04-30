@@ -270,13 +270,31 @@ class _ProfileforAdminState extends State<ProfileforAdmin> {
               nameController.text = user?.displayName ?? '';
               cardIdController.text = user?.staffCode ?? '';
               emailController.text = user?.emailId ?? '';
-              mobileController.text = user?.mobileNo ?? '';
+              // mobileController.text = user?.mobileNo ?? '';
+              if (user?.mobileNo == null ||
+                  user!.mobileNo!.trim().isEmpty ||
+                  user.mobileNo == "null") {
+                mobileController.text = "N/A";
+                print("N/A");
+              } else {
+                print(user.mobileNo);
+                mobileController.text = user.mobileNo!;
+              }
               dateOfJoiningController.text = user?.createdOn != null
                   ? DateFormat('dd/MM/yyyy')
                       .format(DateTime.parse(user!.createdOn!))
                   : '';
               addressController.text = user?.currAddress ?? '';
-              remoteaddressController.text = user?.newRemoteLocation ?? '';
+              //remoteaddressController.text = user?.newRemoteLocation ?? '';
+              if (user?.newRemoteLocation == null ||
+                  user!.newRemoteLocation!.trim().isEmpty ||
+                  user.newRemoteLocation == "null") {
+                remoteaddressController.text = "N/A";
+                print("N/A");
+              } else {
+                print(user.newRemoteLocation);
+                remoteaddressController.text = user.newRemoteLocation!;
+              }
               _showChangeAddressButton = user?.addressapproveFlag == 'Y';
 
               // Store original data
