@@ -12,6 +12,8 @@ import 'package:attendance_system_ios/model/VisitHistory/VisitDataResponse.dart'
 import 'package:attendance_system_ios/model/VisitHistory/VisitLatLongListResponse.dart';
 import 'package:attendance_system_ios/model/VisitReport/VisitDetailedRecordsResponse.dart';
 import 'package:attendance_system_ios/model/VisitReport/VisitRecordsResponse.dart';
+import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 
 import '../model/CancellationRequestData/CCreditCancellationRequest.dart';
 import '../model/CancellationRequestData/CDebitCancellationRequest.dart';
@@ -45,12 +47,16 @@ import '../model/Tour/Submittourdetails.dart';
 import '../model/UsersList/SearchbystaffcodeResponse.dart';
 import '../model/UsersList/UpdateUUID.dart';
 
-class MainState {
+class MainState extends Equatable {
   @override
   String toString() {
     // TODO: implement toString
     return super.toString();
   }
+
+  @override
+  // TODO: implement props
+  List<Object?> get props => throw UnimplementedError();
 }
 
 class MainInitialState extends MainState {
@@ -1499,4 +1505,76 @@ class UpdateMMDataErrorState extends MainState {
   @override
   // TODO: implement props
   List<Object> get props => throw UnimplementedError();
+}
+
+class AddMultiRemoteLocationLoadingState extends MainState {
+  @override
+  List <Object> get props => [];
+}
+
+class AddMultiRemoteLocationLoadedState extends MainState {
+  var response;
+  AddMultiRemoteLocationLoadedState( {this.response});
+  @override
+  List<Object> get props => [response];
+}
+
+class AddMultiRemoteLocationErrorState extends MainState {
+  String msg;
+  AddMultiRemoteLocationErrorState({required this.msg});
+  @override
+  List<Object> get props => [msg];
+}
+
+class GetMultiRemoteLocationLoadingState extends MainState {
+  @override
+  List<Object?> get  props => [];
+}
+
+class GetMultiRemoteLocationLoadedState extends MainState {
+  final response;
+  GetMultiRemoteLocationLoadedState(this.response);
+  @override
+  List<Object?> get props => [response];
+}
+
+class GetMultiRemoteLocationErrorState extends MainState {
+  String msg;
+  GetMultiRemoteLocationErrorState({required this.msg});
+  @override
+  List<Object?> get props => [msg];
+}
+
+class DeleteMultiRemoteLocationLoadingState extends MainState {
+  @override
+  List<Object> get props => [];
+}
+class DeleteMultiRemoteLocationLoadedState extends MainState {
+  final response;
+  DeleteMultiRemoteLocationLoadedState(this.response);
+  @override
+  List<Object> get props => [response];
+}
+class DeleteMultiRemoteLocationErrorState extends MainState {
+  String msg;
+  DeleteMultiRemoteLocationErrorState({required this.msg});
+  @override
+  List<Object?> get props => [msg];
+}
+
+class UpdateMultiRemoteLocationLoadingState extends MainState {
+  @override
+  List<Object> get props => [];
+}
+class UpdateMultiRemoteLocationLoadedState extends MainState {
+  final response;
+  UpdateMultiRemoteLocationLoadedState(this.response);
+  @override
+  List<Object> get props => [response];
+}
+class UpdateMultiRemoteLocationErrorState extends MainState {
+  String msg;
+  UpdateMultiRemoteLocationErrorState({required this.msg});
+  @override
+  List<Object?> get props => [msg];
 }

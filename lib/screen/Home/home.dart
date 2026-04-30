@@ -70,6 +70,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool lastPunchOut = true;
   bool _isOverlayLoading = false;
   late MainBloc mainBloc;
+  List<Map<String, dynamic>> multiLatLongList = [];
   final storage = const FlutterSecureStorage();
 
   String? staffCode = "";
@@ -155,6 +156,7 @@ class _HomeScreenState extends State<HomeScreen> {
     staffName = await storage.read(key: 'Staff_Name');
     if (staffCode != null && Auth_Token != null) {
       mainBloc.add(GetUserInfoEvents(Staffcode: staffCode!, token: Auth_Token!));
+      mainBloc.add(GetMultiRemoteLocation(Auth_Token!, staffCode!));
     }
   }
 
@@ -382,7 +384,7 @@ class _HomeScreenState extends State<HomeScreen> {
       progressIndicator: const CircularProgressIndicator(color: MyColors.lightBlue),
       child: BlocListener<MainBloc, MainState>(
         listener: (context, state) {
-          if (state is GetStaffDetailsLoadingState || state is GetUserinfoLoadingState) {
+          if (state is GetStaffDetailsLoadingState || state is GetUserinfoLoadingState || state is GetMultiRemoteLocationLoadingState) {
             setState(() => _isOverlayLoading = true);
           } else if (state is GetStaffDetailsLoadedState) {
             setState(() => _isOverlayLoading = false);
@@ -403,7 +405,13 @@ class _HomeScreenState extends State<HomeScreen> {
             REMOTELONG = remotelong ?? "";
             DISTANCEFLAG = distancecheckglag ?? "";
             ADDRESSFLAG = addressflag ?? "";
-          } else if (state is GetUserinfoErrorState || state is GetStaffDetailsErrorState) {
+          }else if(state is GetMultiRemoteLocationLoadedState){
+            multiLatLongList = state.response;
+           setState(() {
+              _isOverlayLoading = false;
+           });
+          }
+          else if (state is GetUserinfoErrorState || state is GetStaffDetailsErrorState || state is GetMultiRemoteLocationErrorState) {
             setState(() => _isOverlayLoading = false);
           }
         },
@@ -586,7 +594,7 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             Image.asset(isPunchIn ? "assets/icons/In01.png" : "assets/icons/out01.png", width: 80),
             const SizedBox(height: 15),
-            Text("Ready to mark your ${isPunchIn ? 'arrival' : 'departure'}?", textAlign: TextAlign.center),
+            Text("Ready to mark your ${isPunchIn ? 'In time' : 'Out time'}?", textAlign: TextAlign.center),
           ],
         ),
         actions: [
@@ -725,6 +733,7 @@ class _HomeScreenState extends State<HomeScreen> {
         LocationHandler.changeToRemoteLocation();
         LocationHandler.remoteZoneLat = double.parse(REMOTELAT);
         LocationHandler.remoteZoneLon = double.parse(REMOTELONG);
+        LocationHandler.multiLatLong = multiLatLongList;
         bool ifInZone = await LocationHandler.checkIfInZone();
         if(ifInZone) {
           try {
@@ -785,6 +794,7 @@ class _HomeScreenState extends State<HomeScreen> {
         LocationHandler.changeToRemoteLocation();
         LocationHandler.remoteZoneLat = double.parse(REMOTELAT);
         LocationHandler.remoteZoneLon = double.parse(REMOTELONG);
+        LocationHandler.multiLatLong = multiLatLongList;
         bool ifInZone = await LocationHandler.checkIfInZone();
         if(ifInZone) {
           try {

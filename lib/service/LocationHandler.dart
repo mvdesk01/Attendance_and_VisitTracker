@@ -18,6 +18,7 @@ class LocationHandler {
   static double? remoteZoneLon;
   static double radiusInMeters = 200;          //setting the redius in meter
   static bool _remoteLocationChange = false;
+  static List<Map<String, dynamic>> multiLatLong = [];
 
 
   static void changeToRemoteLocation () {
@@ -52,31 +53,6 @@ class LocationHandler {
     }
     return true;
   }
-
-
-  /*static Future<Position?> getCurrentPosition() async {
-    try {
-      final hasPermission = await handleLocationPermission();
-      if (!hasPermission) return null;{
-
-         LocationSettings locationSettings = const LocationSettings(
-          accuracy: LocationAccuracy.best,
-          // distanceFilter: 100,
-          timeLimit: Duration(seconds: 10)
-        );
-
-        Position position = await Geolocator.getCurrentPosition(locationSettings: locationSettings)
-            .catchError((e) {
-          print('Error: $e');
-          Fluttertoast.showToast(msg: "Please Try Again!!");
-          return null;
-        });
-        return position;
-      }
-    } catch (e) {
-      return null;
-    }
-  }*/
 
   static Future<Position?> getCurrentPosition() async {
     try {
@@ -123,15 +99,6 @@ class LocationHandler {
   }
 
 
-/*   static double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
-    var p = 0.017453292519943295; // Math.PI / 180
-    var a = 0.5 -
-        cos((lat2 - lat1) * p) / 2 +
-        cos(lat1 * p) * cos(lat2 * p) * (1 - cos((lon2 - lon1) * p)) / 2;
-    return 12742 * asin(sqrt(a)); // 2 * R; R = 6371 km (Earth's radius)
-  }*/
-
-
   static Future<bool> isUserInZone(Position userPosition, double zoneLat, double zoneLon, double radiusInMeters) async {
     double distance = Geolocator.distanceBetween(
       userPosition.latitude,
@@ -144,63 +111,93 @@ class LocationHandler {
     return distance <= radiusInMeters; // Distance in meters
   }
 
+  // static Future<bool> checkIfInZone() async {
+  //   Position? accuratePosition = await getCurrentPosition();
+  //   if (accuratePosition == null) return false;
+  //
+  //   String? currentAdd = await getAddressFromLatLng(accuratePosition);
+  //   print("lat ${accuratePosition.latitude}");
+  //   print("long ${accuratePosition.longitude}");
+  //   print("address $currentAdd");
+  //
+  //   // Update current location values
+  //   currentLat = accuratePosition.latitude;
+  //   currentLon = accuratePosition.longitude;
+  //   currentAddress = currentAdd;
+  //
+  //   // Zone definition (example values)
+  //   if(_remoteLocationChange){
+  //     zoneLat = remoteZoneLat;
+  //     zoneLon = remoteZoneLon;
+  //   }else{
+  //     zoneLat = 18.5842;
+  //     zoneLon = 73.7354;
+  //   }
+  //
+  //   bool inZone = await isUserInZone(accuratePosition, zoneLat!, zoneLon!, radiusInMeters);
+  //   return inZone;
+  // }
   static Future<bool> checkIfInZone() async {
+
     Position? accuratePosition = await getCurrentPosition();
     if (accuratePosition == null) return false;
 
     String? currentAdd = await getAddressFromLatLng(accuratePosition);
-    print("lat ${accuratePosition.latitude}");
-    print("long ${accuratePosition.longitude}");
-    print("address $currentAdd");
 
-    // Update current location values
     currentLat = accuratePosition.latitude;
     currentLon = accuratePosition.longitude;
     currentAddress = currentAdd;
 
-    // Zone definition (example values)
-    if(_remoteLocationChange){
+    /// 1️⃣ First check primary zone (office or remote)
+    if (_remoteLocationChange) {
       zoneLat = remoteZoneLat;
       zoneLon = remoteZoneLon;
-    }else{
+    } else {
       zoneLat = 18.5842;
       zoneLon = 73.7354;
     }
 
-    bool inZone = await isUserInZone(accuratePosition, zoneLat!, zoneLon!, radiusInMeters);
-    return inZone;
+    bool inPrimaryZone = await isUserInZone(
+        accuratePosition,
+        zoneLat!,
+        zoneLon!,
+        radiusInMeters);
+
+    if (inPrimaryZone) {
+      return true;
+    }
+
+    /// 2️⃣ Check Multiple Remote Locations
+    for (var location in multiLatLong) {
+
+      if ((location['flag'] ?? "").toString().trim() != "Y") {
+        continue; // skip non approved locations
+      }
+
+      double lat = double.parse(location['latitude']);
+      double lon = double.parse(location['longitude']);
+      double radius = double.parse(location['radius']);
+
+      bool inMultiZone = await isUserInZone(
+          accuratePosition,
+          lat,
+          lon,
+          radiusInMeters);
+
+      if (inMultiZone) {
+        return true;
+      }
+    }
+
+    /// 3️⃣ If none matched
+    return false;
   }
 
-// void startLocation(){
-//
-//
-//   _serviceEnabled = await location.serviceEnabled();
-//   if (!_serviceEnabled) {
-//     _serviceEnabled = await location.requestService();
-//     if (!_serviceEnabled) {
-//       return;
-//     }
-//   }
-//
-//   _permissionGranted = await location.hasPermission();
-//   if (_permissionGranted == PermissionStatus.denied) {
-//     _permissionGranted = await location.requestPermission();
-//     if (_permissionGranted != PermissionStatus.granted) {
-//       return;
-//     }
-//   }
-//
-//   _locationData = await location.getLocation();
-//   You can also get continuous callbacks when your position is changing:
-//
-//   location.onLocationChanged.listen((LocationData currentLocation) {
-//   // Use current location
-//   });
-//   To receive location when application is in background you have to enable it:
-//
-//   location.enableBackgroundMode(enable: true)
-//
-// }
+
+
+
+
+
 
 }
 

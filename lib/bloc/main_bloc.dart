@@ -782,7 +782,46 @@ class MainBloc extends Bloc<MainEvent, MainState> {
         }
       }
 
+      else if (event is AddMultipleRemoteLocation) {
+        try{
+          yield AddMultiRemoteLocationLoadingState();
+          var response = await webService.addMultiRemoteLocation(event.token, event.staffcode, event.flag, event.lat, event.long, event.locationName, event.radius);
+          yield AddMultiRemoteLocationLoadedState(response: response);
+        } catch (e){
+          yield AddMultiRemoteLocationErrorState(msg: e.toString());
+        }
+      }
+
+      else if( event is GetMultiRemoteLocation){
+        try{
+          yield GetMultiRemoteLocationLoadingState();
+          final response = await webService.getMultiRemoteLocations(event.token, event.staffCode);
+          yield GetMultiRemoteLocationLoadedState(response);
+        } catch (e){
+          yield GetMultiRemoteLocationErrorState(msg: e.toString());
+        }
+      }
+
+      else if (event is DeleteMultiRemoteLocation) {
+        try {
+          yield DeleteMultiRemoteLocationLoadingState();
+          final response = await webService.deleteMultiRemoteLocation(event.staffCode, event.token, event.srNo);
+          yield DeleteMultiRemoteLocationLoadedState(response);
+        } catch (e) {
+          yield DeleteMultiRemoteLocationErrorState(msg: e.toString());
+        }
+      }
+
+      else if (event is UpdateMultiRemoteLocationEvent) {
+        try{
+          yield UpdateMultiRemoteLocationLoadingState();
+          final response = await webService.updateMultiRemoteLocation(event.srNo, event.flag, event.staffCode, event.token, event.radius, event.locationName, event.lat, event.long);
+          yield UpdateMultiRemoteLocationLoadedState(response);
+        } catch (e) {
+          yield UpdateMultiRemoteLocationErrorState(msg: e.toString());
+        }
+      }
+
     }
   }
-
 }
