@@ -194,8 +194,8 @@ class _CoffcreditscreenState extends State<Coffcreditscreen> {
               setState(() {
                 CoffList.clear();
               });
-              CustomDialog()
-                  .popUp(context, "Well done! Your DOff is Canceled....!!");
+              CustomDialog().popUp(
+                  context, "Well done! Your C-Off Credit is Canceled....!!");
               // ✅ Fetch fresh data
               mainBloc.add(FetchCoffTransactionsEvents(
                   satffCode: staffCode!, token: Auth_Token!));
@@ -328,7 +328,8 @@ class _CoffcreditscreenState extends State<Coffcreditscreen> {
                                                 crossAxisAlignment:
                                                     CrossAxisAlignment.center,
                                                 children: [
-                                                  const Text(" Cancel Coff ",
+                                                  const Text(
+                                                      " Cancel C-Off Credit ",
                                                       style: TextStyle(
                                                           fontWeight:
                                                               FontWeight.bold,
@@ -339,7 +340,7 @@ class _CoffcreditscreenState extends State<Coffcreditscreen> {
                                                             top: 10.0,
                                                             bottom: 10),
                                                     child: Text(
-                                                      "Are you sure want to Cancel This COff...??",
+                                                      "Are you sure want to Cancel This C-Off Credit...??",
                                                       textAlign:
                                                           TextAlign.center,
                                                       style: TextStyle(

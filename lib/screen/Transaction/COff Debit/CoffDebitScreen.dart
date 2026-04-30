@@ -199,8 +199,8 @@ class _CoffDebitscreenState extends State<CoffDebitscreen> {
                   CoffList.removeAt(deleteposition);
                 });
                 print("CoffList Size : " + CoffList.length.toString());
-                CustomDialog()
-                    .popUp(context, "Well done! Your DOff is Canceled....!!");
+                CustomDialog().popUp(
+                    context, "Well done! Your C-OOff Debit is Canceled....!!");
               }
             } else if (state is CancelCoffErrorState) {
               setState(() {
@@ -343,7 +343,7 @@ class _CoffDebitscreenState extends State<CoffDebitscreen> {
                                                     CrossAxisAlignment.center,
                                                 children: [
                                                   const Text(
-                                                    "Cancel Coff",
+                                                    "Cancel C-off Debit",
                                                     style: TextStyle(
                                                       fontWeight:
                                                           FontWeight.bold,
@@ -356,7 +356,7 @@ class _CoffDebitscreenState extends State<CoffDebitscreen> {
                                                       bottom: 10,
                                                     ),
                                                     child: Text(
-                                                      "Are you sure want to Cancel This COff...??",
+                                                      "Are you sure want to Cancel This C-Off Debit...??",
                                                       textAlign:
                                                           TextAlign.center,
                                                       style: TextStyle(

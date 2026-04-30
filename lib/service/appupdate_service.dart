@@ -13,12 +13,12 @@ class AppUpdateService {
         if (info.updateAvailability == UpdateAvailability.updateAvailable) {
           _showUpdateDialog(context);
         }
-      } else if (Platform.isIOS) {
-        // iOS → always show popup (or control via version logic later)
-        _showUpdateDialog(context);
       }
+      // ❌ REMOVE auto popup for iOS
+      // handle iOS only when you implement version check
     } catch (e) {
-      _showUpdateDialog(context); // fallback
+      // ✅ only log, DO NOT show dialog
+      print("Update check failed: $e");
     }
   }
 

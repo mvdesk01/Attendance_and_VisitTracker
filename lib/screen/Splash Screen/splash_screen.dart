@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:attendance_system_ios/bloc/main_bloc.dart';
 import 'package:attendance_system_ios/bloc/main_event.dart';
 import 'package:attendance_system_ios/bloc/main_state.dart';
@@ -15,13 +16,14 @@ import 'package:loading_overlay/loading_overlay.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../main.dart';
+import '../../service/appupdate_service.dart';
+import '../../service/internet_service.dart';
 import '../../util/MyColor.dart';
 import '../Login/login_screen.dart';
-import '../../service/internet_service.dart';
 
 class SplashScreen extends StatefulWidget {
   final String? initialPayload;
+
   const SplashScreen({super.key, this.initialPayload});
 
   @override
@@ -37,14 +39,27 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    _initializeApp();
+    // _initializeApp();
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
+    //   AppUpdateService.checkAndUpdate(context);
+    // });
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // optional small delay for smoother UI
+      await Future.delayed(const Duration(milliseconds: 300));
+
+      await AppUpdateService.checkAndUpdate(context);
+
+      // now safe to continue
+      _initializeApp();
+    });
+
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   }
 
   Future<void> _initializeApp() async {
     await requestPermissions();
     await clearKeychainValues();
-    
+
     bool hasInternet = await InternetService().hasInternetAccess();
     if (!hasInternet) {
       if (mounted) showNoInternetDialog();
@@ -99,13 +114,15 @@ class _SplashScreenState extends State<SplashScreen> {
       context: context,
       builder: (BuildContext dContext) {
         return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           child: Container(
             padding: const EdgeInsets.all(24),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.wifi_off_rounded, size: 64, color: MyColors.redColorCode),
+                const Icon(Icons.wifi_off_rounded,
+                    size: 64, color: MyColors.redColorCode),
                 const SizedBox(height: 16),
                 const Text(
                   "No Internet Connection",
@@ -115,7 +132,8 @@ class _SplashScreenState extends State<SplashScreen> {
                 const Text(
                   "Please check your internet connection and try again.",
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 16, color: MyColors.text5ColorCode),
+                  style:
+                      TextStyle(fontSize: 16, color: MyColors.text5ColorCode),
                 ),
                 const SizedBox(height: 24),
                 SizedBox(
@@ -124,16 +142,19 @@ class _SplashScreenState extends State<SplashScreen> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: MyColors.appDefaultColorCode,
                       padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10)),
                     ),
                     onPressed: () async {
-                      bool hasInternet = await InternetService().hasInternetAccess();
+                      bool hasInternet =
+                          await InternetService().hasInternetAccess();
                       if (hasInternet) {
                         Navigator.pop(dContext);
                         _initializeApp();
                       }
                     },
-                    child: const Text("Retry", style: TextStyle(color: Colors.white)),
+                    child: const Text("Retry",
+                        style: TextStyle(color: Colors.white)),
                   ),
                 ),
               ],
@@ -168,8 +189,10 @@ class _SplashScreenState extends State<SplashScreen> {
     }
 
     if (storedUsername != 'Null' && storedPassword != 'Null') {
-      isAdminLogin = (storedUsername == "mzdl002" && storedPassword == "Admin@123\$");
-      _mainBloc?.add(LoginEvents(username: storedUsername, password: storedPassword));
+      isAdminLogin =
+          (storedUsername == "mzdl002" && storedPassword == "Admin@123\$");
+      _mainBloc?.add(
+          LoginEvents(username: storedUsername, password: storedPassword));
     } else {
       await Future.delayed(const Duration(seconds: 3));
       if (!mounted) return;
@@ -203,13 +226,17 @@ class _SplashScreenState extends State<SplashScreen> {
             } else if (state is LoginLoadedState) {
               setState(() => _isLoading = false);
               if (state.loginResponse?.token?.result?.token != null) {
-                storage.write(key: 'Auth_Token', value: state.loginResponse!.token!.result!.token);
+                storage.write(
+                    key: 'Auth_Token',
+                    value: state.loginResponse!.token!.result!.token);
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
                     builder: (_) => BlocProvider(
                       create: (context) => MainBloc(webService: WebService()),
-                      child: isAdminLogin ? const AdminHomeScreen() : const HomeScreen(),
+                      child: isAdminLogin
+                          ? const AdminHomeScreen()
+                          : const HomeScreen(),
                     ),
                   ),
                 );
@@ -279,7 +306,8 @@ class _SplashScreenState extends State<SplashScreen> {
                   children: [
                     const CircularProgressIndicator(
                       strokeWidth: 3,
-                      valueColor: AlwaysStoppedAnimation<Color>(MyColors.appDefaultColorCode),
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                          MyColors.appDefaultColorCode),
                     ),
                     const SizedBox(height: 24),
                     Text(
