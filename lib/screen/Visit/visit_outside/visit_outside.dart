@@ -813,8 +813,8 @@ class _VisitOutsideState extends State<VisitOutside> {
       return const SizedBox();
     }
 
-    bool isUpcoming = now.isBefore(visitStartDT.subtract(const Duration(minutes: 1)));
-    bool isOngoing = now.isAfter(visitStartDT.subtract(const Duration(minutes: 1))) && now.isBefore(visitEndDT);
+    bool isUpcoming = now.isBefore(visitStartDT.subtract(const Duration(minutes: 0)));
+    bool isOngoing = now.isAfter(visitStartDT.subtract(const Duration(minutes: 0))) && now.isBefore(visitEndDT);
     bool isCompleted = now.isAfter(visitEndDT);
 
     return Container(
@@ -857,9 +857,22 @@ class _VisitOutsideState extends State<VisitOutside> {
                     ],
                   ),
                 ),
-                if (!isCompleted)
+                if(isUpcoming)
                   Column(
                     children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.red.withOpacity(0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: IconButton(
+                          onPressed: () => _showDeleteConfirmation(visit),
+                          icon: const Icon(Icons.delete_outline_rounded, color: Colors.red, size: 20),
+                          padding: const EdgeInsets.all(8),
+                          constraints: const BoxConstraints(),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
                       Container(
                         decoration: BoxDecoration(
                           color: Colors.blue.withOpacity(0.1),
@@ -872,6 +885,11 @@ class _VisitOutsideState extends State<VisitOutside> {
                           constraints: const BoxConstraints(),
                         ),
                       ),
+                    ],
+                  ),
+                if (isOngoing)
+                  Column(
+                    children: [
                       const SizedBox(height: 12),
                       Container(
                         decoration: BoxDecoration(

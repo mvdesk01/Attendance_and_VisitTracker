@@ -1,13 +1,37 @@
 
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import '../Punchremainder/Punchremainder.dart';
 import '../Punchremainder/Punchremindernew.dart';
 import '../Punchremainder/Punchreminderscreennew.dart';
 import 'DataDeletionRequestScreen.dart';
 
-class SettingsPage extends StatelessWidget {
+class SettingsPage extends StatefulWidget {
+  const SettingsPage({super.key});
+
+  @override
+  State<SettingsPage> createState() => _SettingsPageState();
+}
+
+class _SettingsPageState extends State<SettingsPage> {
+  String appVersion = "";
+
+  @override
+  void initState() {
+    super.initState();
+    _loadVersion();
+  }
+
+  Future<void> _loadVersion() async {
+    final info = await PackageInfo.fromPlatform();
+    setState(() {
+      appVersion = info.version;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    _loadVersion();
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
@@ -70,9 +94,29 @@ class SettingsPage extends StatelessWidget {
                 // _showDataDeletionDialog(context);
               },
             ),
+
+            Spacer(),
+
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              child: Column(
+                children: [
+                  Divider(color: Colors.grey.shade300, thickness: 0.8),
+                  Text(
+                    "App Version $appVersion",
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey.shade500,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
+
     );
   }
 

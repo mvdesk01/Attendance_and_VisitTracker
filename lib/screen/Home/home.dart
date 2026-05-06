@@ -33,6 +33,7 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:loading_overlay/loading_overlay.dart';
 import 'package:local_auth/local_auth.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../model/in_out_details.dart';
 // import '../CancellationRequest/CancellationRequestScreen.dart';
@@ -106,6 +107,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   bool isTablet = false;
 
+  String appVersion = "";
+
   final List<_BannerItem> attendanceBanners = [
     _BannerItem(
       image: "assets/banners/attendance_banner1.png",
@@ -140,12 +143,7 @@ class _HomeScreenState extends State<HomeScreen> {
       InternetService().startListening(MyApp.navigatorKey.currentState!.overlay!.context);
     });
     initialize();
-    ///change2
-    // Future.delayed(const Duration(seconds: 1), () {
-    //   if (mounted) {
-    //     InternetService().startListening(context);
-    //   }
-    // });
+    _loadVersion();
   }
 
   @override
@@ -503,6 +501,11 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  Future<void> _loadVersion() async {
+    final info = await PackageInfo.fromPlatform();
+      appVersion = info.version;
+  }
+
   @override
   Widget build(BuildContext context) {
     mainBloc=BlocProvider.of(context);
@@ -792,6 +795,23 @@ class _HomeScreenState extends State<HomeScreen> {
                     builder: (BuildContext context) =>
                         _buildPopupDialogforLogout(context));
               },
+            ),
+
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              child: Column(
+                children: [
+                  Divider(color: Colors.grey.shade300, thickness: 0.8),
+                  Text(
+                    "App Version $appVersion",
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey.shade500,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ],
+              ),
             ),
 
           ],
