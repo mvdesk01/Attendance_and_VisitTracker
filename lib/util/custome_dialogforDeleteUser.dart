@@ -1,10 +1,11 @@
 import 'package:attendance_system_ios/bloc/main_bloc.dart';
-import 'package:attendance_system_ios/screen/UserListScreen/UserListScreen.dart';
 import 'package:attendance_system_ios/service/WebService.dart';
 import 'package:attendance_system_ios/util/MyColor.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lottie/lottie.dart';
+
+import '../screen/admin_side/user_list_screen/user_list_screen.dart';
 
 class CustomDialog
 {

@@ -420,7 +420,7 @@ void onStart(ServiceInstance service) async {
           showNotificationId: foregroundServiceNotificationId,
           title: "Location Service Disabled",
           body:
-          "Your location service has been turned off. Visit tracking is paused. Please enable GPS to continue tracking your visit.",
+          "Your location service has been turned off. visit tracking is paused. Please enable GPS to continue tracking your visit.",
           payload: "service",
           androidNotificationDetails: const AndroidNotificationDetails(
             notificationChannelId,

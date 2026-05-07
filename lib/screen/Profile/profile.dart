@@ -394,7 +394,7 @@ class _ProfileState extends State<Profile>
                       const SizedBox(height: 25),
                       infoCard("Email Address", emailController, Icons.email_outlined),
                       infoCard("Mobile Number", mobileController, Icons.phone_android_rounded),
-                      infoCard("Joining Date", joinController, Icons.calendar_today_rounded),
+                      // infoCard("Joining Date", joinController, Icons.calendar_today_rounded),
                       infoCard("Current Address", addressController, Icons.location_on_outlined),
                       if (remoteController.text.isNotEmpty)
                         infoCard("Remote Address", remoteController, Icons.home_work_outlined),

@@ -7,17 +7,15 @@ import 'package:attendance_system_ios/bloc/main_event.dart';
 import 'package:attendance_system_ios/bloc/main_state.dart';
 import 'package:attendance_system_ios/main.dart';
 import 'package:attendance_system_ios/screen/Gate%20Pass/gate_pass.dart';
-import 'package:attendance_system_ios/screen/Home/report.dart';
+import 'package:attendance_system_ios/screen/Home/attendance_report.dart';
 import 'package:attendance_system_ios/screen/Leave/leave.dart';
 import 'package:attendance_system_ios/screen/Login/login_screen.dart';
-import 'package:attendance_system_ios/screen/MinutesOfTheMeetingForm.dart';
 import 'package:attendance_system_ios/screen/Profile/profile.dart';
 import 'package:attendance_system_ios/screen/Remote%20Location/remote_location.dart';
-import 'package:attendance_system_ios/screen/Settings/Timer.dart';
+import 'package:attendance_system_ios/screen/Settings/settings_screen.dart';
 import 'package:attendance_system_ios/screen/Transaction/COff%20Debit/CoffDebitScreen.dart';
-import 'package:attendance_system_ios/screen/Transaction/COff%20Debit/DebitCoffScreen.dart';
 import 'package:attendance_system_ios/screen/Transaction/CoffCreditScreen.dart';
-import 'package:attendance_system_ios/screen/Visit%20History/Visit_History_Screen.dart';
+import 'package:attendance_system_ios/screen/visit_management/visit_history/visit_history.dart';
 import 'package:attendance_system_ios/service/LocationHandler.dart';
 import 'package:attendance_system_ios/service/WebService.dart';
 import 'package:attendance_system_ios/service/log_file_manager.dart';
@@ -34,16 +32,19 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:loading_overlay/loading_overlay.dart';
 import 'package:local_auth/local_auth.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:shimmer/shimmer.dart';
 
 import '../../model/in_out_details.dart';
 import '../../service/background_service.dart';
 import '../../service/internet_service.dart';
-import '../AdminProfile/Databasepunchout.dart';
-import '../AdminProfile/Databsepunchin.dart';
+// import '../AdminProfile/Databasepunchout.dart';
+// import '../AdminProfile/Databsepunchin.dart';
 import '../Expense/ExpenseScreen.dart';
 import '../Tour/TourmainScreen.dart';
-import '../Visit/Start Stop Visit/start_stop_visit.dart';
-import '../Visit/visit_outside/visit_outside.dart';
+import '../visit_management/plan_visit/plan_outside_visit.dart';
+import '../visit_management/start_stop_visit/start_stop_visit.dart';
+
 
 class HomeScreen extends StatefulWidget {
   final String? initialPayload;
@@ -68,7 +69,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   bool lastPunchIn = true;
   bool lastPunchOut = true;
+
   bool _isOverlayLoading = false;
+  bool _isHeaderLoading = true;
+  bool _isAttendanceLoading = true;
+  bool _isVisitLoading = true;
+
   late MainBloc mainBloc;
   List<Map<String, dynamic>> multiLatLongList = [];
   final storage = const FlutterSecureStorage();
@@ -93,6 +99,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int _currentPage = 0;
   Timer? _bannerTimer;
   bool isTablet = false;
+  String appVersion = "";
 
   final List<_BannerItem> attendanceBanners = [
     _BannerItem(
@@ -125,6 +132,7 @@ class _HomeScreenState extends State<HomeScreen> {
       InternetService().startListening(MyApp.navigatorKey.currentState!.overlay!.context);
     });
     initialize();
+    _loadVersion();
   }
 
   @override
@@ -135,28 +143,31 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> initialize() async {
-    await _checkauthorisation();
     await getData();
     await _checkAndRequestLocationPermission();
     await _updateButtonInitialState();
-  }
-
-  Future<void> _checkauthorisation() async {
-    staffCode = await storage.read(key: 'Staff_Code');
-    Auth_Token = await storage.read(key: 'Auth_Token');
-    staffName = await storage.read(key: 'Staff_Name');
-    if (staffCode != null && Auth_Token != null) {
-      mainBloc.add(GetStaffDetailsEvents(StaffCode: staffCode!, token: Auth_Token!));
-    }
   }
 
   Future<void> getData() async {
     staffCode = await storage.read(key: 'Staff_Code');
     Auth_Token = await storage.read(key: 'Auth_Token');
     staffName = await storage.read(key: 'Staff_Name');
+
     if (staffCode != null && Auth_Token != null) {
-      mainBloc.add(GetUserInfoEvents(Staffcode: staffCode!, token: Auth_Token!));
-      mainBloc.add(GetMultiRemoteLocation(Auth_Token!, staffCode!));
+      mainBloc.add(GetStaffDetailsEvents(
+        StaffCode: staffCode!,
+        token: Auth_Token!,
+      ));
+
+      mainBloc.add(GetUserInfoEvents(
+        Staffcode: staffCode!,
+        token: Auth_Token!,
+      ));
+
+      mainBloc.add(GetMultiRemoteLocation(
+        Auth_Token!,
+        staffCode!,
+      ));
     }
   }
 
@@ -280,6 +291,34 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Future<void> _loadVersion() async {
+    final info = await PackageInfo.fromPlatform();
+    appVersion = info.version;
+  }
+
+  Future<void> _onRefresh() async {
+    try {
+      /// 🔄 Reset loading states (optional but smoother)
+      setState(() {
+        _isHeaderLoading = true;
+        _isAttendanceLoading = true;
+        _isVisitLoading = true;
+      });
+
+      /// 🔥 Trigger APIs again (parallel)
+      getData();
+
+      /// Optional: refresh punch status
+      await _updateButtonInitialState();
+
+      /// Small delay for better UX (avoid instant snap)
+      await Future.delayed(const Duration(milliseconds: 600));
+
+    } catch (e) {
+      print("Refresh error: $e");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     mainBloc = BlocProvider.of<MainBloc>(context);
@@ -341,6 +380,23 @@ class _HomeScreenState extends State<HomeScreen> {
                 _buildDrawerItem(Icons.history_rounded, "Visit History", () => Navigator.push(context, MaterialPageRoute(builder: (_) => BlocProvider(create: (_) => MainBloc(webService: WebService()), child: const VisitHistoryScreen())))),
                 _buildDrawerItem(Icons.settings_outlined, "Settings", () => Navigator.push(context, MaterialPageRoute(builder: (_) => BlocProvider(create: (_) => MainBloc(webService: WebService()), child:  SettingsPage())))),
                 _buildDrawerItem(Icons.logout_rounded, "Logout", onLogout, isDestructive: true),
+
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  child: Column(
+                    children: [
+                      Divider(color: Colors.grey.shade300, thickness: 0.8),
+                      Text(
+                        "App Version $appVersion",
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.shade500,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
@@ -378,20 +434,29 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildHomeContent() {
-    return LoadingOverlay(
-      isLoading: _isOverlayLoading,
-      opacity: 0.3,
-      progressIndicator: const CircularProgressIndicator(color: MyColors.lightBlue),
-      child: BlocListener<MainBloc, MainState>(
+    return BlocListener<MainBloc, MainState>(
         listener: (context, state) {
-          if (state is GetStaffDetailsLoadingState || state is GetUserinfoLoadingState || state is GetMultiRemoteLocationLoadingState) {
-            setState(() => _isOverlayLoading = true);
-          } else if (state is GetStaffDetailsLoadedState) {
-            setState(() => _isOverlayLoading = false);
-          } else if (state is GetUserinfoLoadedState) {
+
+          /// HEADER (staff details)
+          if (state is GetStaffDetailsLoadingState) {
+            _isHeaderLoading = true;
+          }
+
+          if (state is GetStaffDetailsLoadedState) {
+            setState(() => _isHeaderLoading = false);
+          }
+
+          /// ATTENDANCE (user info)
+          if (state is GetUserinfoLoadingState) {
+            _isAttendanceLoading = true;
+          }
+
+          if (state is GetUserinfoLoadedState) {
             final user = state.profileuserinfo.message;
+
             setState(() {
-              _isOverlayLoading = false;
+              _isAttendanceLoading = false;
+
               remotelocation = user!.newRemoteLocation;
               distancecheckglag = user.distanceCheckFlag;
               remotelat = user.remoteLatitude;
@@ -400,37 +465,81 @@ class _HomeScreenState extends State<HomeScreen> {
               atsflag = user.atsCheckflag;
               plantcode = user.plantCode;
             });
-            REMOTELOCATION = remotelocation ?? "";
-            REMOTELAT = remotelat ?? "";
-            REMOTELONG = remotelong ?? "";
-            DISTANCEFLAG = distancecheckglag ?? "";
-            ADDRESSFLAG = addressflag ?? "";
-          }else if(state is GetMultiRemoteLocationLoadedState){
-            multiLatLongList = state.response;
-           setState(() {
-              _isOverlayLoading = false;
-           });
           }
-          else if (state is GetUserinfoErrorState || state is GetStaffDetailsErrorState || state is GetMultiRemoteLocationErrorState) {
-            setState(() => _isOverlayLoading = false);
+
+          /// VISIT / PROJECT DATA
+          if (state is GetMultiRemoteLocationLoadingState) {
+            _isVisitLoading = true;
+          }
+
+          if (state is GetMultiRemoteLocationLoadedState) {
+            setState(() {
+              _isVisitLoading = false;
+              multiLatLongList = state.response;
+            });
+          }
+
+          /// ERROR
+          if (state is GetUserinfoErrorState ||
+              state is GetStaffDetailsErrorState ||
+              state is GetMultiRemoteLocationErrorState) {
+            setState(() {
+              _isHeaderLoading = false;
+              _isAttendanceLoading = false;
+              _isVisitLoading = false;
+            });
           }
         },
+      child: RefreshIndicator(
+        onRefresh: _onRefresh,
+        color: MyColors.lightBlue,
+        // backgroundColor: Colors.white,
         child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildHeader(),
-              _buildBannerSection(),
-              if (addressflag == 'Y') _buildAttendanceSection(),
-              _buildVisitSection(),
-              _buildOtherFeaturesSection(),
-              const SizedBox(height: 30),
-            ],
-          ),
+        // physics: const BouncingScrollPhysics(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+
+            /// HEADER
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              child: _isHeaderLoading
+                  ? _buildHeaderShimmer()
+                  : _buildAnimatedSection(
+                _buildHeader(),
+              ),
+            ),
+
+            _buildBannerSection(),
+
+            /// ATTENDANCE
+             AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 300),
+                            child: _isAttendanceLoading
+                                ? _buildAttendanceShimmer()
+                                : addressflag == 'Y'? AnimatedSwitcher(
+                                duration: const Duration(milliseconds: 300),
+                                child: _isAttendanceLoading
+                                    ? _buildAttendanceShimmer()
+                                    : _buildAnimatedSection(_buildAttendanceSection()),
+                              ) : null,
+                            ),
+
+            /// VISIT SECTION
+                _buildVisitSection(),
+
+
+            /// QUICK ACTIONS
+                _buildOtherFeaturesSection(),
+
+
+            const SizedBox(height: 30),
+          ],
         ),
       ),
+    )
     );
+
   }
 
   Widget _buildHeader() {
@@ -703,6 +812,177 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  // Shimmer loading logic
+
+  Widget _buildHeaderShimmer() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 10), // ✅ SAME
+      child: Shimmer.fromColors(
+        baseColor: Colors.grey.shade300,
+        highlightColor: Colors.grey.shade100,
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    height: 26,   // match text size
+                    width: 60,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Container(
+                    height: 20, // match name text
+                    width: 140,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            /// Avatar EXACT MATCH
+            Container(
+              padding: const EdgeInsets.all(2),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.transparent),
+              ),
+              child: const CircleAvatar(
+                radius: 22,
+                backgroundColor: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  Widget _buildAttendanceShimmer() {
+    return Container(
+      margin: const EdgeInsets.all(10),   // ✅ FIXED
+      padding: const EdgeInsets.all(10),  // ✅ FIXED
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Shimmer.fromColors(
+        baseColor: Colors.grey.shade300,
+        highlightColor: Colors.grey.shade100,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+
+            const SizedBox(height: 10),
+
+            /// Title Row
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  height: 16,
+                  width: 120,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                Container(
+                  height: 12,
+                  width: 60,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 20),
+
+            /// Buttons Row (same height as actual)
+            Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    height: 70, // ✅ match punch button height
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 15),
+                Expanded(
+                  child: Container(
+                    height: 70,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 20),
+
+            /// Time Row
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildTimeShimmer(),
+                Container(height: 30, width: 1, color: Colors.white),
+                _buildTimeShimmer(),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  Widget _buildTimeShimmer() {
+    return Column(
+      children: [
+        Container(
+          height: 31,
+          width: 50,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(4),
+          ),
+        ),
+        const SizedBox(height: 6),
+        Container(
+          height: 21,
+          width: 70,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(4),
+          ),
+        ),
+      ],
+    );
+  }
+  Widget _buildAnimatedSection(Widget child) {
+    return AnimatedOpacity(
+      opacity: 1,
+      duration: const Duration(milliseconds: 400),
+      child: AnimatedSlide(
+        offset: const Offset(0, 0),
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeOut,
+        child: child,
+      ),
+    );
+  }
+
   // --- Core Attendance Logic (Maintained exactly as provided) ---
 
   Future<void> punchIn() async {
@@ -925,10 +1205,7 @@ class _HomeScreenState extends State<HomeScreen> {
     } catch (e) { await punchOut(); }
   }
 
-  void showPunchSnackbar({
-    required bool isPunchIn,
-    required bool success,
-  }) {
+  void showPunchSnackbar({required bool isPunchIn, required bool success}) {
     final now = DateFormat('hh:mm a').format(DateTime.now());
 
     ScaffoldMessenger.of(context).showSnackBar(

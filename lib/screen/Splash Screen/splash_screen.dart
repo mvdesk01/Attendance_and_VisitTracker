@@ -15,7 +15,7 @@ import '../../service/internet_service.dart';
 import '../../util/MyColor.dart';
 import '../Login/login_screen.dart';
 import '../Home/home.dart';
-import '../AdminHomeScreen/AdminHome.dart';
+import '../admin_side/home_admin/admin_home.dart';
 import 'location_disclosure_screen.dart';
 
 class SplashScreen extends StatefulWidget {

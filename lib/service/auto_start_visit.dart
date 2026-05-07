@@ -59,8 +59,8 @@ class AutoStartVisit {
       VisitState.isVisitStarted.value = true;
 
 
-      Fluttertoast.showToast(msg: "Visit started successfully!");
-      print("Visit started successfully!");
+      Fluttertoast.showToast(msg: "visit started successfully!");
+      print("visit started successfully!");
 
       // ✅ Delegate validation & scheduling
       // _validateAndScheduleVisit(visit);
@@ -76,7 +76,7 @@ class AutoStartVisit {
     // ✅ Always continue visit start
     await startLocationTracking(visit);
     backgroundService.setServiceAsForeGround();
-    LogFileManager.writeLog("Visit auto-started ${visit.reason} At: ${DateTime.now()}");
+    LogFileManager.writeLog("visit auto-started ${visit.reason} At: ${DateTime.now()}");
   }
 
   Future<void> startLocationTracking(Data visit) async {

@@ -4,12 +4,12 @@ import 'dart:ui';
 
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:attendance_system_ios/bloc/main_bloc.dart';
-import 'package:attendance_system_ios/screen/AdminHomeScreen/AdminHome.dart';
 import 'package:attendance_system_ios/screen/Home/home.dart';
 import 'package:attendance_system_ios/screen/Login/login_screen.dart'; // Add LoginScreen import
-import 'package:attendance_system_ios/screen/Punchremainder/Punchreminderscreennew.dart';
+import 'package:attendance_system_ios/screen/Settings/punch_reminder_screen.dart';
 import 'package:attendance_system_ios/screen/Splash%20Screen/splash_screen.dart';
-import 'package:attendance_system_ios/screen/Visit/Start%20Stop%20Visit/start_stop_visit.dart';
+import 'package:attendance_system_ios/screen/admin_side/home_admin/admin_home.dart';
+import 'package:attendance_system_ios/screen/visit_management/start_stop_visit/start_stop_visit.dart';
 import 'package:attendance_system_ios/service/background_service.dart';
 import 'package:attendance_system_ios/service/internet_service.dart';
 import 'package:attendance_system_ios/service/WebService.dart';
@@ -200,7 +200,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         //   '/': (context) => SplashScreen(),
         //   '/Login': (context) => const LoginScreen(),
         //   '/Home': (context) => const HomeScreen(),
-        //   "/AdminHome": (context)=> const AdminHomeScreen(),
+        //   "/AdminHome": (context)=> const home_admin(),
         // },
         title: 'Attendance',
         theme: ThemeData(scaffoldBackgroundColor: Colors.blue[50]),

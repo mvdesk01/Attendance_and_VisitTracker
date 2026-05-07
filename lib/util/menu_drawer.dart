@@ -1,10 +1,7 @@
 import 'dart:convert';
 
 import 'package:attendance_system_ios/bloc/main_bloc.dart';
-import 'package:attendance_system_ios/screen/CancellationRequest/CancellationRequestScreen.dart';
 import 'package:attendance_system_ios/screen/Login/login_screen.dart';
-import 'package:attendance_system_ios/screen/Sanction/SanctionScreen.dart';
-import 'package:attendance_system_ios/screen/UserListScreen/UserListScreen.dart';
 import 'package:attendance_system_ios/service/WebService.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -12,10 +9,12 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:attendance_system_ios/util/MyColor.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
-import '../screen/AdminHomeScreen/AdminHome.dart';
-import '../screen/Profile/ProfileforAdmin.dart';
+import '../screen/admin_side/home_admin/admin_home.dart';
+import '../screen/admin_side/admin_profile/admin_profile.dart';
 import '../screen/Profile/profile.dart';
 import 'package:http/http.dart' as http;
+
+import '../screen/admin_side/user_list_screen/user_list_screen.dart';
 
 class MenuDrawer extends StatefulWidget {
   const MenuDrawer({Key? key}) : super(key: key);

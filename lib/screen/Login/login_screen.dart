@@ -5,7 +5,6 @@ import 'package:android_id/android_id.dart';
 import 'package:attendance_system_ios/bloc/main_bloc.dart';
 import 'package:attendance_system_ios/bloc/main_event.dart';
 import 'package:attendance_system_ios/bloc/main_state.dart';
-import 'package:attendance_system_ios/screen/AdminHomeScreen/AdminHome.dart';
 import 'package:attendance_system_ios/screen/Forget%20Password/forget_password.dart';
 import 'package:attendance_system_ios/screen/Home/home.dart';
 import 'package:attendance_system_ios/screen/Register/register_screen.dart';
@@ -28,6 +27,7 @@ import '../../main.dart';
 import '../../util/MyColor.dart';
 import '../../service/internet_service.dart';
 import '../Forget Password/forgetpassword.dart';
+import '../admin_side/home_admin/admin_home.dart';
 import 'UpdateDeviceID.dart';
 
 class LoginScreen extends StatefulWidget {
