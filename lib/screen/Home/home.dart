@@ -1135,7 +1135,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ],
                     ),
 */
-
+                    if(addressflag == 'Y')
                     SizedBox(
                       height: isTablet ? 300 : 210,
                       child: PageView.builder(

@@ -8,64 +8,67 @@ class AppUpdateService {
   static Future<void> checkAndUpdate(BuildContext context) async {
     try {
       if (Platform.isAndroid) {
-        AppUpdateInfo info = await InAppUpdate.checkForUpdate();
+        final AppUpdateInfo info =
+        await InAppUpdate.checkForUpdate();
 
-        if (info.updateAvailability == UpdateAvailability.updateAvailable) {
-          _showUpdateDialog(context);
+        debugPrint("Update Availability: ${info.updateAvailability}");
+
+        if (info.updateAvailability ==
+            UpdateAvailability.updateAvailable) {
+
+          // FORCE UPDATE
+          if (info.immediateUpdateAllowed) {
+            await InAppUpdate.performImmediateUpdate();
+            return;
+          }
+
+          // fallback if immediate not allowed
+          _showForceUpdateDialog(context);
         }
       }
-      // ❌ REMOVE auto popup for iOS
-      // handle iOS only when you implement version check
     } catch (e) {
-      // ✅ only log, DO NOT show dialog
-      print("Update check failed: $e");
+      debugPrint("Update check failed: $e");
     }
   }
 
-  static void _showUpdateDialog(BuildContext context) {
+  static void _showForceUpdateDialog(BuildContext context) {
     showDialog(
       context: context,
-      barrierDismissible: true,
-      builder: (_) => AlertDialog(
-        title: const Text("Update Available"),
-        content:
-            const Text("A new version is available. Please update the app."),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Later"),
+      barrierDismissible: false, // IMPORTANT
+      builder: (_) => WillPopScope(
+        onWillPop: () async => false,
+        child: AlertDialog(
+          title: const Text("Update Required"),
+          content: const Text(
+            "Please update the app to continue using it.",
           ),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              await _handleUpdate();
-            },
-            child: const Text("Update"),
-          ),
-        ],
+          actions: [
+            TextButton(
+              onPressed: () async {
+                await _openStore();
+              },
+              child: const Text("Update"),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  static Future<void> _handleUpdate() async {
-    if (Platform.isAndroid) {
-      try {
-        await InAppUpdate.startFlexibleUpdate();
-        await InAppUpdate.completeFlexibleUpdate();
-        return;
-      } catch (e) {
-        // fallback below
-      }
-    }
-
-    // fallback / iOS → open store
+  static Future<void> _openStore() async {
     final Uri url = Platform.isAndroid
         ? Uri.parse(
-            "https://play.google.com/store/apps/details?id=com.mtech.attendance")
-        : Uri.parse("https://apps.apple.com/app/idYOUR_APP_ID");
+      "https://play.google.com/store/apps/details?id=com.mtech.attendance",
+    )
+        : Uri.parse(
+      "https://apps.apple.com/app/idYOUR_APP_ID",
+    );
 
     if (await canLaunchUrl(url)) {
-      await launchUrl(url, mode: LaunchMode.externalApplication);
+      await launchUrl(
+        url,
+        mode: LaunchMode.externalApplication,
+      );
     }
   }
 }
