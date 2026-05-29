@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../Punchremainder/Punchremainder.dart';
 import '../Punchremainder/Punchremindernew.dart';
-import '../Punchremainder/Punchreminderscreennew.dart';
+import 'punch_reminder_screen.dart';
 import 'DataDeletionRequestScreen.dart';
 
 class SettingsPage extends StatefulWidget {

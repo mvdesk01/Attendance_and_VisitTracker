@@ -5,11 +5,12 @@ import 'package:attendance_system_ios/bloc/main_bloc.dart';
 import 'package:attendance_system_ios/screen/AdminHomeScreen/AdminHome.dart';
 import 'package:attendance_system_ios/screen/Home/home.dart';
 import 'package:attendance_system_ios/screen/Login/login_screen.dart'; // Add LoginScreen import
-import 'package:attendance_system_ios/screen/Punchremainder/Punchreminderscreennew.dart';
+import 'package:attendance_system_ios/screen/Settings/punch_reminder_screen.dart';
 import 'package:attendance_system_ios/screen/Splash%20Screen/splash_screen.dart';
 import 'package:attendance_system_ios/screen/Visit/Start%20Stop%20Visit/start_stop_visit.dart';
 import 'package:attendance_system_ios/service/WebService.dart';
 import 'package:attendance_system_ios/service/internet_service.dart';
+import 'package:attendance_system_ios/service/workmanager_service.dart';
 import 'package:attendance_system_ios/simple_bloc_observer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -30,10 +31,6 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   tz_data.initializeTimeZones();
   HttpOverrides.global = MyHttpOverrides();
-  // ✅ Initialize AlarmManager only on Android
-  // if (Platform.isAndroid) {
-  //   await AndroidAlarmManager.initialize();
-  // }
 
   await Workmanager().initialize(
     callbackDispatcher,
@@ -71,15 +68,6 @@ void main() async {
         notificationAppLaunchDetails!.notificationResponse?.payload;
   }
 
-  // await Firebase.initializeApp(
-  //   options: DefaultFirebaseOptions.currentPlatform,
-  // );
-  // Check if Firebase is already initialized
-  // if (Firebase.apps.isEmpty) {
-  //   Firebase.initializeApp(
-  //     options: DefaultFirebaseOptions.currentPlatform,
-  //   );
-  // }
   tz.initializeTimeZones();
 
   runApp(MyApp(initialPayload: initialPayload));

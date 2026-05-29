@@ -4,7 +4,6 @@ import 'dart:io';
 import 'dart:ui';
 import 'package:attendance_system_ios/main.dart';
 import 'package:battery_plus/battery_plus.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -21,6 +20,7 @@ import '../model/VisitData/fetch_visit_data.dart';
 import 'internet_service.dart';
 import 'log_file_manager.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:timezone/timezone.dart' as tz;
 
 
 const String notificationChannelId = "foreground_service";
@@ -1714,6 +1714,69 @@ class NotificationService {
       payload: payload,
     );
   }
+
+  Future<void> scheduleVisitNotification({
+    required int id,
+    required DateTime scheduledTime,
+    required String title,
+    required String body,
+    String? payload,
+  }) async {
+
+    final tzTime = tz.TZDateTime.from(scheduledTime, tz.local);
+
+    print("⏰ Scheduling at: $tzTime");
+
+    await _plugin.zonedSchedule(
+      id,
+      title,
+      body,
+      tzTime,
+      NotificationDetails(
+        android: const AndroidNotificationDetails(
+          'visit_channel',
+          'Visit Notifications',
+          importance: Importance.max,
+          priority: Priority.high,
+          playSound: true,
+        ),
+        iOS: const DarwinNotificationDetails(),
+      ),
+      androidAllowWhileIdle: true,
+      uiLocalNotificationDateInterpretation:
+      UILocalNotificationDateInterpretation.absoluteTime,
+    );
+  }
+
+  Future<void> showInstantNotification({
+    required String title,
+    required String body,
+  }) async {
+    await _plugin.show(
+      DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      title,
+      body,
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'visit_channel',
+          'Visit Notifications',
+          importance: Importance.max,
+          priority: Priority.high,
+        ),
+      ),
+    );
+  }
+
+  /// ✅ ADD THIS (FIX YOUR ERROR)
+  Future<void> cancel(int? id) async {
+    await _plugin.cancel(id!);
+  }
+
+  /// ✅ OPTIONAL (VERY USEFUL)
+  Future<void> cancelAll() async {
+    await _plugin.cancelAll();
+  }
+
 }
 
 /*@pragma('vm:entry-point')

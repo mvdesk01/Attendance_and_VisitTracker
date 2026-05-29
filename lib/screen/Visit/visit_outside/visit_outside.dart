@@ -5,6 +5,7 @@ import 'package:attendance_system_ios/model/VisitData/fetch_visit_data.dart';
 import 'package:attendance_system_ios/model/VisitReport/VisitDetailedRecordsResponse.dart' as visitValues;
 import 'package:attendance_system_ios/screen/Splash Screen/splash_screen.dart';
 import 'package:attendance_system_ios/service/log_file_manager.dart';
+import 'package:battery_optimization_helper/battery_optimization_helper.dart' hide BatteryOptimizationHelper;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -16,10 +17,16 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:permission_handler/permission_handler.dart' as AppSettings;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:workmanager/workmanager.dart';
+import '../../../service/battery_helper.dart';
+
 
 import '../../../bloc/main_bloc.dart';
 import '../../../main.dart';
 import '../../../service/WebService.dart';
+import '../../../service/background_service.dart';
 import '../../../util/MyColor.dart';
 import '../../Visit History/VisitHistoryTrack_Screen.dart';
 import '../Start Stop Visit/start_stop_visit.dart';
@@ -37,17 +44,18 @@ class _VisitOutsideState extends State<VisitOutside> {
   late List<visitValues.Message> latLongList = [];
   final FlutterSecureStorage storage = const FlutterSecureStorage();
   final TextEditingController nameController = TextEditingController();
-  
+
   DateTime selectedDate = DateTime.now();
   TimeOfDay startTime = TimeOfDay.now();
   TimeOfDay endTime = TimeOfDay.now().replacing(hour: (TimeOfDay.now().hour + 1) % 24);
-  
+
   String location = 'Select Location';
   String nameOfVisit = '';
   String? staffcode = "";
   String? token = '';
   bool isEditing = false;
   Data? selectedVisitt;
+  bool isAutoStartEnabled = false; // load from storage later
 
   LatLng? _selectedLocation;
   LatLng? _currentLocation;
@@ -57,8 +65,11 @@ class _VisitOutsideState extends State<VisitOutside> {
   bool _newVisitCreate = false;
 
   List<Data> visitList = [];
+  late Data newCreatedVisit;
   bool isVisitStarted = false;
   bool isTablet = false;
+
+  Set<int> scheduledIds = {};
 
   @override
   void initState() {
@@ -251,6 +262,7 @@ class _VisitOutsideState extends State<VisitOutside> {
           _newVisitCreate = true;
           _fetchVisits();
           clearFields();
+          // scheduleNotifyVisit(visit);
         } else {
           Fluttertoast.showToast(msg: "Error: ${response.body}");
         }
@@ -464,6 +476,7 @@ class _VisitOutsideState extends State<VisitOutside> {
           });
         }
         _fetchVisits();
+        NotificationService(notificationsPlugin).cancel(visit.srNo);
       }
     } catch (e) {
       debugPrint("Delete visit error: $e");
@@ -510,6 +523,178 @@ class _VisitOutsideState extends State<VisitOutside> {
     } finally {
       if (mounted) setState(() => isLoading = false);
     }
+  }
+
+  void scheduleAutoStartVisit(Data visit) {
+    try {
+      DateTime visitDate =
+      DateFormat('dd/MM/yyyy').parse(visit.selectDate!);
+
+      DateTime start =
+      DateFormat("hh:mm a").parse(visit.fromtime!);
+
+      DateTime visitStart = DateTime(
+        visitDate.year,
+        visitDate.month,
+        visitDate.day,
+        start.hour,
+        start.minute,
+      );
+
+      final now = DateTime.now();
+
+      if (visitStart.isBefore(now)) return;
+
+      final delay = visitStart.difference(now);
+
+      Workmanager().registerOneOffTask(
+        "auto_visit_${visit.srNo}",   // unique
+        "autoStartVisit",            // task name
+        initialDelay: delay,
+          inputData: {
+            "visit": jsonEncode(visit.toJson()),  // ✅ STRING
+          }
+      );
+
+      print("✅ Auto-start scheduled at $visitStart");
+
+    } catch (e) {
+      print("❌ Auto-start scheduling error: $e");
+    }
+  }
+
+  Future<bool> checkAutoStartRequirements() async {
+
+    // =========================
+    // NOTIFICATION PERMISSION
+    // =========================
+
+    if (Platform.isAndroid) {
+
+      final notificationStatus =
+      await Permission.notification.status;
+
+      if (!notificationStatus.isGranted) {
+
+        final result =
+        await Permission.notification.request();
+
+        if (!result.isGranted) {
+
+          Fluttertoast.showToast(
+            msg: "Notification permission required",
+          );
+
+          return false;
+        }
+      }
+    }
+
+    // =========================
+    // LOCATION SERVICE ENABLED
+    // =========================
+
+    bool serviceEnabled =
+    await Geolocator.isLocationServiceEnabled();
+
+    if (!serviceEnabled) {
+
+      Fluttertoast.showToast(
+        msg: "Please enable GPS",
+      );
+
+      await Geolocator.openLocationSettings();
+
+      return false;
+    }
+
+    // =========================
+    // LOCATION PERMISSION
+    // =========================
+
+    LocationPermission permission =
+    await Geolocator.checkPermission();
+
+    // FIRST TIME REQUEST
+    if (permission == LocationPermission.denied) {
+
+      permission =
+      await Geolocator.requestPermission();
+    }
+
+    // USER DENIED
+    if (permission == LocationPermission.denied) {
+
+      Fluttertoast.showToast(
+        msg: "Location permission denied",
+      );
+
+      return false;
+    }
+
+    // PERMANENTLY DENIED
+    if (permission ==
+        LocationPermission.deniedForever) {
+
+      Fluttertoast.showToast(
+        msg:
+        "Location permission permanently denied. Please enable from settings.",
+      );
+
+      await AppSettings.openAppSettings();
+
+      return false;
+    }
+
+    // =========================
+    // ALWAYS ALLOW LOCATION
+    // =========================
+
+    if (permission !=
+        LocationPermission.always) {
+
+      Fluttertoast.showToast(
+        msg:
+        "Please allow 'Always' location permission",
+      );
+
+      await AppSettings.openAppSettings();
+
+      return false;
+    }
+
+    // =========================
+    // BATTERY OPTIMIZATION
+    // =========================
+
+    if (Platform.isAndroid) {
+
+      final ignoring = await BatteryOptimizationHelper.isIgnoring();
+
+      if (!ignoring) {
+        Fluttertoast.showToast(
+          msg: "Battery optimization is ON. Tracking may be interrupted.",
+          toastLength: Toast.LENGTH_LONG,
+        );
+
+        // Open settings, but don’t block visit start
+        await BatteryOptimizationHelper.requestIgnore();
+      } else {
+        Fluttertoast.showToast(
+          msg:
+          "Battery optimization already disabled. Tracking will continue smoothly.",
+          toastLength: Toast.LENGTH_SHORT,
+        );
+        LogFileManager.writeLog(
+            "Battery optimization already disabled. Tracking will continue smoothly.");
+      }
+    }
+
+    // =========================
+    // SUCCESS
+    // =========================
+
+    return true;
   }
 
   @override
@@ -824,8 +1009,8 @@ class _VisitOutsideState extends State<VisitOutside> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06), 
-            blurRadius: 15, 
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 15,
             offset: const Offset(0, 8)
           )
         ],
@@ -845,7 +1030,7 @@ class _VisitOutsideState extends State<VisitOutside> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        visit.reason ?? "Unnamed Visit", 
+                        visit.reason ?? "Unnamed Visit",
                         style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black87)
                       ),
                       const SizedBox(height: 10),
@@ -862,19 +1047,6 @@ class _VisitOutsideState extends State<VisitOutside> {
                     children: [
                       Container(
                         decoration: BoxDecoration(
-                          color: Colors.red.withOpacity(0.1),
-                          shape: BoxShape.circle,
-                        ),
-                        child: IconButton(
-                          onPressed: () => _showDeleteConfirmation(visit),
-                          icon: const Icon(Icons.delete_outline_rounded, color: Colors.red, size: 20),
-                          padding: const EdgeInsets.all(8),
-                          constraints: const BoxConstraints(),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      Container(
-                        decoration: BoxDecoration(
                           color: Colors.blue.withOpacity(0.1),
                           shape: BoxShape.circle,
                         ),
@@ -887,10 +1059,9 @@ class _VisitOutsideState extends State<VisitOutside> {
                       ),
                     ],
                   ),
-                if (isOngoing)
+                if (!isCompleted)
                   Column(
                     children: [
-                      const SizedBox(height: 12),
                       Container(
                         decoration: BoxDecoration(
                           color: Colors.red.withOpacity(0.1),
@@ -912,29 +1083,12 @@ class _VisitOutsideState extends State<VisitOutside> {
             padding: const EdgeInsets.fromLTRB(18, 0, 18, 18),
             child: SizedBox(
               width: double.infinity,
-              height: 46,
+              // height: 46,
               child: _buildActionButton(visit, isUpcoming, isOngoing, isCompleted),
             ),
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildStatusIndicator(bool isUpcoming, bool isOngoing, bool isCompleted) {
-    Color color = isUpcoming ? Colors.orange : (isOngoing ? Colors.green : Colors.grey);
-    return Column(
-      children: [
-        Container(
-          width: 8,
-          height: 60,
-          decoration: BoxDecoration(
-            color: color,
-            borderRadius: BorderRadius.circular(4),
-            boxShadow: [BoxShadow(color: color.withOpacity(0.3), blurRadius: 4, offset: const Offset(2, 2))]
-          ),
-        ),
-      ],
     );
   }
 
@@ -962,19 +1116,164 @@ class _VisitOutsideState extends State<VisitOutside> {
   Widget _buildActionButton(Data visit, bool isUpcoming, bool isOngoing, bool isCompleted) {
     if (isUpcoming) {
       return Container(
+        padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey.shade200),
-          color: Colors.grey.shade50,
+          borderRadius: BorderRadius.circular(14),
+          color: Colors.orange.shade50,
+          border: Border.all(color: Colors.orange.shade200),
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Icon(Icons.schedule_rounded, size: 18, color: Colors.orange),
-            const SizedBox(width: 8),
-            Text(
-              "Scheduled", 
-              style: GoogleFonts.poppins(color: Colors.orange, fontWeight: FontWeight.w600, fontSize: 14)
+
+            /// 🔸 TOP ROW (Status)
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.schedule_rounded,
+                      size: 16, color: Colors.orange),
+                ),
+
+                const SizedBox(width: 10),
+
+                Expanded(
+                  child: Text(
+                    "Scheduled",
+                    style: GoogleFonts.poppins(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                      color: Colors.orange.shade800,
+                    ),
+                  ),
+                ),
+
+                /// 🔥 STATUS CHIP
+                Container(
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: isAutoStartEnabled
+                        ? Colors.green.withOpacity(0.15)
+                        : Colors.grey.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    isAutoStartEnabled ? "AUTO ON" : "AUTO OFF",
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: isAutoStartEnabled
+                          ? Colors.green
+                          : Colors.grey,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 12),
+
+            /// 🔸 AUTO START ROW (Modern Toggle)
+            Container(
+              padding:
+              const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.grey.shade200),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.flash_on_rounded,
+                      size: 18, color: Colors.blue),
+
+                  const SizedBox(width: 10),
+
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Auto Start Visit",
+                          style: GoogleFonts.poppins(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        Text(
+                          "Starts tracking automatically",
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  Switch(
+                    value: isAutoStartEnabled ?? false,
+                      onChanged: (val) async {
+
+                        if (val) {
+
+                          bool allowed =
+                          await checkAutoStartRequirements();
+
+                          if (!allowed) {
+
+                            setState(() {
+                              isAutoStartEnabled = false;
+                            });
+
+                            return;
+                          }
+                        }
+
+                        setState(() {
+                          isAutoStartEnabled = val;
+                        });
+
+                        final prefs =
+                        await SharedPreferences.getInstance();
+
+                        await prefs.setBool(
+                          "auto_start_${visit.srNo}",
+                          val,
+                        );
+
+                        if (val) {
+
+                          await storage.write(
+                            key: 'AutoStartVisit',
+                            value: jsonEncode(visit.toJson()),
+                          );
+
+                          scheduleAutoStartVisit(visit);
+
+                          Fluttertoast.showToast(
+                            msg: "Auto start enabled",
+                          );
+
+                        } else {
+
+                          Workmanager()
+                              .cancelByUniqueName(
+                              "auto_visit_${visit.srNo}");
+
+                          Fluttertoast.showToast(
+                            msg: "Auto start disabled",
+                          );
+                        }
+                      }
+                      ),
+                ],
+              ),
             ),
           ],
         ),

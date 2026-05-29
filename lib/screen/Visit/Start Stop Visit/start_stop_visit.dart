@@ -20,10 +20,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../database/database_helper.dart';
 import '../../../main.dart';
 import '../../../model/VisitData/fetch_visit_data.dart';
-import '../../../service/auto_start_visit.dart';
 import '../../../service/background_service.dart';
 import '../../../service/battery_helper.dart';
 import '../../../service/internet_service.dart';
+import '../../../service/workmanager_service.dart';
 import '../../Splash Screen/splash_screen.dart';
 
 class VisitStartStopScreen extends StatefulWidget {

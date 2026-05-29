@@ -40,7 +40,8 @@ class MainBloc extends Bloc<MainEvent, MainState> {
           //print(e.toString());
           yield LoginErrorState(msg: e.toString());
         }
-      } else if (event is GetStaffDetailsEvents) {
+      }
+      else if (event is GetStaffDetailsEvents) {
         try {
           yield GetStaffDetailsLoadingState();
           var staffdetailsresponse =
@@ -51,7 +52,8 @@ class MainBloc extends Bloc<MainEvent, MainState> {
           //print(e.toString());
           yield GetStaffDetailsErrorState(msg: e.toString());
         }
-      } else if (event is RequestDataDeletionEvents) {
+      }
+      else if (event is RequestDataDeletionEvents) {
         try {
           yield RequestDataDeletionLoadingState();
           var requestDataDeletionResponse = await webService
@@ -61,7 +63,8 @@ class MainBloc extends Bloc<MainEvent, MainState> {
         } catch (e) {
           yield RequestDataDeletionErrorState(msg: e.toString());
         }
-      } else if (event is GetPendingGatePassEvents) {
+      }
+      else if (event is GetPendingGatePassEvents) {
         try {
           yield GetPendingGatePassLoadingState();
           var gatePassResponse =
