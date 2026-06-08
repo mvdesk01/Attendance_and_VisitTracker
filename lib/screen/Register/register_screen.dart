@@ -100,7 +100,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   // }
 
   Future<bool> checkUserByStaffCodeMobileNoAndEmail() async {
-    String staffCode = _cardIdController.text.trim();
+    String staffCode = _cardIdController.text.trim() == ''?"String " : _cardIdController.text.trim();
     String emailID = _emailController.text.trim();
     String mobileNo = _phoneController.text.trim().isEmpty ? '0000000000' : _phoneController.text.trim();
     try{
@@ -108,6 +108,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
         Uri.parse('http://114.143.140.28:8020/Users/CheckUserByStaffCodeMobileNoAndEmail?StaffCode=$staffCode&EmailId=$emailID&MobileNo=$mobileNo'),
         // headers: {'Content-Type': 'application/json'}
       );
+      print('Response Body: ${response.body}');
+      print('Response Status Code: ${response.statusCode}');
       if(response.statusCode == 200){
         final result = response.body;
         print("check user by email, mobile no. and staff code: ${result.toString()}");
@@ -147,12 +149,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
       _isLoading = true;
     });
 
-    if(!await checkUserByStaffCodeMobileNoAndEmail()){
-      setState(() {
-        _isLoading = false;
-      });
-      return;
-    }
+    // if(!await checkUserByStaffCodeMobileNoAndEmail()){
+    //   setState(() {
+    //     _isLoading = false;
+    //   });
+    //   return;
+    // }
 
     // Generate OTP
     generatedOtp = generateOtp();
@@ -255,12 +257,12 @@ M-Tech Attendance System Support Team
   }
 
   String? _validateInputFieldsWithToasts() {
-    if (_cardIdController.text.trim().isEmpty) {
-      return 'Card ID cannot be empty';
-    }
-    if (_cardIdController.text.trim().length != 7) {
-      return 'Card ID must be 7 digit';
-    }
+    // if (_cardIdController.text.trim().isEmpty) {
+    //   return 'Card ID cannot be empty';
+    // }
+    // if (_cardIdController.text.trim().length != 7) {
+    //   return 'Card ID must be 7 digit';
+    // }
     if (_nameController.text.trim().isEmpty) {
       return 'Name cannot be empty';
     }
@@ -316,7 +318,7 @@ M-Tech Attendance System Support Team
       };
 
       var requestBody = jsonEncode({
-        "staffCode": staffCode,
+        "staffCode": "string",
         "displayName": displayName,
         "emailID": emailID,
         "password": password,
@@ -437,18 +439,18 @@ M-Tech Attendance System Support Team
                         padding: const EdgeInsets.symmetric(horizontal: 20),
                         child: Column(
                           children: [
-                            TextFormField(
-                              maxLength: 7,
-                              controller: _cardIdController,
-                              decoration: InputDecoration(
-                                labelText: '7-digit Unique ID',
-                                helperText: 'Use this ID to log in after registration',
-                                border: OutlineInputBorder(),
-                              ),
-                              validator: (value) {
-                                return _validateInputFields(value!, 'Card ID');
-                              },
-                            ),
+                            // TextFormField(
+                            //   maxLength: 7,
+                            //   controller: _cardIdController,
+                            //   decoration: InputDecoration(
+                            //     labelText: '7-digit Unique ID',
+                            //     helperText: 'Use this ID to log in after registration',
+                            //     border: OutlineInputBorder(),
+                            //   ),
+                            //   validator: (value) {
+                            //     return _validateInputFields(value!, 'Card ID');
+                            //   },
+                            // ),
                             SizedBox(height: 15),
                             TextFormField(
                               controller: _nameController,

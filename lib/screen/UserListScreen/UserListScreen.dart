@@ -55,16 +55,6 @@ class _UserListScreenState extends State<UserListScreen> {
   SearchStringClass searchClass = SearchStringClass(searchStr: '');
   int totalUsers = 0;
 
-  // @override
-  // void initState() {
-  //   super.initState();state.getAllusersListResponse?.data
-  //   mainBloc = BlocProvider.of<MainBloc>(context);
-  //   getData();
-  //
-  //   searchController.addListener(() {
-  //     onSearchTextChanged(searchController.text);
-  //   });
-  // }
   @override
   void initState() {
     super.initState();
