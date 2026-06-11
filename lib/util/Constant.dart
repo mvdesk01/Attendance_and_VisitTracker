@@ -87,5 +87,10 @@ class Constant {
   static String deleteMultiRemoteLocation = baseUrl+'Users/DeleteMultiRemoteLocation';
   static String updateMultiRemoteLocation = baseUrl+'Users/PutMultiRemoteLocation';
 
-}
+  // Menu Rights
+  static String getAllMenus = baseUrl + 'api/UserMenuRights/GetAllMenus';
+  static String getUserRights = baseUrl + 'api/UserMenuRights/GetUserRights/';
+  static String updateUserRights = baseUrl + 'api/UserMenuRights/UpdateUserRights';
+  static String addUserRights = baseUrl + 'api/UserMenuRights/AddUserRights';
 
+}

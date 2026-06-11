@@ -1,3 +1,4 @@
+import 'package:attendance_system_ios/service/menu_rights_service.dart';
 import 'package:attendance_system_ios/util/MyColor.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
@@ -24,9 +25,10 @@ class AdminHomeScreen extends StatefulWidget {
 
 class _AdminHomeScreenState extends State<AdminHomeScreen> {
   late List<String> imagePaths;
-  String? Staffcode;
-
-  final storage = FlutterSecureStorage();
+  String? staffCode;
+  String? displayName;
+  final storage = const FlutterSecureStorage();
+  int _currentCarouselIndex = 0;
 
   @override
   void initState() {
@@ -36,328 +38,273 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
       'assets/icons/mtechinnovationsimage2.jpg',
       'assets/icons/mtechinnovationsimage3.jpg',
     ];
-    getStaffCode();
+    getUserData();
+  }
+
+  Future<void> getUserData() async {
+    staffCode = await storage.read(key: 'username');
+    displayName = await storage.read(key: 'display_name') ?? "Admin";
+    setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 4,
-      child: Scaffold(
-        appBar: AppBar(
-          actions: <Widget>[
-            Padding(
-                padding: EdgeInsets.symmetric(horizontal: 12),
-                child: GestureDetector(
-                  onTap: () {
-                    Fluttertoast.showToast(
-                      msg: "No Notification Found",
-                      toastLength: Toast.LENGTH_SHORT,
-                      gravity: ToastGravity.BOTTOM,
-                    );
-                  },
-                  child: Icon(Icons.notifications),
-                )),
-          ],
-          iconTheme: const IconThemeData(
-            color: Colors.white,
-            size: 28,
-          ),
-          title: const Text("Attendance"),
-          backgroundColor: MyColors.lightBlue,
-          centerTitle: true,
-          titleTextStyle: GoogleFonts.roboto(
-            fontWeight: FontWeight.bold,
+    return Scaffold(
+      // backgroundColor: MyColors.backgroundColorCode,
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: MyColors.lightBlue,
+        centerTitle: true,
+        title: Text(
+          "Admin Dashboard",
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.w600,
             fontSize: 20.0,
-          ).copyWith(
             color: Colors.white,
           ),
         ),
-        drawer: MenuDrawer(),
-        backgroundColor: MyColors.backgroundColorCode,
-        body: TabBarView(
-          physics: NeverScrollableScrollPhysics(),
-          children: [
-            // Home Screen Content
-            Column(
-              children: [
-                // Image Slider
-                Padding(
-                  padding: const EdgeInsets.all(10.0),
-                  child: CarouselSlider(
-                    items: imagePaths.map((imagePath) {
-                      return ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
-                        child: Image.asset(
-                          imagePath,
-                          fit: BoxFit.cover,
-                          width: double.infinity,
-                        ),
-                      );
-                    }).toList(),
-                    options: CarouselOptions(
-                      autoPlay: true,
-                      aspectRatio: 16 / 9,
-                      enlargeCenterPage: true,
-                      autoPlayInterval: const Duration(seconds: 2),
-                    ),
-                  ),
-                ),
-
-                // Card Views
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            _buildCard(
-                              icon: Icons.people_outline,
-                              title: 'User List',
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => BlocProvider(
-                                      create: (context) =>
-                                          MainBloc(webService: WebService()),
-                                      child: UserListScreen(),
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                            _buildCard(
-                              icon: Icons.book_outlined,
-                              title: 'Sanction/Reject',
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => BlocProvider(
-                                      create: (context) =>
-                                          MainBloc(webService: WebService()),
-                                      child: SanctionRequest(),
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 10),
-                        if (Staffcode?.toLowerCase() == "mzdl002")
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              _buildCard(
-                                icon: Icons.person,
-                                title: 'User Rights',
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => BlocProvider(
-                                        create: (context) =>
-                                            MainBloc(webService: WebService()),
-                                        child: MenuRightsScreen(),
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                              _buildCard(
-                                icon: Icons.person,
-                                title: 'Menu Subcription',
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => BlocProvider(
-                                        create: (context) =>
-                                            MainBloc(webService: WebService()),
-                                        child: MenuSubscriptionScreen(),
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ],
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-
-            // // Logout Tab
-            // Center(
-            //   child: GestureDetector(
-            //     onTap: () {
-            //       showDialog(
-            //         context: context,
-            //         builder: (BuildContext context) =>
-            //             _buildPopupDialogforLogout(context),
-            //       );
-            //     },
-            //     child: Text("Logout"),
-            //   ),
-            // ),
-          ],
-        ),
-        bottomNavigationBar: Container(
-          color: MyColors.whiteColorCode,
-          child: TabBar(
-            indicatorColor: MyColors.whiteColorCode,
-            labelColor: MyColors.appDefaultColorCode,
-            unselectedLabelColor: Colors.grey,
-            tabs: [
-              Tab(
-                text: 'Home',
-                icon: Icon(Icons.home_outlined, size: 30),
-              ),
-              GestureDetector(
-                onTap: () {
-                  print("on click Logout");
-                  showDialog(
-                      context: context,
-                      builder: (BuildContext context) =>
-                          _buildPopupDialogforLogout(context));
-                },
-                child: Tab(
-                    text: 'Logout',
-                    icon: Icon(
-                      Icons.logout,
-                      size: 30,
-                    )),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCard(
-      {required IconData icon,
-      required String title,
-      required VoidCallback onTap}) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Card(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-        elevation: 5,
-        child: Container(
-          height: 150,
-          width: 150,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: 50, color: MyColors.appDefaultColorCode),
-              const SizedBox(height: 10),
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPopupDialogforLogout(BuildContext context) {
-    return AlertDialog(
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: const <Widget>[
-          Text(
-            "Logout",
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          SizedBox(height: 20),
-          Text(
-            "Are you sure you want to Logout Attendance App?",
-            style: TextStyle(fontSize: 18),
+        actions: [
+          IconButton(
+            onPressed: () {
+              Fluttertoast.showToast(msg: "No new notifications");
+            },
+            icon: const Icon(Icons.notifications_none_rounded, color: Colors.white),
           ),
         ],
       ),
-      actions: <Widget>[
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('CANCEL'),
-        ),
-        TextButton(
-          onPressed: () {
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(
-                builder: (context) => BlocProvider(
-                  create: (context) => MainBloc(webService: WebService()),
-                  child: const LoginScreen(),
+      body: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 20),
+            _buildCarousel(),
+            const SizedBox(height: 24),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Text(
+                "Quick Actions",
+                style: GoogleFonts.poppins(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
                 ),
               ),
-              (Route<dynamic> route) => false,
-            );
+            ),
+            const SizedBox(height: 16),
+            _buildActionGrid(),
+            const SizedBox(height: 30),
+          ],
+        ),
+      ),
+    );
+  }
 
-            onLogout();
-          },
-          child: const Text('CONFIRM'),
+  Widget _buildCarousel() {
+    return Column(
+      children: [
+        CarouselSlider(
+          items: imagePaths.map((path) {
+            return Container(
+              margin: const EdgeInsets.symmetric(horizontal: 5),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 10,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: Image.asset(
+                  path,
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                ),
+              ),
+            );
+          }).toList(),
+          options: CarouselOptions(
+            autoPlay: true,
+            aspectRatio: 2.2,
+            enlargeCenterPage: true,
+            viewportFraction: 0.85,
+            autoPlayInterval: const Duration(seconds: 4),
+            onPageChanged: (index, _) {
+              setState(() => _currentCarouselIndex = index);
+            },
+          ),
+        ),
+        const SizedBox(height: 12),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: imagePaths.asMap().entries.map((entry) {
+            return AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              width: _currentCarouselIndex == entry.key ? 24 : 8,
+              height: 8,
+              margin: const EdgeInsets.symmetric(horizontal: 4),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(4),
+                color: MyColors.appDefaultColorCode.withOpacity(
+                  _currentCarouselIndex == entry.key ? 1.0 : 0.2,
+                ),
+              ),
+            );
+          }).toList(),
         ),
       ],
     );
   }
 
-  void onLogout() async {
-    // Clear the secure storage
-    await clearAllSecureStorage();
-
-    // , navigate the user to the login screen or any other screen
-    Navigator.pop(context);
-
-    Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(
-          builder: (context) => BlocProvider(
-              create: (context) {
-                return MainBloc(webService: WebService());
-              },
-              child: LoginScreen()),
+  Widget _buildActionGrid() {
+    List<Widget> cards = [
+      _buildActionCard(
+        icon: Icons.people_alt_rounded,
+        title: "User List",
+        desc: "Manage staff accounts",
+        color: const Color(0xFF4285F4),
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => BlocProvider(
+              create: (context) => MainBloc(webService: WebService()),
+              child: const UserListScreen(),
+            ),
+          ),
         ),
-        (Route<dynamic> route) => false);
+      ),
+      _buildActionCard(
+        icon: Icons.assignment_turned_in_rounded,
+        title: "Approvals",
+        desc: "Sanction/Reject leaves",
+        color: const Color(0xFFFBBC05),
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => BlocProvider(
+              create: (context) => MainBloc(webService: WebService()),
+              child: const SanctionRequest(),
+            ),
+          ),
+        ),
+      ),
+    ];
+
+    if (MenuRightsService.isMenuRightsAllowed()) {
+      cards.add(
+        _buildActionCard(
+          icon: Icons.admin_panel_settings_rounded,
+          title: "User Rights",
+          desc: "Set menu permissions",
+          color: const Color(0xFF34A853),
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => BlocProvider(
+                create: (context) => MainBloc(webService: WebService()),
+                child: const MenuRightsScreen(),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    if (MenuRightsService.isSubscriptionAllowed()) {
+      cards.add(
+        _buildActionCard(
+          icon: Icons.card_membership_rounded,
+          title: "Subscription",
+          desc: "Manage plan access",
+          color: const Color(0xFFEA4335),
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => BlocProvider(
+                create: (context) => MainBloc(webService: WebService()),
+                child: const MenuSubscriptionScreen(),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: GridView.count(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        crossAxisCount: 2,
+        mainAxisSpacing: 16,
+        crossAxisSpacing: 16,
+        childAspectRatio: 0.95,
+        children: cards,
+      ),
+    );
   }
 
-  Future<void> getStaffCode() async {
-    Staffcode = await storage.read(key: 'username');
-    print("staffcode: $Staffcode");
-    setState(() {});
-  }
-
-  // Function to clear specific keys
-  Future<void> clearSecureStorage() async {
-    await storage.delete(key: 'Auth_Token'); // Delete auth token
-    await storage.delete(key: 'Staff_Code'); // Delete staff code
-    await storage.delete(key: 'Staff_Name'); // Delete staff name
-    await storage.delete(
-        key: 'username'); // Delete username (if used for remember me)
-    await storage.delete(
-        key: 'password'); // Delete password (if used for remember me)
-  }
-
-// Or to clear all stored data
-  Future<void> clearAllSecureStorage() async {
-    await storage.deleteAll(); // Clear all stored data
+  Widget _buildActionCard({
+    required IconData icon,
+    required String title,
+    required String desc,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(24),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: color, size: 28),
+            ),
+            const Spacer(),
+            Text(
+              title,
+              style: GoogleFonts.poppins(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              desc,
+              style: GoogleFonts.poppins(
+                fontSize: 11,
+                color: Colors.grey.shade500,
+                height: 1.2,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

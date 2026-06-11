@@ -1,4 +1,5 @@
 
+import 'package:attendance_system_ios/service/menu_rights_service.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../Punchremainder/Punchremainder.dart';
@@ -46,32 +47,39 @@ class _SettingsPageState extends State<SettingsPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              "General Settings",
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.w600,
-                color: Colors.black87,
-              ),
-            ),
-            const SizedBox(height: 20),
-            _buildSettingItem(
-              context,
-              icon: Icons.notifications_active_outlined,
-              title: 'Set Punch In-Out Reminder',
-              description: 'Get reminders to punch in and out on time.',
-              onTap: () {
-                // Navigate to TimerPage when tapped
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    // Uncomment the appropriate screen to navigate
-                    // builder: (context) => PunchRemainderScreen(),
-                    builder: (context) => AlarmScreen(),
+            if(MenuRightsService.isPunchInOutAllowed())
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "General Settings",
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black87,
+                    ),
                   ),
-                );
-              },
-            ),
+                  const SizedBox(height: 20),
+                  _buildSettingItem(
+                    context,
+                    icon: Icons.notifications_active_outlined,
+                    title: 'Set Punch In-Out Reminder',
+                    description: 'Get reminders to punch in and out on time.',
+                    onTap: () {
+                      // Navigate to TimerPage when tapped
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          // Uncomment the appropriate screen to navigate
+                          // builder: (context) => PunchRemainderScreen(),
+                          builder: (context) => AlarmScreen(),
+                        ),
+                      );
+                    },
+                  ),
+
+                ],
+              ),
 
             const SizedBox(height: 24),
             const Text(

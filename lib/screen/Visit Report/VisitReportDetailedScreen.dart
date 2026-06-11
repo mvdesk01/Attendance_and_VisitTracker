@@ -1037,7 +1037,6 @@ class _VisitReportDetailedScreenState extends State<VisitReportDetailedScreen> {
         ),
 
 
-        drawer: MenuDrawer(),
         backgroundColor: MyColors.backgroundColorCode,
         body: LoadingOverlay(
           isLoading: _isLoading,

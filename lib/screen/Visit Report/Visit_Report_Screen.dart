@@ -113,7 +113,6 @@ class _VisitReportScreenState extends State<VisitReportScreen> {
             color: Colors.white,
           ),
         ),
-        drawer: MenuDrawer(),
         backgroundColor: MyColors.backgroundColorCode,
         body: LoadingOverlay(
           isLoading: _isLoading,

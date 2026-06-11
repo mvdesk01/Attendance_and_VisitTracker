@@ -37,6 +37,7 @@ import '../../model/in_out_details.dart';
 // import '../CancellationRequest/CancellationRequestScreen.dart';
 import '../../service/background_service.dart';
 import '../../service/internet_service.dart';
+import '../../service/menu_rights_service.dart';
 import '../AdminProfile/Databasepunchout.dart';
 import '../AdminProfile/Databsepunchin.dart';
 import '../Expense/ExpenseScreen.dart';
@@ -194,7 +195,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
     mainBloc.add(GetUserInfoEvents(Staffcode: staffCode!, token: Auth_Token!));
     mainBloc.add(GetMultiRemoteLocation(Auth_Token!, staffCode!));
-    //mainBloc.add(GetStaffDetailsEvents(StaffCode: staffCode, token: Auth_Token));
+
+    /// check user's menu rights and default rights
+    await Future.wait([
+      MenuRightsService.syncRights(staffCode: staffCode!, token: Auth_Token!,),
+      MenuRightsService.syncDefaultMenus(token: Auth_Token!)
+    ]);
+    /// save or load user rights from local storage
+    await MenuRightsService.loadRightsFromStorage();
   }
 
   Future<void> _checkAndRequestLocationPermission() async {
@@ -624,6 +632,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 );
               },
             ),
+            if(MenuRightsService.isLeaveAllowed())
             ListTile(
               leading: const Icon(Icons.backpack_outlined),
               title: const Text('Leave'),
@@ -639,6 +648,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 );
               },
             ),
+            if (MenuRightsService.isGatePassAllowed())
             ListTile(
               leading: const Icon(Icons.book_outlined),
               title: const Text('Gate Pass'),
@@ -654,7 +664,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 //    Navigator.push(context, MaterialPageRoute(builder: (context) => const GatePass()));
               },
             ),
-            ListTile(
+            if (MenuRightsService.isCOffAllowed())
+              ListTile(
               leading: const Icon(Icons.book_outlined),
               title: const Text('COff Credit'),
               onTap: () {
@@ -669,6 +680,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 //    Navigator.push(context, MaterialPageRoute(builder: (context) => const GatePass()));
               },
             ),
+            if (MenuRightsService.isDOffAllowed())
             ListTile(
               leading: const Icon(Icons.book_outlined),
               title: const Text('COff Debit'),
@@ -684,22 +696,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 //    Navigator.push(context, MaterialPageRoute(builder: (context) => const GatePass()));
               },
             ),
-            // ListTile(
-            //   leading: const Icon(Icons.book_outlined),
-            //   title: const Text('Cancellation Request'),
-            //   onTap: (){
-            //     Navigator.pushReplacement(
-            //         context,
-            //         MaterialPageRoute(
-            //             builder: (_) => BlocProvider(
-            //                 create: (context) {
-            //                   return MainBloc(
-            //                       webService: WebService());
-            //                 },
-            //                 child: CancellationRequestScreen())));
-            //     //    Navigator.push(context, MaterialPageRoute(builder: (context) => const GatePass()));
-            //   },
-            // ),
+            if (MenuRightsService.isExpenseAllowed())
             ListTile(
               leading: const Icon(Icons.money_off_outlined),
               title: const Text('Expense Management'),
@@ -715,6 +712,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 );
               },
             ),
+            if (MenuRightsService.isTourAllowed())
             ListTile(
               leading: const Icon(Icons.tour_outlined),
               title: const Text('Tour Details'),
@@ -730,6 +728,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 );
               },
             ),
+            if(MenuRightsService.isPunchInOutAllowed())
             ListTile(
               leading: const Icon(Icons.location_city_outlined),
               title: const Text('Change to Remote Location'),
@@ -749,48 +748,53 @@ class _HomeScreenState extends State<HomeScreen> {
             const Divider(
               color: Colors.black45,
             ),
-            ListTile(
-              leading: const Icon(Icons.add_location_alt_outlined),
-              title: const Text('Visit Outside'),
-              onTap: () {
-                Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => VisitOutside()));
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.location_on_outlined),
-              title: const Text('Start/Stop Visit'),
-              onTap: () {
-                Navigator.push(
+            if (MenuRightsService.isVisitManagementAllowed()) ...[
+              ListTile(
+                leading: const Icon(Icons.add_location_alt_outlined),
+                title: const Text('Visit Outside'),
+                onTap: () {
+                  Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => VisitStartStopScreen(
-                              visit: null,
-                            )));
-                //  mainBloc.add(GetMinutesOfMeetingFormNoEvents(UserId: "cd03080",SrNo: "844",token: Auth_Token!));
-              },
-            ),
-            /* ListTile(
-              leading: const Icon(Icons.location_searching_outlined),
-              title: const Text('Track Visit Location'),
-              onTap: (){
-                Navigator.push(context, MaterialPageRoute(builder: (context) =>  */ /*TrackVisitLocation()*/ /*TrackVisitScreen()));
-              },
-            ),*/
-            ListTile(
-              leading: const Icon(Icons.location_history_outlined),
-              title: const Text('Visit History'),
-              onTap: () {
-                Navigator.push(
+                      builder: (_) => VisitOutside(),
+                    ),
+                  );
+                },
+              ),
+
+              ListTile(
+                leading: const Icon(Icons.location_on_outlined),
+                title: const Text('Start/Stop Visit'),
+                onTap: () {
+                  Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (_) => BlocProvider(
-                            create: (context) {
-                              return MainBloc(webService: WebService());
-                            },
-                            child: VisitHistoryScreen())));
-              },
-            ),
+                      builder: (context) =>
+                          VisitStartStopScreen(
+                            visit: null,
+                          ),
+                    ),
+                  );
+                },
+              ),
+
+              ListTile(
+                leading: const Icon(Icons.location_history_outlined),
+                title: const Text('Visit History'),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => BlocProvider(
+                        create: (context) =>
+                            MainBloc(webService: WebService()),
+                        child: VisitHistoryScreen(),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ],
             ListTile(
               leading: const Icon(Icons.settings),
               title: const Text('Settings'),
@@ -806,6 +810,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 );
               },
             ),
+            if (MenuRightsService.isAdminRightsAllowed())
             ListTile(
               leading: const Icon(Icons.admin_panel_settings),
               title: const Text('Admin'),
