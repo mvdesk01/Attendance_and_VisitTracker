@@ -26,7 +26,7 @@ class LocationDisclosureScreen extends StatelessWidget {
                 child: const Icon(
                   Icons.location_on_rounded,
                   size: 80,
-                  color: MyColors.appDefaultColorCode,
+                  color: MyColors.lightBlue,
                 ),
               ),
               const SizedBox(height: 32),
@@ -91,7 +91,7 @@ class LocationDisclosureScreen extends StatelessWidget {
                       onPressed: () => Navigator.pop(context),
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
-                        side: const BorderSide(color: MyColors.appDefaultColorCode),
+                        side: const BorderSide(color: MyColors.lightBlue),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -99,7 +99,7 @@ class LocationDisclosureScreen extends StatelessWidget {
                       child: const Text(
                         "Decline",
                         style: TextStyle(
-                          color: MyColors.appDefaultColorCode,
+                          color: MyColors.lightBlue,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -110,7 +110,7 @@ class LocationDisclosureScreen extends StatelessWidget {
                     child: ElevatedButton(
                       onPressed: onAgree,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: MyColors.appDefaultColorCode,
+                        backgroundColor: MyColors.lightBlue,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
@@ -141,7 +141,7 @@ class LocationDisclosureScreen extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: MyColors.appDefaultColorCode, size: 24),
+          Icon(icon, color: MyColors.lightBlue, size: 24),
           const SizedBox(width: 16),
           Expanded(
             child: Column(

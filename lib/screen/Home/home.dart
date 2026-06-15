@@ -179,8 +179,7 @@ class _HomeScreenState extends State<HomeScreen> {
     print("Auth_Token-->${Auth_Token}");
     staffName = await storage.read(key: 'Staff_Name');
 
-    mainBloc
-        .add(GetStaffDetailsEvents(StaffCode: staffCode!, token: Auth_Token!));
+    mainBloc.add(GetStaffDetailsEvents(StaffCode: staffCode!, token: Auth_Token!));
     //mainBloc.add(GetStaffDetailsEvents(StaffCode: staffCode, token: Auth_Token));
   }
 
@@ -1022,6 +1021,7 @@ class _HomeScreenState extends State<HomeScreen> {
               isLoading = true;
             });
           } else if (state is GetMultiRemoteLocationLoadedState) {
+            if(state.response != null)
             multiLatLongList = state.response;
             setState(() {
               isLoading = false;
@@ -1150,63 +1150,22 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
 */
 
-                    SizedBox(
-                      height: isTablet ? 300 : 210,
-                      child: PageView.builder(
-                        controller: _pageController,
-                        itemCount: attendanceBanners.length,
-                        onPageChanged: (index) {
-                          _currentPage = index;
-                        },
-                        itemBuilder: (context, index) {
-                          final banner = attendanceBanners[index];
+                  if(addressflag == 'Y' && staffCode!.toLowerCase().startsWith('cd0'))
+                    _buildInfoBanner(),
 
-                          return Card(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            clipBehavior: Clip.antiAlias,
-                            margin: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 6),
-                            elevation: 5,
-                            child: Stack(
-                              children: [
-                                /// Banner Image
-                                Image.asset(
-                                  banner.image,
-                                  height: isTablet ? 300 : 220,
-                                  width: double.infinity,
-                                  fit: BoxFit.fill,
-                                ),
-
-                                /// Dark overlay
-                                Positioned.fill(
-                                  child: Container(
-                                    color: Colors.black.withOpacity(0.20),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-
-                    const SizedBox(
-                      height: 10,
-                    ),
+                    const SizedBox(height: 10,),
 
                     /// Mark your attendance
                     if (addressflag == 'Y') markYourAttendance(),
 
-                    const SizedBox(
-                      height: 10,
-                    ),
+                    const SizedBox(height: 10,),
 
                     /// visit management
+                    if(MenuRightsService.isVisitManagementAllowed())
                     visitManagementUI(),
 
                     /// Other
+                    if( MenuRightsService.isLeaveAllowed() || MenuRightsService.isGatePassAllowed())
                     Card.outlined(
                       color: Colors.blue[50],
                       // elevation: 5,
@@ -1225,6 +1184,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   color: Colors.black87 /*fontFamily:'Dubai'*/),
                             ),
                           ),
+                          if( MenuRightsService.isLeaveAllowed())
                           GestureDetector(
                             onTap: () {
                               Navigator.pushReplacement(
@@ -1293,6 +1253,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                             ),
                           ),
+                          if( MenuRightsService.isGatePassAllowed())
                           GestureDetector(
                             onTap: () {
                               Navigator.pushReplacement(
@@ -1377,6 +1338,49 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Widget _buildInfoBanner() {
+    return SizedBox(
+      height: isTablet ? 300 : 195,
+      child: PageView.builder(
+        controller: _pageController,
+        itemCount: attendanceBanners.length,
+        onPageChanged: (index) {
+          _currentPage = index;
+        },
+        itemBuilder: (context, index) {
+          final banner = attendanceBanners[index];
+
+          return Card(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            clipBehavior: Clip.antiAlias,
+            margin: const EdgeInsets.symmetric(
+                horizontal: 12, vertical: 6),
+            elevation: 5,
+            child: Stack(
+              children: [
+                /// Banner Image
+                Image.asset(
+                  banner.image,
+                  height: isTablet ? 300 : 220,
+                  width: double.infinity,
+                  fit: BoxFit.fill,
+                ),
+
+                /// Dark overlay
+                Positioned.fill(
+                  child: Container(
+                    color: Colors.black.withOpacity(0.20),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
   Widget markYourAttendance() {
     return Card.outlined(
       color: Colors.blue[50],

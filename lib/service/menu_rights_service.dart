@@ -3,12 +3,14 @@ import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
-class MenuRightsService {MenuRightsService._();
+class MenuRightsService {
+  MenuRightsService._();
 
   static const FlutterSecureStorage _storage = FlutterSecureStorage();
   static const String _storageKey = "USER_MENU_RIGHTS";
   static List<dynamic> _rights = [];
   static final Set<int> _defaultMenus = {};
+  static String? staffCode;
 
   /// FETCH USER RIGHTS -> SAVE
   static Future<void> syncRights({ required String staffCode, required String token,}) async {
@@ -65,6 +67,7 @@ static Future<void> syncDefaultMenus({required String token,}) async {
 
   /// SAVE TO MEMORY + STORAGE
   static Future<void> setRights(List<dynamic> rights,) async {
+    staffCode = await _storage.read(key: 'Staff_Code');
     _rights = rights;
 
     await _storage.write(
@@ -76,18 +79,13 @@ static Future<void> syncDefaultMenus({required String token,}) async {
   /// LOAD FROM STORAGE
   static Future<void> loadRightsFromStorage() async {
     try {
-      final data = await _storage.read(
-        key: _storageKey,
-      );
+      final data = await _storage.read(key: _storageKey,);
 
-      if (data != null &&
-          data.isNotEmpty) {
-        _rights =
-            jsonDecode(data);
+      if (data != null && data.isNotEmpty) {
+        _rights = jsonDecode(data);
       }
     } catch (e) {
-      print(
-          "Load Rights Error: $e");
+      print("Load Rights Error: $e");
     }
   }
 
@@ -101,13 +99,12 @@ static Future<void> syncDefaultMenus({required String token,}) async {
 
 static bool _hasAccess(int menuId) {
   // Default menu available to everyone
-  if (_defaultMenus.contains(menuId)) {
+  if (_defaultMenus.contains(menuId) && staffCode!.toLowerCase().startsWith('cd0')) {
     return true;
   }
 
   try {
     final menu = _rights.firstWhere((e) => e["menuId"] == menuId,);
-
     return menu["isAllowed"] == true;
   } catch (_) {
     return false;
@@ -115,58 +112,38 @@ static bool _hasAccess(int menuId) {
 }
 
   /// MENU RIGHTS
-  static bool isGatePassAllowed() =>
-      _hasAccess(1);
+  static bool isGatePassAllowed() => _hasAccess(1);
 
-  static bool isTourAllowed() =>
-      _hasAccess(2);
+  static bool isTourAllowed() => _hasAccess(2);
 
-  static bool isDOffAllowed() =>
-      _hasAccess(3);
+  static bool isDOffAllowed() => _hasAccess(3);
 
-  static bool isCOffAllowed() =>
-      _hasAccess(4);
+  static bool isCOffAllowed() => _hasAccess(4);
 
-  static bool isLeaveAllowed() =>
-      _hasAccess(5);
+  static bool isLeaveAllowed() => _hasAccess(5);
 
-  static bool isExpenseAllowed() =>
-      _hasAccess(6);
+  static bool isExpenseAllowed() => _hasAccess(6);
 
-  static bool isPunchInOutAllowed() =>
-      _hasAccess(7);
+  static bool isPunchInOutAllowed() => _hasAccess(7);
 
-  static bool isVisitManagementAllowed() =>
-      _hasAccess(8);
+  static bool isVisitManagementAllowed() => _hasAccess(8);
 
-  static bool isProfileAllowed() =>
-      _hasAccess(9);
+  static bool isProfileAllowed() => _hasAccess(9);
 
-  static bool isAdminRightsAllowed() =>
-      _hasAccess(10);
+  static bool isAdminRightsAllowed() => _hasAccess(10);
 
-  static bool isEmployeeExpenseReportAllowed() =>
-      _hasAccess(11);
+  static bool isEmployeeExpenseReportAllowed() => _hasAccess(11);
 
-  static bool isEmployeeInOutReportAllowed() =>
-      _hasAccess(12);
+  static bool isEmployeeInOutReportAllowed() => _hasAccess(12);
 
-  static bool isEmployeeVisitReportAllowed() =>
-      _hasAccess(13);
+  static bool isEmployeeVisitReportAllowed() => _hasAccess(13);
 
-  static bool isEmployeeProfileAllowed() =>
-      _hasAccess(14);
+  static bool isEmployeeProfileAllowed() => _hasAccess(14);
 
-  static bool isMenuRightsAllowed() =>
-      _hasAccess(15);
+  static bool isMenuRightsAllowed() => _hasAccess(15);
 
-  static bool isSubscriptionAllowed() =>
-      _hasAccess(16);
+  static bool isSubscriptionAllowed() => _hasAccess(16);
 
-  /// =========================================
   /// DEBUG
-  /// =========================================
-
-  static List<dynamic> get rights =>
-      _rights;
+  static List<dynamic> get rights => _rights;
 }
