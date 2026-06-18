@@ -149,44 +149,44 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                           ],
                         ),
                         const SizedBox(height: 10),
-                        if (Staffcode?.toLowerCase() == "mzdl002")
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              _buildCard(
-                                icon: Icons.person,
-                                title: 'User Rights',
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => BlocProvider(
-                                        create: (context) =>
-                                            MainBloc(webService: WebService()),
-                                        child: MenuRightsScreen(),
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                              _buildCard(
-                                icon: Icons.person,
-                                title: 'Menu Subcription',
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => BlocProvider(
-                                        create: (context) =>
-                                            MainBloc(webService: WebService()),
-                                        child: MenuSubscriptionScreen(),
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ],
-                          ),
+                        // if (Staffcode?.toLowerCase() == "mzdl002")
+                        //   Row(
+                        //     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        //     children: [
+                        //       _buildCard(
+                        //         icon: Icons.person,
+                        //         title: 'User Rights',
+                        //         onTap: () {
+                        //           Navigator.push(
+                        //             context,
+                        //             MaterialPageRoute(
+                        //               builder: (context) => BlocProvider(
+                        //                 create: (context) =>
+                        //                     MainBloc(webService: WebService()),
+                        //                 child: MenuRightsScreen(),
+                        //               ),
+                        //             ),
+                        //           );
+                        //         },
+                        //       ),
+                        //       _buildCard(
+                        //         icon: Icons.person,
+                        //         title: 'Menu Subcription',
+                        //         onTap: () {
+                        //           Navigator.push(
+                        //             context,
+                        //             MaterialPageRoute(
+                        //               builder: (context) => BlocProvider(
+                        //                 create: (context) =>
+                        //                     MainBloc(webService: WebService()),
+                        //                 child: MenuSubscriptionScreen(),
+                        //               ),
+                        //             ),
+                        //           );
+                        //         },
+                        //       ),
+                        //     ],
+                        //   ),
                       ],
                     ),
                   ),

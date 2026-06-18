@@ -27,6 +27,7 @@ import '../../main.dart';
 import '../../util/MyColor.dart';
 import '../../service/internet_service.dart';
 import '../Forget Password/forgetpassword.dart';
+import '../password retrieval/password_retrieval.dart';
 import 'UpdateDeviceID.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -108,10 +109,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<String?> _getId() async {
 
-      DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
-      AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
-      print(androidInfo.id);
-      return androidInfo.id; // This should return ANDROID_ID
+    DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+    AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
+    print(androidInfo.id);
+    return androidInfo.id; // This should return ANDROID_ID
 
 
 
@@ -251,171 +252,180 @@ class _LoginScreenState extends State<LoginScreen> {
             }
           },
           child:
-         CustomScrollView(
-        slivers: [
-          SliverFillRemaining(
-            hasScrollBody: false,
-        child: Column(
-            // mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children:[
-              const SizedBox(height: 100),
+          CustomScrollView(
+            slivers: [
+              SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: Column(
+                    // mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children:[
+                        const SizedBox(height: 100),
 
-              Column(
-                children: [
-                  Image.asset("assets/icons/graphic-design.png",
-                  width: 100,
-                    height: 110,
-                  ),
-                  SizedBox(height: 12),
-                  Text(
-                    "Attendance System",
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  SizedBox(height: 6),
-                  Text(
-                    "Sign in to continue",
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.black54,
-                    ),
-                  ),
-                ],
+                        Column(
+                          children: [
+                            Image.asset("assets/icons/graphic-design.png",
+                              width: 100,
+                              height: 110,
+                            ),
+                            SizedBox(height: 12),
+                            Text(
+                              "Attendance System",
+                              style: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            SizedBox(height: 6),
+                            Text(
+                              "Sign in to continue",
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.black54,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 30),
+
+                        const Text("Login", style: TextStyle(
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
+
+                        ),
+                        ),
+                        SizedBox(height: 5),
+
+                        const SizedBox(height: 30),
+
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                          child: TextFormField(
+                            controller: _CardIdtextController,
+                            decoration: InputDecoration(
+                              labelText: 'Staff Code',
+                              prefixIcon: const Icon(Icons.badge_outlined),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                          child: TextFormField(
+                            controller: _PasswordtextController,
+                            obscureText: passwordVisibility,
+                            decoration: InputDecoration(
+                              labelText: 'Password',
+                              prefixIcon: const Icon(Icons.lock_outline),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  passwordVisibility
+                                      ? Icons.visibility
+                                      : Icons.visibility_off,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    passwordVisibility = !passwordVisibility;
+                                  });
+                                },
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 32),
+                          child: Row(
+                            children: [
+                              Transform.scale(
+                                scale: 0.9,
+                                child: CupertinoSwitch(
+                                  value: _switchValue,
+                                  activeColor: MyColors.lightBlue,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _switchValue = value;
+                                    });
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              const Text(
+                                "Remember me",
+                                style: TextStyle(fontSize: 14),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
+                          child: SizedBox(
+                            width: double.infinity,
+                            height: 48,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: MyColors.lightBlue,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                              onPressed: _validation,
+                              child: const Text(
+                                'LOGIN',
+                                style: TextStyle(fontSize: 16),
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            TextButton(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => const PasswordRetrieval()),
+                                );
+                              },
+                              child: const Text("Password Retrieval"),
+                            ),
+                            // TextButton(
+                            //   onPressed: () {
+                            //     Navigator.push(
+                            //       context,
+                            //       MaterialPageRoute(builder: (_) => const ForgotPassword()),
+                            //     );
+                            //   },
+                            //   child: const Text("Forgot Password?"),
+                            // ),
+                            const SizedBox(width: 10),
+                            TextButton(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => const RegisterScreen()),
+                                );
+                              },
+                              child: const Text("Register"),
+                            ),
+                          ],
+                        ),
+
+                      ]
+                  )
               ),
-              const SizedBox(height: 30),
-
-            const Text("Login", style: TextStyle(
-                color: Colors.black,
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
-
-            ),
-            ),
-              SizedBox(height: 5),
-
-              const SizedBox(height: 30),
-
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-                child: TextFormField(
-                  controller: _CardIdtextController,
-                  decoration: InputDecoration(
-                    labelText: 'Staff Code',
-                    prefixIcon: const Icon(Icons.badge_outlined),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                ),
-              ),
-
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-                child: TextFormField(
-                  controller: _PasswordtextController,
-                  obscureText: passwordVisibility,
-                  decoration: InputDecoration(
-                    labelText: 'Password',
-                    prefixIcon: const Icon(Icons.lock_outline),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        passwordVisibility
-                            ? Icons.visibility
-                            : Icons.visibility_off,
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          passwordVisibility = !passwordVisibility;
-                        });
-                      },
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                ),
-              ),
-
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 32),
-                child: Row(
-                  children: [
-                    Transform.scale(
-                      scale: 0.9,
-                      child: CupertinoSwitch(
-                        value: _switchValue,
-                        activeColor: MyColors.lightBlue,
-                        onChanged: (value) {
-                          setState(() {
-                            _switchValue = value;
-                          });
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    const Text(
-                      "Remember me",
-                      style: TextStyle(fontSize: 14),
-                    ),
-                  ],
-                ),
-              ),
-
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 48,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: MyColors.lightBlue,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    onPressed: _validation,
-                    child: const Text(
-                      'LOGIN',
-                      style: TextStyle(fontSize: 16),
-                    ),
-                  ),
-                ),
-              ),
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const ForgotPassword()),
-                      );
-                    },
-                    child: const Text("Forgot Password?"),
-                  ),
-                  const SizedBox(width: 10),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const RegisterScreen()),
-                      );
-                    },
-                    child: const Text("Register"),
-                  ),
-                ],
-              ),
-
-          ]
-        )
-    ),
-          ],
-      )
+            ],
+          )
       ),
     );
   }

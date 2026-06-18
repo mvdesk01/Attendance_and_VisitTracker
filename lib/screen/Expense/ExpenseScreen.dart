@@ -548,7 +548,7 @@ class _ExpensemanagementscreenState extends State<Expensemanagmentscreen> {
                   decoration: InputDecoration(
                     label: RichText(
                       text: TextSpan(
-                        text: 'Amount Received',
+                        text: 'Amount Summary',
                         style: TextStyle(color: Colors.black),
                         // Normal label color
                         children: [
