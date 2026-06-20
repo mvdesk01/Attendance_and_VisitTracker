@@ -84,6 +84,7 @@ class _LoginScreenState extends State<LoginScreen> {
               await storage.write(key: 'Auth_Token', value: state.loginResponse!.token!.result!.token);
               await storage.write(key: 'Staff_Code', value: state.loginResponse!.message!.staffCode);
               await storage.write(key: 'Staff_Name', value: state.loginResponse!.message!.displayName);
+              await storage.write(key: 'Plant_Code', value: state.loginResponse!.message!.plantCode);
 
               if (isAdminLogin) {
                 Navigator.pushReplacement(

@@ -10,7 +10,7 @@ class MenuRightsService {
   static const String _storageKey = "USER_MENU_RIGHTS";
   static List<dynamic> _rights = [];
   static final Set<int> _defaultMenus = {};
-  static String? staffCode;
+  static String? plantCode;
 
   /// FETCH USER RIGHTS -> SAVE
   static Future<void> syncRights({ required String staffCode, required String token,}) async {
@@ -67,7 +67,7 @@ static Future<void> syncDefaultMenus({required String token,}) async {
 
   /// SAVE TO MEMORY + STORAGE
   static Future<void> setRights(List<dynamic> rights,) async {
-    staffCode = await _storage.read(key: 'Staff_Code');
+    plantCode = await _storage.read(key: 'Plant_Code');
     _rights = rights;
 
     await _storage.write(
@@ -99,7 +99,7 @@ static Future<void> syncDefaultMenus({required String token,}) async {
 
 static bool _hasAccess(int menuId) {
   // Default menu available to everyone
-  if (_defaultMenus.contains(menuId) && staffCode!.toLowerCase().startsWith('cd0')) {
+  if (_defaultMenus.contains(menuId) && plantCode != '016') {
     return true;
   }
 

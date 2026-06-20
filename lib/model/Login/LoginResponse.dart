@@ -55,6 +55,7 @@ class Message {
   String? remoteLongitude;
   String? distanceCheckFlag;
   String? profilePic;
+  String? plantCode;
 
   Message(
       {this.srno,
@@ -80,7 +81,9 @@ class Message {
         this.remoteLatitude,
         this.remoteLongitude,
         this.distanceCheckFlag,
-        this.profilePic});
+        this.profilePic,
+        this.plantCode
+      });
 
   Message.fromJson(Map<String, dynamic> json) {
     srno = json['srno'];
@@ -107,6 +110,7 @@ class Message {
     remoteLongitude = json['remoteLongitude'];
     distanceCheckFlag = json['distanceCheckFlag'];
     profilePic = json['profilePic'];
+    plantCode = json['plantCode'];
   }
 
   Map<String, dynamic> toJson() {
@@ -135,6 +139,7 @@ class Message {
     data['remoteLongitude'] = this.remoteLongitude;
     data['distanceCheckFlag'] = this.distanceCheckFlag;
     data['profilePic'] = this.profilePic;
+    data['plantCode'] = this.plantCode;
     return data;
   }
 }

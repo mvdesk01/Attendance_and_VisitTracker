@@ -846,22 +846,23 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
 
-      //Bottom Navigation bar
-      bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
+         //Bottom Navigation bar
+          bottomNavigationBar: MenuRightsService.isPunchInOutAllowed() == true ?
+          BottomNavigationBar(
+          items: <BottomNavigationBarItem>[
+           BottomNavigationBarItem(
+          icon: Icon(Icons.home),
+          label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.library_books_sharp),
-            label: 'Report',
+          icon: Icon(Icons.library_books_sharp),
+          label: 'Report',
           ),
-        ],
-        currentIndex: _selectedIndex,
-        selectedItemColor: MyColors.lightBlue,
-        onTap: _onItemTapped,
-      ),
+          ],
+          currentIndex: _selectedIndex,
+          selectedItemColor: MyColors.lightBlue,
+          onTap: _onItemTapped,
+          ): null,
       // backgroundColor: Theme.of(context).primaryColor,
 
       // Implement Screens of Bottom Navigation bar Home and Report
@@ -3272,6 +3273,24 @@ class _BannerItem {
 
   _BannerItem({required this.image, required this.text});
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /// old punch in-out code
 /*

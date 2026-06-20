@@ -43,10 +43,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _isLoading = false;
   bool passwordVisibility = true;
   final storage = const FlutterSecureStorage();
+  String? externalPlantCode;
 
   @override
   void initState() {
     super.initState();
+    fetchExternalPlantCode();
   }
 
   Future<String?> _getId() async {
@@ -63,16 +65,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Future<bool> checkUserByStaffCodeMobileNoAndEmail() async {
     String staffCode = _cardIdController.text.trim();
     String emailID = _emailController.text.trim();
-    String mobileNo = _phoneController.text.trim().isEmpty ? '0000000000' : _phoneController.text.trim();
+    String mobileNo = _phoneController.text
+        .trim()
+        .isEmpty ? '0000000000' : _phoneController.text.trim();
     try {
       final response = await http.get(
-        Uri.parse('http://114.143.140.28:8020/Users/CheckUserByStaffCodeMobileNoAndEmail?StaffCode=$staffCode&EmailId=$emailID&MobileNo=$mobileNo'),
+        Uri.parse(
+            'http://114.143.140.28:8020/Users/CheckUserByStaffCodeMobileNoAndEmail?StaffCode=$staffCode&EmailId=$emailID&MobileNo=$mobileNo'),
       );
       if (response.statusCode == 200) {
         final result = response.body;
         if (result.toString() == '{"message":"No Record Found.."}') {
           return true;
-        } else if (result.toString() == '{"message":"MobileNo is Already Present..."}' && mobileNo == '0000000000') {
+        } else if (result.toString() ==
+            '{"message":"MobileNo is Already Present..."}' &&
+            mobileNo == '0000000000') {
           return true;
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -81,7 +88,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
         }
       }
     } catch (e) {
-      LogFileManager.writeLog('Error in checkUserByStaffCodeMobileNoAndEmail: $e');
+      LogFileManager.writeLog(
+          'Error in checkUserByStaffCodeMobileNoAndEmail: $e');
     }
     return false;
   }
@@ -149,13 +157,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   String? _validateInputFields(String value, String fieldName) {
-    if (value.isEmpty && fieldName != 'Mobile Number') return '$fieldName cannot be empty';
-    if (fieldName == 'Card ID' && value.length != 7) return 'Card ID must be 7 digits';
-    if (fieldName == 'Email' && !RegExp(r'^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$').hasMatch(value)) {
+    if (value.isEmpty && fieldName != 'Mobile Number')
+      return '$fieldName cannot be empty';
+    if (fieldName == 'Card ID' && value.length != 7)
+      return 'Card ID must be 7 digits';
+    if (fieldName == 'Email' &&
+        !RegExp(r'^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$').hasMatch(
+            value)) {
       return 'Enter a valid email address.';
     }
     if (fieldName == 'Password') {
-      if (value.length < 8 || !RegExp(r'^(?=.*[a-zA-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$').hasMatch(value)) {
+      if (value.length < 8 || !RegExp(
+          r'^(?=.*[a-zA-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$')
+          .hasMatch(value)) {
         return 'Weak password';
       }
     }
@@ -164,10 +178,54 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   String? _validateInputFieldsWithToasts() {
     // if (_cardIdController.text.trim().length != 7) return 'Card ID must be 7 digits';
-    if (_nameController.text.trim().isEmpty) return 'Name is required';
-    if (_emailController.text.trim().isEmpty) return 'Email is required';
-    if (_passwordController.text.trim().length < 8) return 'Password too short';
+    if (_nameController.text
+        .trim()
+        .isEmpty) return 'Name is required';
+    if (_emailController.text
+        .trim()
+        .isEmpty) return 'Email is required';
+    if (_passwordController.text
+        .trim()
+        .length < 8) return 'Password too short';
     return null;
+  }
+
+  Future<void> fetchExternalPlantCode() async {
+    try {
+      final response = await http.get(
+        Uri.parse(
+          'http://114.143.140.28:8020/Users/GetAllPlantCodes',
+        ),
+        headers: {
+          'accept': '*/*',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final jsonResponse = jsonDecode(response.body);
+
+        if (jsonResponse['status'] == true) {
+          final List data = jsonResponse['data'];
+
+          final externalPlant = data.firstWhere(
+                (item) =>
+            (item['dispName'] ?? '')
+                .toString()
+                .toUpperCase() ==
+                'EXTERNAL',
+            orElse: () => null,
+          );
+
+          if (externalPlant != null) {
+            externalPlantCode = externalPlant['uniquePlantCode']?.toString();
+            print('External Plant Code : $externalPlantCode',);
+          }
+        }
+      }
+    } catch (e) {
+      print('Error fetching plant code : $e');
+      LogFileManager.writeLog('Error fetching plant code : $e',);
+    }
   }
 
   Future<void> _registerUser() async {
@@ -189,7 +247,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         "currAddress": "N/A",
         "uuid": deviceID ?? "unknown",
         "userType": "s",
-        "plantCode": "01",
+        "plantCode": externalPlantCode,
         "uniqueNumber": ""
       });
 
