@@ -5,7 +5,6 @@ import 'package:attendance_system_ios/model/VisitData/fetch_visit_data.dart';
 import 'package:attendance_system_ios/model/VisitReport/VisitDetailedRecordsResponse.dart' as visitValues;
 import 'package:attendance_system_ios/screen/Splash Screen/splash_screen.dart';
 import 'package:attendance_system_ios/service/log_file_manager.dart';
-import 'package:battery_optimization_helper/battery_optimization_helper.dart' hide BatteryOptimizationHelper;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
