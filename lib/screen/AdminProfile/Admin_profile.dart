@@ -273,7 +273,7 @@ class _AdminUserProfileState extends State<AdminUserProfile> {
         const SizedBox(height: 16),
         _buildReadOnlyField("Full Name", nameController, Icons.person_outline_rounded),
         _buildReadOnlyField("Staff ID", cardIdController, Icons.badge_outlined),
-        _buildReadOnlyField("Joining Date", dateOfJoiningController, Icons.calendar_today_rounded),
+        // _buildReadOnlyField("Joining Date", dateOfJoiningController, Icons.calendar_today_rounded),
         _buildEditableField("Email Address", emailController, isEmailEditable, Icons.email_outlined, () {
           setState(() => isEmailEditable = !isEmailEditable);
         }),

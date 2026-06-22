@@ -330,13 +330,13 @@ class _AddLeavePageState extends State<AddLeavePage> {
                   SizedBox(height: 20),
 
                   // Date of joining controller
-                  TextField(
-                    controller: _StaffDOJController,
-                    decoration: InputDecoration(
-                      labelText: 'Date of Joining',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
+                  // TextField(
+                  //   controller: _StaffDOJController,
+                  //   decoration: InputDecoration(
+                  //     labelText: 'Date of Joining',
+                  //     border: OutlineInputBorder(),
+                  //   ),
+                  // ),
                   SizedBox(height: 20),
 
                   // Navigation button

@@ -32,6 +32,7 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:loading_overlay/loading_overlay.dart';
 import 'package:local_auth/local_auth.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../model/in_out_details.dart';
 // import '../CancellationRequest/CancellationRequestScreen.dart';
@@ -109,6 +110,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Timer? _bannerTimer;
 
   bool isTablet = false;
+  String appVersion = "";
 
   final List<_BannerItem> attendanceBanners = [
     _BannerItem(
@@ -126,8 +128,6 @@ class _HomeScreenState extends State<HomeScreen> {
   ];
 
   @override
-
-  ///change3
   void initState() {
     // TODO: implement initState
     super.initState();
@@ -147,6 +147,7 @@ class _HomeScreenState extends State<HomeScreen> {
           .startListening(MyApp.navigatorKey.currentState!.overlay!.context);
     });
     initialize();
+    _loadVersion();
 
     ///change2
     // Future.delayed(const Duration(seconds: 1), () {
@@ -161,6 +162,11 @@ class _HomeScreenState extends State<HomeScreen> {
     _bannerTimer?.cancel();
     _pageController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadVersion() async {
+    final info = await PackageInfo.fromPlatform();
+    appVersion = info.version;
   }
 
   Future<void> initialize() async {
@@ -663,22 +669,22 @@ class _HomeScreenState extends State<HomeScreen> {
                 //    Navigator.push(context, MaterialPageRoute(builder: (context) => const GatePass()));
               },
             ),
-            if (MenuRightsService.isCOffAllowed())
-              ListTile(
-              leading: const Icon(Icons.book_outlined),
-              title: const Text('COff Credit'),
-              onTap: () {
-                Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                        builder: (_) => BlocProvider(
-                            create: (context) {
-                              return MainBloc(webService: WebService());
-                            },
-                            child: Coffcreditscreen())));
-                //    Navigator.push(context, MaterialPageRoute(builder: (context) => const GatePass()));
-              },
-            ),
+            // if (MenuRightsService.isCOffAllowed())
+            //   ListTile(
+            //   leading: const Icon(Icons.book_outlined),
+            //   title: const Text('COff Credit'),
+            //   onTap: () {
+            //     Navigator.pushReplacement(
+            //         context,
+            //         MaterialPageRoute(
+            //             builder: (_) => BlocProvider(
+            //                 create: (context) {
+            //                   return MainBloc(webService: WebService());
+            //                 },
+            //                 child: Coffcreditscreen())));
+            //     //    Navigator.push(context, MaterialPageRoute(builder: (context) => const GatePass()));
+            //   },
+            // ),
             if (MenuRightsService.isDOffAllowed())
             ListTile(
               leading: const Icon(Icons.book_outlined),
@@ -841,6 +847,22 @@ class _HomeScreenState extends State<HomeScreen> {
                     builder: (BuildContext context) =>
                         _buildPopupDialogforLogout(context));
               },
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              child: Column(
+                children: [
+                  Divider(color: Colors.grey[300], thickness: 0.8),
+                  Text(
+                    "App Version $appVersion",
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey.shade500,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),

@@ -402,7 +402,7 @@ class _ProfileforAdminState extends State<ProfileforAdmin> {
               const SizedBox(height: 10),
               _buildProfileField(mobileController, 'Mobile Number'),
               const SizedBox(height: 10),
-              _buildProfileField(dateOfJoiningController, 'Date of Joining'),
+              // _buildProfileField(dateOfJoiningController, 'Date of Joining'),
               const SizedBox(height: 10),
               Padding(
                 padding: const EdgeInsets.all(10.0),

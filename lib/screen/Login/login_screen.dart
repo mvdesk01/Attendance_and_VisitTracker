@@ -28,6 +28,7 @@ import '../../util/MyColor.dart';
 import '../../service/internet_service.dart';
 import '../AdminHomeScreen/AdminHome.dart';
 import '../Forget Password/forgetpassword.dart';
+import '../password_retrieval/password_retrieval.dart';
 import 'UpdateDeviceID.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -242,9 +243,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ],
                               ),
                               TextButton(
-                                onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ForgotPassword())),
+                                onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PasswordRetrieval())),
                                 child: Text(
-                                  "Forgot Password?",
+                                  "Forgot Retrieval?",
                                   style: GoogleFonts.poppins(
                                     fontSize: 13,
                                     fontWeight: FontWeight.w600,
