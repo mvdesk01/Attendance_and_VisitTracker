@@ -36,7 +36,7 @@ dependencies:
   cupertino_icons: ^1.0.6
   flutter_plugin_android_lifecycle: ^2.0.24
   flutter_native_splash: ^2.3.13
-  flutter_launcher_icons: "^0.13.1"
+  flutter_launcher_icons: ^0.14.4
   google_fonts: ^6.2.1
   shared_preferences: ^2.0.13
   http: ^1.2.2
