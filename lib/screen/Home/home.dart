@@ -2175,12 +2175,9 @@ class _HomeScreenState extends State<HomeScreen> {
           _currentLat = LocationHandler.currentLat.toString();
           _currentLon = LocationHandler.currentLon.toString();
           _currentAddress = LocationHandler.currentAddress;
-          String currentDate = DateFormat('dd-MM-yyyy HH:mm:ss')
-              .format(DateTime.now())
-              .substring(0, 19);
-          String currentDateTime = DateFormat('dd-MM-yyyy HH:mm:ss')
-              .format(DateTime.now())
-              .substring(0, 19);
+          String currentDate = DateFormat('dd-MM-yyyy HH:mm:ss').format(DateTime.now()).substring(0, 19);
+          String currentDateTime = DateFormat('dd-MM-yyyy HH:mm:ss').format(DateTime.now()).substring(0, 19);
+
           String? result = await storeNotInZoneEntry(
               currentDate,
               currentDateTime,
@@ -2190,6 +2187,7 @@ class _HomeScreenState extends State<HomeScreen> {
               _currentLat!,
               _currentLon!,
               plantcode?.toString() ?? "01");
+
           Fluttertoast.showToast(
               msg: "Not in zone!!",
               toastLength: Toast.LENGTH_SHORT,
