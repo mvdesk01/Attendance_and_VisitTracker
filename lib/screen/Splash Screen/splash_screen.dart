@@ -47,10 +47,13 @@ class _SplashScreenState extends State<SplashScreen> {
       // optional small delay for smoother UI
       await Future.delayed(const Duration(milliseconds: 300));
 
+      if (!mounted) return;
+
       await AppUpdateService.checkAndUpdate(context);
 
-      // now safe to continue
-      _initializeApp();
+      if (!mounted) return;
+
+      await _initializeApp();
     });
 
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);

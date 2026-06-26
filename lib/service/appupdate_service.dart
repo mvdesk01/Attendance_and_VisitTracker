@@ -22,29 +22,37 @@ class AppUpdateService {
     }
   }
 
-  static void _showUpdateDialog(BuildContext context) {
-    showDialog(
+  static Future<bool> _showUpdateDialog(BuildContext context) async {
+    final result = await showDialog<bool>(
       context: context,
-      barrierDismissible: true,
-      builder: (_) => AlertDialog(
-        title: const Text("Update Available"),
-        content:
-            const Text("A new version is available. Please update the app."),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Later"),
+      barrierDismissible: false,
+      builder: (_) => PopScope(
+        canPop: false,
+        child: AlertDialog(
+          title: const Text("Update Available"),
+          content: const Text(
+            "A new version of the app is available.\n\n"
+                "Please update to enjoy the latest features and fixes.",
           ),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              await _handleUpdate();
-            },
-            child: const Text("Update"),
-          ),
-        ],
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context, false); // Continue without update
+              },
+              child: const Text("Cancel"),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.pop(context, true); // Update selected
+              },
+              child: const Text("Update"),
+            ),
+          ],
+        ),
       ),
     );
+
+    return result ?? false;
   }
 
   static Future<void> _handleUpdate() async {
