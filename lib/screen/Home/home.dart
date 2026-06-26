@@ -1044,7 +1044,9 @@ class _HomeScreenState extends State<HomeScreen> {
               isLoading = true;
             });
           } else if (state is GetMultiRemoteLocationLoadedState) {
-            multiLatLongList = state.response;
+            if(state.response != null) {
+              multiLatLongList = state.response;
+            }
             setState(() {
               isLoading = false;
             });
