@@ -3,21 +3,18 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:android_id/android_id.dart';
-import 'package:attendance_system_ios/screen/Login/login_screen.dart';
 import 'package:attendance_system_ios/service/log_file_manager.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server/gmail.dart';
-import '../../bloc/main_bloc.dart';
-import '../../service/WebService.dart';
+
 import '../../util/MyColor.dart';
-import 'package:http/http.dart' as http;
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -65,9 +62,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Future<bool> checkUserByStaffCodeMobileNoAndEmail() async {
     String staffCode = _cardIdController.text.trim();
     String emailID = _emailController.text.trim();
-    String mobileNo = _phoneController.text
-        .trim()
-        .isEmpty ? '' : _phoneController.text.trim();
+    String mobileNo = _phoneController.text.trim().isEmpty
+        ? ''
+        : _phoneController.text.trim();
     try {
       final response = await http.get(
         Uri.parse(
@@ -77,12 +74,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
         final result = response.body;
         if (result.toString() == '{"message":"No Record Found.."}') {
           return true;
-        } else if (result.toString() == '{"message":"MobileNo is Already Present..."}') {
+        } else if (result.toString() ==
+            '{"message":"MobileNo is Already Present..."}') {
           return true;
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(result.toString()))
-          );
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text(result.toString())));
         }
       }
     } catch (e) {
@@ -116,7 +113,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
       ..from = Address(username, 'M-Tech Attendance System')
       ..recipients.add(_emailController.text.trim())
       ..subject = 'Your OTP Code [M-Tech Attendance System]'
-      ..text = 'Your One-Time Password (OTP) is: $generatedOtp\n\nValid for 5 minutes.';
+      ..text =
+          'Your One-Time Password (OTP) is: $generatedOtp\n\nValid for 5 minutes.';
 
     try {
       await send(message, smtpServer);
@@ -160,14 +158,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (fieldName == 'Card ID' && value.length != 7)
       return 'Card ID must be 7 digits';
     if (fieldName == 'Email' &&
-        !RegExp(r'^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$').hasMatch(
-            value)) {
+        !RegExp(r'^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$')
+            .hasMatch(value)) {
       return 'Enter a valid email address.';
     }
     if (fieldName == 'Password') {
-      if (value.length < 8 || !RegExp(
-          r'^(?=.*[a-zA-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$')
-          .hasMatch(value)) {
+      if (value.length < 8 ||
+          !RegExp(r'^(?=.*[a-zA-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$')
+              .hasMatch(value)) {
         return 'Weak password';
       }
     }
@@ -176,15 +174,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   String? _validateInputFieldsWithToasts() {
     // if (_cardIdController.text.trim().length != 7) return 'Card ID must be 7 digits';
-    if (_nameController.text
-        .trim()
-        .isEmpty) return 'Name is required';
-    if (_emailController.text
-        .trim()
-        .isEmpty) return 'Email is required';
-    if (_passwordController.text
-        .trim()
-        .length < 8) return 'Password too short';
+    if (_nameController.text.trim().isEmpty) return 'Name is required';
+    if (_emailController.text.trim().isEmpty) return 'Email is required';
+    if (_passwordController.text.trim().length < 8) return 'Password too short';
     return null;
   }
 
@@ -206,23 +198,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
           final List data = jsonResponse['data'];
 
           final externalPlant = data.firstWhere(
-                (item) =>
-            (item['dispName'] ?? '')
-                .toString()
-                .toUpperCase() ==
-                'EXTERNAL',
+            (item) =>
+                (item['dispName'] ?? '').toString().toUpperCase() == 'EXTERNAL',
             orElse: () => null,
           );
 
           if (externalPlant != null) {
             externalPlantCode = externalPlant['uniquePlantCode']?.toString();
-            print('External Plant Code : $externalPlantCode',);
+            print(
+              'External Plant Code : $externalPlantCode',
+            );
           }
         }
       }
     } catch (e) {
       print('Error fetching plant code : $e');
-      LogFileManager.writeLog('Error fetching plant code : $e',);
+      LogFileManager.writeLog(
+        'Error fetching plant code : $e',
+      );
     }
   }
 
@@ -230,14 +223,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
     setState(() => _isLoading = true);
     try {
       String? deviceID = await _getId();
-      final visitDate = DateFormat('yyyy-MM-ddTHH:mm:ss').format(DateTime.now());
+      final visitDate =
+          DateFormat('yyyy-MM-ddTHH:mm:ss').format(DateTime.now());
 
       var body = jsonEncode({
         "staffCode": "string",
         "displayName": _nameController.text.trim(),
         "emailID": _emailController.text.trim(),
         "password": _passwordController.text.trim(),
-        "mobileNo": _phoneController.text.trim().isEmpty ? 'null' : _phoneController.text.trim(),
+        "mobileNo": _phoneController.text.trim().isEmpty
+            ? 'null'
+            : _phoneController.text.trim(),
         "createdOn": visitDate,
         "createdBy": "system",
         "latitude": "0.0",
@@ -256,6 +252,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
       );
 
       setState(() => _isLoading = false);
+      print(response.statusCode);
+      print(response.body);
 
       if (response.statusCode == 200) {
         final result = json.decode(response.body);
@@ -284,7 +282,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
         Navigator.pop(context, staffCode);
       } else {
         final err = json.decode(response.body);
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: ${err['message']}")));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text("Error: ${err['message']}")));
       }
     } catch (e) {
       setState(() => _isLoading = false);
@@ -293,10 +292,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Future<void> sendStaffCodeEmail(
-      String email,
-      String name,
-      String staffCode,
-      ) async {
+    String email,
+    String name,
+    String staffCode,
+  ) async {
     try {
       final smtpServer = gmail(username, password);
 
@@ -337,8 +336,8 @@ M-Tech Attendance System
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  MyColors.lightBlue,
-                  MyColors.linearGradient2ColorCode,
+                  MyColors.darkBlue,
+                  MyColors.whiteColorCode,
                 ],
               ),
             ),
@@ -354,7 +353,8 @@ M-Tech Attendance System
                 child: Row(
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
+                      icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                          color: Colors.white),
                       onPressed: () => Navigator.of(context).pop(),
                     ),
                     const Expanded(
@@ -392,8 +392,7 @@ M-Tech Attendance System
                           blurRadius: 20,
                           offset: Offset(0, -5),
                         )
-                      ]
-                  ),
+                      ]),
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.fromLTRB(30, 40, 30, 20),
                     child: Form(
@@ -415,7 +414,9 @@ M-Tech Attendance System
                                 child: Image.asset(
                                   'assets/icons/new_app_icon.png',
                                   errorBuilder: (context, error, stackTrace) =>
-                                  const Icon(Icons.person_add_rounded, size: 40, color: MyColors.appDefaultColorCode),
+                                      const Icon(Icons.person_add_rounded,
+                                          size: 40,
+                                          color: MyColors.appDefaultColorCode),
                                 ),
                               ),
                             ),
@@ -465,16 +466,24 @@ M-Tech Attendance System
                             icon: Icons.lock_outline_rounded,
                             obscureText: passwordVisibility,
                             suffix: IconButton(
-                              icon: Icon(passwordVisibility ? Icons.visibility_off : Icons.visibility, size: 20, color: MyColors.appDefaultColorCode),
-                              onPressed: () => setState(() => passwordVisibility = !passwordVisibility),
+                              icon: Icon(
+                                  passwordVisibility
+                                      ? Icons.visibility_off
+                                      : Icons.visibility,
+                                  size: 20,
+                                  color: MyColors.appDefaultColorCode),
+                              onPressed: () => setState(() =>
+                                  passwordVisibility = !passwordVisibility),
                             ),
-                            validator: (v) => _validateInputFields(v!, 'Password'),
+                            validator: (v) =>
+                                _validateInputFields(v!, 'Password'),
                           ),
                           const Padding(
                             padding: EdgeInsets.only(left: 12, top: 8),
                             child: Text(
                               "* Include Uppercase, Number & Special Character",
-                              style: TextStyle(color: Colors.grey, fontSize: 11),
+                              style:
+                                  TextStyle(color: Colors.grey, fontSize: 11),
                             ),
                           ),
 
@@ -485,27 +494,27 @@ M-Tech Attendance System
                             duration: const Duration(milliseconds: 400),
                             child: !_isOTPSent
                                 ? _buildPrimaryButton(
-                              "Verify Identity via OTP",
-                              onPressed: _isLoading ? null : sendOtpEmail,
-                              color: MyColors.lightBlue,
-                            )
+                                    "Verify Identity via OTP",
+                                    onPressed: _isLoading ? null : sendOtpEmail,
+                                    color: MyColors.darkBlue,
+                                  )
                                 : Column(
-                              children: [
-                                _buildModernField(
-                                  controller: _otpController,
-                                  hint: "6-digit OTP Code",
-                                  icon: Icons.verified_user_outlined,
-                                  keyboardType: TextInputType.number,
-                                  maxLength: 6,
-                                ),
-                                const SizedBox(height: 20),
-                                _buildPrimaryButton(
-                                  "Complete Registration",
-                                  onPressed: verifyOtp,
-                                  color: Colors.green.shade700,
-                                ),
-                              ],
-                            ),
+                                    children: [
+                                      _buildModernField(
+                                        controller: _otpController,
+                                        hint: "6-digit OTP Code",
+                                        icon: Icons.verified_user_outlined,
+                                        keyboardType: TextInputType.number,
+                                        maxLength: 6,
+                                      ),
+                                      const SizedBox(height: 20),
+                                      _buildPrimaryButton(
+                                        "Complete Registration",
+                                        onPressed: verifyOtp,
+                                        color: Colors.green.shade700,
+                                      ),
+                                    ],
+                                  ),
                           ),
                           const SizedBox(height: 40),
                         ],
@@ -569,13 +578,15 @@ M-Tech Attendance System
           suffixIcon: suffix,
           counterText: "",
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         ),
       ),
     );
   }
 
-  Widget _buildPrimaryButton(String text, {VoidCallback? onPressed, required Color color}) {
+  Widget _buildPrimaryButton(String text,
+      {VoidCallback? onPressed, required Color color}) {
     return SizedBox(
       width: double.infinity,
       height: 56,
@@ -585,7 +596,8 @@ M-Tech Attendance System
           foregroundColor: Colors.white,
           elevation: 4,
           shadowColor: color.withOpacity(0.4),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         ),
         onPressed: onPressed,
         child: Text(
