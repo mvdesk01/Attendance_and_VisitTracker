@@ -1,8 +1,8 @@
-////package com.mtech.attendance;
+////package com.mtech.attendance_kd;
 ////
 ////public class MainActivity {
 ////}
-//package com.mtech.attendance;
+//package com.mtech.attendance_kd;
 //
 //import io.flutter.embedding.android.FlutterActivity;
 //

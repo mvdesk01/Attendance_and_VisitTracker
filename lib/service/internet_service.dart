@@ -197,7 +197,7 @@ Future<void> syncOfflineDataa() async {
 
       print("Sending offline data to server: $data");
 
-        final uri = Uri.parse('http://114.143.140.28:8020/api/Visit/InsertUpdateTrackingRecords');
+        final uri = Uri.parse('http://114.143.140.28:8091/api/Visit/InsertUpdateTrackingRecords');
         final payload = {
           "transactionId": "string",
           "transactionDate": transactionDate,

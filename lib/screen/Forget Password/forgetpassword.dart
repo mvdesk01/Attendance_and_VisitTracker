@@ -77,7 +77,7 @@ class _ForgotPasswordState extends State<ForgotPassword> {
 
     try {
       final response = await http.get(
-        Uri.parse('http://114.143.140.28:8020/Users/GetUserInfoByStaffCode?staffCode=$staffCode'),
+        Uri.parse('http://114.143.140.28:8091/Users/GetUserInfoByStaffCode?staffCode=$staffCode'),
         headers: {'Content-Type': 'application/json'},
       );
 
@@ -260,7 +260,7 @@ M-Tech Attendance System Support Team
 
     try {
       final response = await http.get(
-        Uri.parse('http://114.143.140.28:8020/Users/GetUserInfoByStaffCode?staffCode=$staffCode'),
+        Uri.parse('http://114.143.140.28:8091/Users/GetUserInfoByStaffCode?staffCode=$staffCode'),
         headers: {'Content-Type': 'application/json'},
       );
 
@@ -296,7 +296,7 @@ M-Tech Attendance System Support Team
 
     try {
       final response = await http.post(
-        Uri.parse('http://114.143.140.28:8020/Users/ForgotPassword?StaffCode=$staffCode&Password=$password'),
+        Uri.parse('http://114.143.140.28:8091/Users/ForgotPassword?StaffCode=$staffCode&Password=$password'),
       );
 
       setState(() {
@@ -609,8 +609,8 @@ M-Tech Attendance System Support Team
 //
 //   try {
 //     final response = await http.post(
-//       // Uri.parse('http://114.143.140.28:8020/Users/ForgotPassword'),
-//       Uri.parse('http://114.143.140.28:8020/Users/ForgotPassword?StaffCode=$staffCode&Password=$password'),
+//       // Uri.parse('http://114.143.140.28:8091/Users/ForgotPassword'),
+//       Uri.parse('http://114.143.140.28:8091/Users/ForgotPassword?StaffCode=$staffCode&Password=$password'),
 //       // headers: {"Content-Type": "application/json"},
 //       // body: json.encode({
 //       //   'StaffCode': 'cd03059',

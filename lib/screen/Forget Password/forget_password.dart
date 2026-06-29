@@ -62,7 +62,7 @@
 //
 //     try {
 //       final response = await http.get(
-//         Uri.parse('http://114.143.140.28:8020/Users/GetUserInfoByStaffCode?staffCode=$staffCode'),
+//         Uri.parse('http://114.143.140.28:8091/Users/GetUserInfoByStaffCode?staffCode=$staffCode'),
 //         headers: {'Content-Type': 'application/json'},
 //       );
 //
@@ -222,8 +222,8 @@
 //
 //     try {
 //       final response = await http.post(
-//         // Uri.parse('http://114.143.140.28:8020/Users/ForgotPassword'),
-//         Uri.parse('http://114.143.140.28:8020/Users/ForgotPassword?StaffCode=$staffCode&Password=$password'),
+//         // Uri.parse('http://114.143.140.28:8091/Users/ForgotPassword'),
+//         Uri.parse('http://114.143.140.28:8091/Users/ForgotPassword?StaffCode=$staffCode&Password=$password'),
 //         // headers: {"Content-Type": "application/json"},
 //         // body: json.encode({
 //         //   'StaffCode': 'cd03059',
@@ -451,7 +451,7 @@
 //     try {
 //       // API call to fetch user info
 //       final response = await http.get(
-//         Uri.parse('http://114.143.140.28:8020/Users/GetUserInfoByStaffCode?staffCode=$staffCode'),
+//         Uri.parse('http://114.143.140.28:8091/Users/GetUserInfoByStaffCode?staffCode=$staffCode'),
 //         headers: {'Content-Type': 'application/json'},
 //       );
 //
@@ -589,7 +589,7 @@
 //     });
 //
 //     final response = await http.post(
-//       Uri.parse('http://114.143.140.28:8020/Users/ForgotPassword'),
+//       Uri.parse('http://114.143.140.28:8091/Users/ForgotPassword'),
 //       headers: headers,
 //       body:  requestBody
 //     );
@@ -782,7 +782,7 @@
 //     try {
 //       // API call to fetch user info
 //       final response = await http.get(
-//         Uri.parse('http://114.143.140.28:8020/Users/GetUserInfoByStaffCode?staffCode=$staffCode'),
+//         Uri.parse('http://114.143.140.28:8091/Users/GetUserInfoByStaffCode?staffCode=$staffCode'),
 //         headers: {'Content-Type': 'application/json'},
 //       );
 //
@@ -906,7 +906,7 @@
 //
 //     try {
 //       final response = await http.post(
-//         Uri.parse('http://114.143.140.28:8020/Users/ForgotPassword'),
+//         Uri.parse('http://114.143.140.28:8091/Users/ForgotPassword'),
 //         body: json.encode({"email": _email, "newPassword": newPassword}),
 //         headers: {"Content-Type": "application/json"},
 //       );

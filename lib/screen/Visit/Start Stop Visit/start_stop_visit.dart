@@ -150,7 +150,7 @@ class VisitDropdownScreenState extends State<VisitStartStopScreen>
     try {
       final response = await http.get(
         Uri.parse(
-            'http://114.143.140.28:8020/api/Visit/GetAllVisit/$staffcode/1/50'),
+            'http://114.143.140.28:8091/api/Visit/GetAllVisit/$staffcode/1/50'),
         headers: <String, String>{
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -573,7 +573,7 @@ class VisitDropdownScreenState extends State<VisitStartStopScreen>
     try {
       final response = await http.post(
           Uri.parse(
-              "http://114.143.140.28:8020/api/Visit/UpdateStatusStartLatLong/${visit.srNo}/${latitude.toStringAsFixed(8)}/${longitude.toStringAsFixed(8)}/S"),
+              "http://114.143.140.28:8091/api/Visit/UpdateStatusStartLatLong/${visit.srNo}/${latitude.toStringAsFixed(8)}/${longitude.toStringAsFixed(8)}/S"),
           headers: <String, String>{
             'Content-Type': 'application/json',
             'Authorization': 'Bearer $token', // Ensure token is valid
@@ -683,7 +683,7 @@ class VisitDropdownScreenState extends State<VisitStartStopScreen>
     try {
       final response = await http.post(
         Uri.parse(
-            'http://114.143.140.28:8020/api/Visit/InsertUpdateTrackingRecords'),
+            'http://114.143.140.28:8091/api/Visit/InsertUpdateTrackingRecords'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
           "transactionId": 'string',
@@ -1484,7 +1484,7 @@ class VisitDropdownScreenState extends State<VisitStartStopScreen>
 //
 //     try{
 //       final response = await http.get(
-//         Uri.parse('http://114.143.140.28:8020/api/Visit/GetAllVisit/$staffcode/1/50'),
+//         Uri.parse('http://114.143.140.28:8091/api/Visit/GetAllVisit/$staffcode/1/50'),
 //         headers: <String, String>{
 //           // 'accept': '*/*', // Matches the cURL command
 //           'Content-Type': 'application/json',
@@ -1576,7 +1576,7 @@ class VisitDropdownScreenState extends State<VisitStartStopScreen>
 //   // print("save visit details: $token, $transactionId, $transactionDate, $transactionTime, $latitude, $longitude, $staffcode");
 //   try{
 //     final response = await http.post(
-//       Uri.parse('http://114.143.140.28:8020/api/Visit/InsertUpdateTrackingRecords'),
+//       Uri.parse('http://114.143.140.28:8091/api/Visit/InsertUpdateTrackingRecords'),
 //       headers: <String, String>{
 //       'Content-Type': 'application/json',
 //       // 'Authorization': 'Bearer $token', // Ensure token is valid
@@ -1691,7 +1691,7 @@ class VisitDropdownScreenState extends State<VisitStartStopScreen>
 //   // Send to server
 //   try {
 //     final response = await http.post(
-//       Uri.parse('http://114.143.140.28:8020/api/Visit/InsertUpdateTrackingRecords'),
+//       Uri.parse('http://114.143.140.28:8091/api/Visit/InsertUpdateTrackingRecords'),
 //       headers: {'Content-Type': 'application/json'},
 //       body: json.encode({
 //         "transactionId": 'string',

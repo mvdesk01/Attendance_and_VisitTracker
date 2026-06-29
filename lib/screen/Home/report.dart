@@ -96,7 +96,7 @@ class _AttendanceReportState extends State<AttendanceReport> {
 
       final response = await http
           .post(
-            Uri.parse('http://114.143.140.28:8020/api/InOut/InOutDetails'),
+            Uri.parse('http://114.143.140.28:8091/api/InOut/InOutDetails'),
             headers: {
               "Content-Type": "application/json",
               'Authorization': 'Bearer $token'
@@ -222,7 +222,7 @@ class _AttendanceReportState extends State<AttendanceReport> {
 
       final response = await http
           .post(
-            Uri.parse('http://114.143.140.28:8020/api/InOut/InOutDetails'),
+            Uri.parse('http://114.143.140.28:8091/api/InOut/InOutDetails'),
             headers: {
               "Content-Type": "application/json",
               'Authorization': 'Bearer $token'

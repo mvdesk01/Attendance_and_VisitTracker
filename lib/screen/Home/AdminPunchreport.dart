@@ -2688,7 +2688,7 @@ class _AttendanceReportState extends State<AdminAttendanceReport> {
       String formattedToDate = DateFormat('dd/MM/yyyy').format(now);
 
       final response = await http.post(
-        Uri.parse('http://114.143.140.28:8020/api/InOut/InOutDetails'),
+        Uri.parse('http://114.143.140.28:8091/api/InOut/InOutDetails'),
         headers: {"Content-Type": "application/json",
           'Authorization': 'Bearer $token'},
         body: jsonEncode({
@@ -2836,7 +2836,7 @@ class _AttendanceReportState extends State<AdminAttendanceReport> {
       String formattedToDate = DateFormat('dd/MM/yyyy').format(toDate!);
 
       final response = await http.post(
-        Uri.parse('http://114.143.140.28:8020/api/InOut/InOutDetails'),
+        Uri.parse('http://114.143.140.28:8091/api/InOut/InOutDetails'),
         headers: {"Content-Type": "application/json",
           'Authorization': 'Bearer $token'},
         body: jsonEncode({

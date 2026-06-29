@@ -590,7 +590,7 @@ class WebService {
       int pageNumber, int pageSize) async {
     try {
       final uri = Uri.parse(
-          "http://114.143.140.28:8020/api/Visit/GetAllCustomersList/$pageNumber/$pageSize");
+          "http://114.143.140.28:8091/api/Visit/GetAllCustomersList/$pageNumber/$pageSize");
 
       final response = await http.get(
         uri,
@@ -699,7 +699,7 @@ class WebService {
           "/" +
           encodedToDate);
 
-//http://114.143.140.28:8020/api/Visit/GetVisitByFromDateToDate/CD02974/1/50/01%2F10%2F2024/25%2F11%2F2024
+//http://114.143.140.28:8091/api/Visit/GetVisitByFromDateToDate/CD02974/1/50/01%2F10%2F2024/25%2F11%2F2024
       final response = await http.get(
         Uri.parse(Constant.getVisitByFromDateToDate +
             UserId +

@@ -69,7 +69,7 @@ class AppUpdateService {
     // fallback / iOS → open store
     final Uri url = Platform.isAndroid
         ? Uri.parse(
-            "https://play.google.com/store/apps/details?id=com.mtech.attendance")
+            "https://play.google.com/store/apps/details?id=com.mtech.attendance_kd")
         : Uri.parse("https://apps.apple.com/app/idYOUR_APP_ID");
 
     if (await canLaunchUrl(url)) {

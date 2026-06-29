@@ -1,7 +1,7 @@
 class Constant {
 
-  // static String baseUrl = 'http://114.143.140.28:8020/';
-  static String baseUrl = 'http://114.143.140.28:8020/';
+  // static String baseUrl = 'http://114.143.140.28:8091/';
+  static String baseUrl = 'http://114.143.140.28:8091/';
 
   static String loginUrl = baseUrl + 'Users/GetLoginData?';
   static String staffDetailsUrl = baseUrl + 'api/GatePass/GetStaffDetails/';

@@ -1169,7 +1169,7 @@ Future<void> sendLocation(double latitude, double longitude, Data visit) async {
   }
 
   try {
-    final uri = Uri.parse('http://114.143.140.28:8020/api/Visit/InsertUpdateTrackingRecords');
+    final uri = Uri.parse('http://114.143.140.28:8091/api/Visit/InsertUpdateTrackingRecords');
     final payload = {
       "transactionId": "string",
       "transactionDate": transactionDate,
@@ -1322,7 +1322,7 @@ Future<bool> _trySendToApiWithRetries(Map<String, dynamic> payload, {int maxAtte
   while (attempt < maxAttempts) {
     attempt++;
     try {
-      final uri = Uri.parse('http://114.143.140.28:8020/api/Visit/InsertUpdateTrackingRecords');
+      final uri = Uri.parse('http://114.143.140.28:8091/api/Visit/InsertUpdateTrackingRecords');
 
       final HttpClient client = HttpClient()
         ..badCertificateCallback = (X509Certificate cert, String host, int port) {
@@ -1612,7 +1612,7 @@ Future<void>  sendLocationIOS(
   }
 
   try {
-    final uri = Uri.parse('http://114.143.140.28:8020/api/Visit/InsertUpdateTrackingRecords');
+    final uri = Uri.parse('http://114.143.140.28:8091/api/Visit/InsertUpdateTrackingRecords');
     final payload = {
       "transactionId": "string",
       "transactionDate": transactionDate,
@@ -1924,7 +1924,7 @@ Future<void> _processQueue() async {
 
 Future<bool> _sendToServer(Map<String, dynamic> data) async {
   try {
-    final uri = Uri.parse('http://114.143.140.28:8020/api/Visit/InsertUpdateTrackingRecords');
+    final uri = Uri.parse('http://114.143.140.28:8091/api/Visit/InsertUpdateTrackingRecords');
     final payload = {
       "transactionId": "string",
       "transactionDate": data["datestamp"],
@@ -2037,7 +2037,7 @@ Future<bool> _sendToServer(Map<String, dynamic> data) async {
 
   static Future<bool> _sendToServer(Map<String, dynamic> data) async {
     try {
-      final uri = Uri.parse('http://114.143.140.28:8020/api/Visit/InsertUpdateTrackingRecords');
+      final uri = Uri.parse('http://114.143.140.28:8091/api/Visit/InsertUpdateTrackingRecords');
       final payload = {
         "transactionId": "string",
         "transactionDate": data["datestamp"],
@@ -2149,7 +2149,7 @@ Future<bool> _sendToServer(Map<String, dynamic> data) async {
 
   static Future<bool> _sendToServer(Map<String, dynamic> data) async {
     try {
-      final uri = Uri.parse('http://114.143.140.28:8020/api/Visit/InsertUpdateTrackingRecords');
+      final uri = Uri.parse('http://114.143.140.28:8091/api/Visit/InsertUpdateTrackingRecords');
       final payload = {
         "transactionId": "string",
         "transactionDate": data["datestamp"],

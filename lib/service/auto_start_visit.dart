@@ -101,7 +101,7 @@ class AutoStartVisit {
           return true;
         };
 
-      final uri = Uri.parse("http://114.143.140.28:8020/api/Visit/UpdateStatusStartLatLong/${visit.srNo}/${latitude.toStringAsFixed(8)}/${longitude.toStringAsFixed(8)}/S");
+      final uri = Uri.parse("http://114.143.140.28:8091/api/Visit/UpdateStatusStartLatLong/${visit.srNo}/${latitude.toStringAsFixed(8)}/${longitude.toStringAsFixed(8)}/S");
 
       final HttpClientRequest request = await client.postUrl(uri);
       request.headers.set(HttpHeaders.contentTypeHeader, "application/json");

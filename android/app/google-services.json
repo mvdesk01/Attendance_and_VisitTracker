@@ -9,7 +9,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:697458506519:android:d249e4888a8b8310a59552",
         "android_client_info": {
-          "package_name": "com.mtech.attendance"
+          "package_name": "com.mtech.attendance_kd"
         }
       },
       "oauth_client": [
@@ -17,7 +17,7 @@
           "client_id": "697458506519-moedalmlvui9k5scum3s2kpco5et2tsf.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.mtech.attendance",
+            "package_name": "com.mtech.attendance_kd",
             "certificate_hash": "1c9beaa3a2f2c5d41b5299ea71e341f5e07edfa5"
           }
         }

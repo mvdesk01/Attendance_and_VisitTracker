@@ -1,4 +1,4 @@
-package com.mtech.attendance
+package com.mtech.attendance_kd
 
 import android.os.Bundle
 import android.view.WindowManager

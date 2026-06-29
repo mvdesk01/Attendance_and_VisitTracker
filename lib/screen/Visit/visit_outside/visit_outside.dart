@@ -292,7 +292,7 @@ class _VisitOutsideState extends State<VisitOutside> {
 
       try {
         final response = await http.post(
-          Uri.parse('http://114.143.140.28:8020/api/Visit/InsertVisit'),
+          Uri.parse('http://114.143.140.28:8091/api/Visit/InsertVisit'),
           headers: {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer $token'
@@ -375,7 +375,7 @@ class _VisitOutsideState extends State<VisitOutside> {
     try {
       final response = await http.get(
         Uri.parse(
-            'http://114.143.140.28:8020/api/Visit/GetAllVisit/$staffcode/1/50'),
+            'http://114.143.140.28:8091/api/Visit/GetAllVisit/$staffcode/1/50'),
         headers: <String, String>{
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -450,7 +450,7 @@ class _VisitOutsideState extends State<VisitOutside> {
     try {
       final response = await http.post(
           Uri.parse(
-              "http://114.143.140.28:8020/api/Visit/UpdateStatusStopLatLong/${visit.srNo}/${latitude.toString()}/${longitude.toString()}/I"),
+              "http://114.143.140.28:8091/api/Visit/UpdateStatusStopLatLong/${visit.srNo}/${latitude.toString()}/${longitude.toString()}/I"),
           headers: <String, String>{
             'Content-Type': 'application/json',
             'Authorization': 'Bearer $token', // Ensure token is valid
@@ -664,7 +664,7 @@ class _VisitOutsideState extends State<VisitOutside> {
 
     try {
       final response = await http.post(
-        Uri.parse("http://114.143.140.28:8020/api/Visit/UpdateVisit"),
+        Uri.parse("http://114.143.140.28:8091/api/Visit/UpdateVisit"),
         headers: <String, String>{
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token', // Ensure token is valid
@@ -766,7 +766,7 @@ class _VisitOutsideState extends State<VisitOutside> {
     try {
       final response = await http.post(
         Uri.parse(
-            "http://114.143.140.28:8020/api/Visit/DeleteVisitRecords?UserId=$staffcode&srNo=${visit.srNo}"),
+            "http://114.143.140.28:8091/api/Visit/DeleteVisitRecords?UserId=$staffcode&srNo=${visit.srNo}"),
         headers: <String, String>{
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token', // Ensure token is valid
@@ -804,7 +804,7 @@ class _VisitOutsideState extends State<VisitOutside> {
     try {
       final response = await http.get(
           Uri.parse(
-              "http://114.143.140.28:8020/api/Visit/GetVisitRecords?StaffCode=$staffcode&FromDate=$formattedDate&ToDate=$formattedDate&SrNoVal=${visit.srNo}"),
+              "http://114.143.140.28:8091/api/Visit/GetVisitRecords?StaffCode=$staffcode&FromDate=$formattedDate&ToDate=$formattedDate&SrNoVal=${visit.srNo}"),
           headers: <String, String>{
             'Content-Type': 'application/json',
             'Authorization': 'Bearer $token', // Ensure token is valid
@@ -1721,7 +1721,7 @@ class BatteryOptimizationHelper {
 //   });
 //   try{
 //     final response = await http.get(
-//       Uri.parse('http://114.143.140.28:8020/api/Visit/GetAllVisit/$staffcode/1/50'),
+//       Uri.parse('http://114.143.140.28:8091/api/Visit/GetAllVisit/$staffcode/1/50'),
 //       headers: <String, String>{
 //         // 'accept': '*/*', // Matches the cURL command
 //         'Content-Type': 'application/json',

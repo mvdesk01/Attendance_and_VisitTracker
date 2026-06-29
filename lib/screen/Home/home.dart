@@ -270,7 +270,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
       final response = await http
           .post(
-        Uri.parse('http://114.143.140.28:8020/api/InOut/InOutDetails'),
+        Uri.parse('http://114.143.140.28:8091/api/InOut/InOutDetails'),
         headers: {
           "Content-Type": "application/json",
           'Authorization': 'Bearer $Auth_Token'
@@ -2447,7 +2447,7 @@ class _HomeScreenState extends State<HomeScreen> {
       String TransactionDate, String TransactionTime, String StaffCode) async {
     try {
       final response = await http.post(
-        Uri.parse("http://114.143.140.28:8020/api/InOut/InOutLastFlag"),
+        Uri.parse("http://114.143.140.28:8091/api/InOut/InOutLastFlag"),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
           'Authorization': 'Bearer $Auth_Token',
@@ -2492,7 +2492,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<bool> getOutEntryFromDataBase(
       String TransactionDate, String TransactionTime, String StaffCode) async {
     final response = await http.post(
-      Uri.parse("http://114.143.140.28:8020/api/InOut/InOutLastFlag"),
+      Uri.parse("http://114.143.140.28:8091/api/InOut/InOutLastFlag"),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
         'Authorization': 'Bearer $Auth_Token',
@@ -2532,7 +2532,7 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       print("plantcode" + plantcode);
       final response = await http.post(
-        Uri.parse("http://114.143.140.28:8020/api/InOut/InOutSaveData"),
+        Uri.parse("http://114.143.140.28:8091/api/InOut/InOutSaveData"),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
           'Authorization': 'Bearer $Auth_Token',
@@ -2611,7 +2611,7 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       print("plantcodeout" + plantcode);
       final response = await http.post(
-        Uri.parse("http://114.143.140.28:8020/api/InOut/InOutSaveData"),
+        Uri.parse("http://114.143.140.28:8091/api/InOut/InOutSaveData"),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
           'Authorization': 'Bearer $Auth_Token',
@@ -2689,7 +2689,7 @@ class _HomeScreenState extends State<HomeScreen> {
       String plantcode) async {
     try {
       final response = await http.post(
-        Uri.parse("http://114.143.140.28:8020/api/InOut/InOutSaveData"),
+        Uri.parse("http://114.143.140.28:8091/api/InOut/InOutSaveData"),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
           'Authorization': 'Bearer $Auth_Token',

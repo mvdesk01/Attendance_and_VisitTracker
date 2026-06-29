@@ -71,7 +71,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     try {
       final response = await http.get(
         Uri.parse(
-            'http://114.143.140.28:8020/Users/CheckUserByStaffCodeMobileNoAndEmail?StaffCode=$staffCode&EmailId=$emailID&MobileNo=$mobileNo'),
+            'http://114.143.140.28:8091/Users/CheckUserByStaffCodeMobileNoAndEmail?StaffCode=$staffCode&EmailId=$emailID&MobileNo=$mobileNo'),
       );
       if (response.statusCode == 200) {
         final result = response.body;
@@ -192,7 +192,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     try {
       final response = await http.get(
         Uri.parse(
-          'http://114.143.140.28:8020/Users/GetAllPlantCodes',
+          'http://114.143.140.28:8091/Users/GetAllPlantCodes',
         ),
         headers: {
           'accept': '*/*',
@@ -250,7 +250,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       });
 
       final response = await http.post(
-        Uri.parse("http://114.143.140.28:8020/Users/RegisterUser"),
+        Uri.parse("http://114.143.140.28:8091/Users/RegisterUser"),
         headers: {"Content-Type": "application/json"},
         body: body,
       );

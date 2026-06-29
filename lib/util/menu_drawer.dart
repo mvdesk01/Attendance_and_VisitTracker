@@ -252,7 +252,7 @@ class _MenuDrawerState extends State<MenuDrawer> {
 
       if (authToken != null) {
         var response = await http.get(
-          Uri.parse('http://114.143.140.28:8020/Users/GetUserInfoByStaffCode?staffCode=mzdl002'),
+          Uri.parse('http://114.143.140.28:8091/Users/GetUserInfoByStaffCode?staffCode=mzdl002'),
           headers: {
             'Authorization': 'Bearer $authToken',
             'Content-Type': 'application/json',
