@@ -270,7 +270,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             SizedBox(height: 12),
                             Text(
-                              "Attendance System",
+                              "Attendance System(kd)",
                               style: TextStyle(
                                 fontSize: 22,
                                 fontWeight: FontWeight.bold,

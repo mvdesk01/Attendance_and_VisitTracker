@@ -555,7 +555,7 @@ class _HomeScreenState extends State<HomeScreen> {
           color: Colors.white,
           size: 28,
         ),
-        title: const Text("Attendance"),
+        title: const Text("Attendance(kd)"),
         backgroundColor: MyColors.lightBlue,
         centerTitle: true,
         titleTextStyle: GoogleFonts.roboto(
@@ -575,7 +575,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Column(children: [
                   const Padding(padding: EdgeInsets.symmetric(vertical: 8)),
                   const Text(
-                    "Attendance",
+                    "Attendance(kd)",
                     style: TextStyle(
                         color: Colors.white,
                         fontSize: 20.0,

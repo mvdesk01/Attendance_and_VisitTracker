@@ -282,7 +282,7 @@ class _SplashScreenState extends State<SplashScreen> {
                   ),
                   const SizedBox(height: 24),
                   const Text(
-                    "Attendance System",
+                    "Attendance System (kd)",
                     style: TextStyle(
                       fontSize: 32,
                       color: MyColors.appDefaultColorCode,
@@ -314,7 +314,7 @@ class _SplashScreenState extends State<SplashScreen> {
                     ),
                     const SizedBox(height: 24),
                     Text(
-                      "@ 2025 M-Tech Innovations Ltd Pune\nAttendance System",
+                      "@ 2025 M-Tech Innovations Ltd Pune\nAttendance System (kd)",
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 12,

@@ -1,6 +1,6 @@
 # attendance_system_ios
 
-Attendance system flutter project for iOS
+Attendance system(kd) flutter project for iOS
 
 ## Getting Started
 

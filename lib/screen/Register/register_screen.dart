@@ -113,7 +113,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     generatedOtp = generateOtp();
     final smtpServer = gmail(username, password);
     final message = Message()
-      ..from = Address(username, 'M-Tech Attendance System')
+      ..from = Address(username, 'M-Tech Attendance System(kd)')
       ..recipients.add(_emailController.text.trim())
       ..subject = 'Your OTP Code [M-Tech Attendance System]'
       ..text = 'Your One-Time Password (OTP) is: $generatedOtp\n\nValid for 5 minutes.';
@@ -316,7 +316,7 @@ $staffCode
 Please use this Staff Code along with your password to login.
 
 Regards,
-M-Tech Attendance System
+M-Tech Attendance System(kd)
 ''';
 
       await send(message, smtpServer);

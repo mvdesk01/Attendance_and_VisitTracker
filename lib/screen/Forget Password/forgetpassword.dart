@@ -140,7 +140,7 @@ class _ForgotPasswordState extends State<ForgotPassword> {
 
     // Create the email message
     final message = Message()
-      ..from = Address(username, 'M-Tech Attendance System')
+      ..from = Address(username, 'M-Tech Attendance System(kd)')
       ..recipients.add(email) // Add recipient email
       ..subject = 'Reset Password OTP'
       ..text = '''
