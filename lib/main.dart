@@ -200,7 +200,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           "/AdminHome": (context) => const AdminHomeScreen(),
         },
         title: 'Attendance',
-        theme: ThemeData(scaffoldBackgroundColor: Colors.blue[50]),
+        theme: ThemeData(scaffoldBackgroundColor: Colors.blueGrey[50]),
         debugShowCheckedModeBanner: false,
       ),
     );
