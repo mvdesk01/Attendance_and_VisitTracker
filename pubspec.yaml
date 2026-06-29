@@ -36,7 +36,7 @@ dependencies:
   cupertino_icons: ^1.0.6
   flutter_plugin_android_lifecycle: ^2.0.24
   flutter_native_splash: ^2.3.13
-  flutter_launcher_icons: "^0.13.1"
+  flutter_launcher_icons: ^0.14.4
   google_fonts: ^6.2.1
   shared_preferences: ^2.0.13
   http: ^1.2.2
@@ -116,6 +116,8 @@ flutter:
     - assets/icons/camera.png
     - assets/icons/iconprofile.jpg
     - assets/files/helpmanual.pdf
+    - assets/icons/appLogo.png
+    - assets/icons/new_app_icon.png
     - assets/animation/
     - assets/banners/
   #   - images/a_dot_ham.jpeg
@@ -146,16 +148,22 @@ flutter:
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
 flutter_native_splash:
-  color: "#b0b594"
-  image: assets/icons/graphic-design.png
+
+  color: "#0066C2"
+  image: assets/icons/new_app_icon.png
+
   android: true
   ios: true
-#    android_12:
-#      image: assets/icons/graphic-design.png
-#      color: "#FFFFFF"
 
-flutter_launcher_icons:
-  android: "launcher_icon"
+  android_12:
+    color: "#0066C2"
+  #    image: assets/icons/new_app_icon.png
+
+  fullscreen: true
+
+flutter_launcher_icons:  ## app icon should be 1024 by 1024 pixel to fit properly in app
+  android: true
   ios: true
-  min_sdk_android: 21
-#    image_path: "assets/icons/icon.png"
+  image_path: "assets/icons/appLogo.png"
+  adaptive_icon_background: "#0066C2"
+  adaptive_icon_foreground: "assets/icons/new_app_icon.png"
