@@ -71,7 +71,7 @@ class _VisitHistoryTrackScreenState extends State<VisitHistoryTrackScreen> {
           ),
         ),
         title: const Text("Visit History"),
-        backgroundColor: MyColors.lightBlue,
+        backgroundColor: MyColors.darkBlue,
         centerTitle: true,
         titleTextStyle: GoogleFonts.roboto(
           fontWeight: FontWeight.bold,

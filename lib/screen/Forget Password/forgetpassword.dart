@@ -514,7 +514,7 @@ M-Tech Attendance System Support Team
                 color: Colors.black.withOpacity(0.5),
                 child: const Center(
                   child: CircularProgressIndicator(
-                    color: MyColors.lightBlue,
+                    color: MyColors.darkBlue,
                   ),
                 )
             )

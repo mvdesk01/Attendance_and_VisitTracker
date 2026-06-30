@@ -106,7 +106,7 @@ class _AdminVisitTrackScreenState extends State<AdminVisitTrackScreen>{
             size: 28,
           ),
           title: const Text("Visit Track"),
-          backgroundColor: MyColors.lightBlue,
+          backgroundColor: MyColors.darkBlue,
           centerTitle: true,
           titleTextStyle: GoogleFonts.roboto(
             fontWeight: FontWeight.bold,
@@ -528,7 +528,7 @@ class _AdminVisitTrackScreenState extends State<AdminVisitTrackScreen>{
                   Card(
                     margin: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                     shape: RoundedRectangleBorder(
-                      side: BorderSide(width: 1, color: MyColors.lightBlue),
+                      side: BorderSide(width: 1, color: MyColors.darkBlue),
                       borderRadius: BorderRadius.circular(10.0),
                     ),
                     child: Container(

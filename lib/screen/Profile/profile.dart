@@ -92,7 +92,7 @@ class _ProfileState extends State<Profile> with SingleTickerProviderStateMixin {
         uiSettings: [
           AndroidUiSettings(
             toolbarTitle: 'Crop Profile Picture',
-            toolbarColor: MyColors.lightBlue,
+            toolbarColor: MyColors.darkBlue,
             toolbarWidgetColor: Colors.white,
             initAspectRatio: CropAspectRatioPreset.square,
             lockAspectRatio: true,
@@ -196,7 +196,7 @@ class _ProfileState extends State<Profile> with SingleTickerProviderStateMixin {
           labelText: title,
           labelStyle:
               const TextStyle(color: MyColors.text3greyColorCode, fontSize: 14),
-          prefixIcon: Icon(icon, color: MyColors.lightBlue, size: 20),
+          prefixIcon: Icon(icon, color: MyColors.darkBlue, size: 20),
           border: InputBorder.none,
           contentPadding:
               const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -217,7 +217,7 @@ class _ProfileState extends State<Profile> with SingleTickerProviderStateMixin {
           decoration: const BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                MyColors.lightBlue,
+                MyColors.darkBlue,
                 Color(0xFF005BC4),
               ],
               begin: Alignment.topLeft,
@@ -295,7 +295,7 @@ class _ProfileState extends State<Profile> with SingleTickerProviderStateMixin {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: const BoxDecoration(
-                      color: MyColors.lightBlue,
+                      color: MyColors.darkBlue,
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
@@ -403,7 +403,7 @@ class _ProfileState extends State<Profile> with SingleTickerProviderStateMixin {
                                   width: double.infinity,
                                   child: ElevatedButton(
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor: MyColors.lightBlue,
+                                      backgroundColor: MyColors.darkBlue,
                                       foregroundColor: Colors.white,
                                       padding: const EdgeInsets.symmetric(
                                           vertical: 16),

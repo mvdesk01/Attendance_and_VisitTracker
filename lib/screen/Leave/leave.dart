@@ -86,7 +86,7 @@ class _PendingLeaveState extends State<PendingLeave> {
                             },
                             child: HomeScreen())))),
         title: const Text(" Leave "),
-        backgroundColor: MyColors.lightBlue,
+        backgroundColor: MyColors.darkBlue,
         centerTitle: true,
         titleTextStyle: GoogleFonts.roboto(
           fontWeight: FontWeight.bold,
@@ -116,7 +116,7 @@ class _PendingLeaveState extends State<PendingLeave> {
         child: _leavescreen(),
       ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: MyColors.lightBlue,
+        backgroundColor: MyColors.darkBlue,
         onPressed: () {
           Navigator.pushReplacement(
             context,

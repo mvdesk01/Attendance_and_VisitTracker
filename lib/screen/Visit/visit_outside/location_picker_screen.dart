@@ -203,7 +203,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
               color: Colors.black.withOpacity(0.5), // Semi-transparent background
               child: const Center(
                 child: CircularProgressIndicator(
-                  color: MyColors.lightBlue,
+                  color: MyColors.darkBlue,
                 ),
               ),
             ),
@@ -517,7 +517,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
               color: Colors.black.withOpacity(0.5), // Semi-transparent background
               child: const Center(
                 child: CircularProgressIndicator(
-                  color: MyColors.lightBlue,
+                  color: MyColors.darkBlue,
                 ),
               ),),
         ],),

@@ -223,17 +223,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
     setState(() => _isLoading = true);
     try {
       String? deviceID = await _getId();
-      final visitDate =
-          DateFormat('yyyy-MM-ddTHH:mm:ss').format(DateTime.now());
+      final visitDate = DateFormat('yyyy-MM-ddTHH:mm:ss').format(DateTime.now());
 
       var body = jsonEncode({
         "staffCode": "string",
         "displayName": _nameController.text.trim(),
         "emailID": _emailController.text.trim(),
         "password": _passwordController.text.trim(),
-        "mobileNo": _phoneController.text.trim().isEmpty
-            ? 'null'
-            : _phoneController.text.trim(),
+        "mobileNo": _phoneController.text.trim().isEmpty ? 'null' : _phoneController.text.trim(),
         "createdOn": visitDate,
         "createdBy": "system",
         "latitude": "0.0",
@@ -246,14 +243,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
       });
 
       final response = await http.post(
-        Uri.parse("http://114.143.140.28:8091/Users/RegisterUser"),
+        Uri.parse("http://114.143.140.28:8020/Users/RegisterUser"),
         headers: {"Content-Type": "application/json"},
         body: body,
       );
 
       setState(() => _isLoading = false);
-      print(response.statusCode);
-      print(response.body);
 
       if (response.statusCode == 200) {
         final result = json.decode(response.body);
@@ -282,8 +277,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         Navigator.pop(context, staffCode);
       } else {
         final err = json.decode(response.body);
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text("Error: ${err['message']}")));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: ${err['message']}")));
       }
     } catch (e) {
       setState(() => _isLoading = false);
@@ -292,10 +286,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Future<void> sendStaffCodeEmail(
-    String email,
-    String name,
-    String staffCode,
-  ) async {
+      String email,
+      String name,
+      String staffCode,
+      ) async {
     try {
       final smtpServer = gmail(username, password);
 
@@ -315,7 +309,7 @@ $staffCode
 Please use this Staff Code along with your password to login.
 
 Regards,
-M-Tech Attendance System(kd)
+M-Tech Attendance System
 ''';
 
       await send(message, smtpServer);
@@ -408,7 +402,7 @@ M-Tech Attendance System(kd)
                                 width: 80,
                                 padding: const EdgeInsets.all(15),
                                 decoration: BoxDecoration(
-                                  color: MyColors.lightBlue.withOpacity(0.1),
+                                  color: MyColors.darkBlue.withOpacity(0.1),
                                   shape: BoxShape.circle,
                                 ),
                                 child: Image.asset(
@@ -448,17 +442,6 @@ M-Tech Attendance System(kd)
                             keyboardType: TextInputType.phone,
                           ),
 
-                          // const SizedBox(height: 25),
-                          // _buildSectionTitle("Account Security"),
-                          // const SizedBox(height: 15),
-                          // _buildModernField(
-                          //   controller: _cardIdController,
-                          //   hint: "7-digit Staff ID",
-                          //   icon: Icons.badge_outlined,
-                          //   maxLength: 7,
-                          //   keyboardType: TextInputType.number,
-                          //   validator: (v) => _validateInputFields(v!, 'Card ID'),
-                          // ),
                           const SizedBox(height: 15),
                           _buildModernField(
                             controller: _passwordController,

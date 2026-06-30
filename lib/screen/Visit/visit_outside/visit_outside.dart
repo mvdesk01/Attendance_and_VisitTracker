@@ -883,7 +883,7 @@ class _VisitOutsideState extends State<VisitOutside> {
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: const Text("Visit Outside"),
-        backgroundColor: MyColors.lightBlue,
+        backgroundColor: MyColors.darkBlue,
         centerTitle: true,
         titleTextStyle: GoogleFonts.roboto(
           fontWeight: FontWeight.bold,
@@ -1025,7 +1025,7 @@ class _VisitOutsideState extends State<VisitOutside> {
                   /*  ElevatedButton(
                     onPressed: _createVisit,
                     style: ElevatedButton.styleFrom(
-                      minimumSize: const Size(double.infinity, 50), backgroundColor: MyColors.lightBlue,
+                      minimumSize: const Size(double.infinity, 50), backgroundColor: MyColors.darkBlue,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(30),
                       ),
@@ -1039,7 +1039,7 @@ class _VisitOutsideState extends State<VisitOutside> {
                     onPressed: isEditing ? _updateVisit : _createVisit,
                     style: ElevatedButton.styleFrom(
                       minimumSize: const Size(double.infinity, 50),
-                      backgroundColor: MyColors.lightBlue,
+                      backgroundColor: MyColors.darkBlue,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(30),
                       ),
@@ -1168,7 +1168,7 @@ class _VisitOutsideState extends State<VisitOutside> {
                                         style: TextStyle(color: Colors.white),
                                       ),
                                       style: ElevatedButton.styleFrom(
-                                        backgroundColor: MyColors.lightBlue, // Track Visit Button color
+                                        backgroundColor: MyColors.darkBlue, // Track Visit Button color
                                         padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                                       ),
@@ -1478,7 +1478,7 @@ class _VisitOutsideState extends State<VisitOutside> {
                                                                     .styleFrom(
                                                                   backgroundColor:
                                                                       MyColors
-                                                                          .lightBlue,
+                                                                          .darkBlue,
                                                                   padding: const EdgeInsets
                                                                       .symmetric(
                                                                       vertical:
@@ -1554,7 +1554,7 @@ class _VisitOutsideState extends State<VisitOutside> {
                                                 icon: const Icon(Icons.location_on, color: Colors.white),
                                                 label: const Text("Track Visit", style: TextStyle(color: Colors.white, fontSize: 13)),
                                                 style: ElevatedButton.styleFrom(
-                                                  backgroundColor: MyColors.lightBlue,
+                                                  backgroundColor: MyColors.darkBlue,
                                                   padding: const EdgeInsets.symmetric(vertical: 12),
                                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                                                 ),
@@ -1588,7 +1588,7 @@ class _VisitOutsideState extends State<VisitOutside> {
               color: Colors.black.withOpacity(0.5),
               child: const Center(
                 child: CircularProgressIndicator(
-                  color: MyColors.lightBlue,
+                  color: MyColors.darkBlue,
                 ),
               ),
             ),
@@ -1960,7 +1960,7 @@ class _VisitOutsideState extends State<VisitOutside> {
           ),
 
           title: const Text("Visit OutSide"),
-          backgroundColor: MyColors.lightBlue,
+          backgroundColor: MyColors.darkBlue,
           centerTitle: true,
           titleTextStyle: GoogleFonts.roboto(
             fontWeight: FontWeight.bold,

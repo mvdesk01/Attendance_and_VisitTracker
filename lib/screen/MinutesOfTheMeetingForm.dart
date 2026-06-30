@@ -448,7 +448,7 @@ class _MinutesOfTheMeetingFormScreenState
             },
           ),
           title: const Text("Minutes Of The Meeting Form"),
-          backgroundColor: MyColors.lightBlue,
+          backgroundColor: MyColors.darkBlue,
           centerTitle: true,
           titleTextStyle: GoogleFonts.roboto(
             fontWeight: FontWeight.bold,

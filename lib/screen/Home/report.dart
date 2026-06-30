@@ -324,7 +324,7 @@ class _AttendanceReportState extends State<AttendanceReport> {
           "In/Out Details",
           style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),
-        backgroundColor: MyColors.lightBlue,
+        backgroundColor: MyColors.darkBlue,
         actions: [
           if (!isMonthlyReport)
             IconButton(
@@ -1658,7 +1658,7 @@ maxLines: 1, // Limit to 1 line
       ),
       title: const Text("In/Out Details",
           style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
-      backgroundColor: MyColors.lightBlue,
+      backgroundColor: MyColors.darkBlue,
       actions: [
         IconButton(
           icon: Icon(

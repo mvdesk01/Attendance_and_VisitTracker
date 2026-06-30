@@ -63,7 +63,7 @@ class _SearchBarScreenState extends State<SearchBarScreen> {
             enabledBorder: const OutlineInputBorder(
               borderRadius: BorderRadius.all(Radius.circular(4.0)),
               borderSide:
-              BorderSide(width: 2, color: MyColors.lightBlue),
+              BorderSide(width: 2, color: MyColors.darkBlue),
             ),
             border: const OutlineInputBorder(
               borderRadius: BorderRadius.all(Radius.circular(4.0)),

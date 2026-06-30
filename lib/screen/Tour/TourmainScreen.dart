@@ -55,7 +55,7 @@ class _TourPendingScreenState extends State<TourPendingScreen> {
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: const Text("Applied Tour"),
-        backgroundColor: MyColors.lightBlue,
+        backgroundColor: MyColors.darkBlue,
         centerTitle: true,
         titleTextStyle: GoogleFonts.roboto(
           fontWeight: FontWeight.bold,
@@ -84,7 +84,7 @@ class _TourPendingScreenState extends State<TourPendingScreen> {
         child: _appliedscreen(),
       ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: MyColors.lightBlue,
+        backgroundColor: MyColors.darkBlue,
         onPressed: () {
           Navigator.pushReplacement(
             context,

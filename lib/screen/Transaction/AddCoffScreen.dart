@@ -180,7 +180,7 @@ class _AddCoffScreenState extends State<AddCoffScreen> {
                           },
                           child: Coffcreditscreen())))),
           title: const Text("C-Off Credit (+)"),
-          backgroundColor: MyColors.lightBlue,
+          backgroundColor: MyColors.darkBlue,
           centerTitle: true,
           titleTextStyle: GoogleFonts.roboto(
             fontWeight: FontWeight.bold,

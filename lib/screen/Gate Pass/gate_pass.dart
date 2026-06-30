@@ -80,7 +80,7 @@ class _GatePassState extends State<GatePass> {
           ),
 
           title: const Text("Gate Pass"),
-          backgroundColor: MyColors.lightBlue,
+          backgroundColor: MyColors.darkBlue,
           centerTitle: true,
           titleTextStyle: GoogleFonts.roboto(
             fontWeight: FontWeight.bold,
@@ -120,7 +120,7 @@ class _GatePassState extends State<GatePass> {
         child: _addGatePassScreen(),),
 
       floatingActionButton: FloatingActionButton(
-        backgroundColor: MyColors.lightBlue,
+        backgroundColor: MyColors.darkBlue,
         onPressed: () async {
 
           await Navigator.of(context)

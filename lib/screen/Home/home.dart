@@ -536,6 +536,7 @@ class _HomeScreenState extends State<HomeScreen> {
     mainBloc = BlocProvider.of(context);
     isTablet = MediaQuery.of(context).size.width >= 600;
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         actions: <Widget>[
           Padding(
@@ -555,8 +556,8 @@ class _HomeScreenState extends State<HomeScreen> {
           color: Colors.white,
           size: 28,
         ),
-        title: const Text("Attendance"),
-        backgroundColor: MyColors.lightBlue,
+        title: const Text("Attendance(kd)"),
+        backgroundColor: MyColors.darkBlue,
         centerTitle: true,
         titleTextStyle: GoogleFonts.roboto(
           fontWeight: FontWeight.bold,
@@ -571,11 +572,11 @@ class _HomeScreenState extends State<HomeScreen> {
           padding: EdgeInsets.zero,
           children: [
             Container(
-                color: MyColors.lightBlue,
+                color: MyColors.darkBlue,
                 child: Column(children: [
                   const Padding(padding: EdgeInsets.symmetric(vertical: 8)),
                   const Text(
-                    "Attendance",
+                    "Attendance(kd)",
                     style: TextStyle(
                         color: Colors.white,
                         fontSize: 20.0,
@@ -868,7 +869,6 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
 
-
       //Bottom Navigation bar
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
@@ -882,7 +882,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
         currentIndex: _selectedIndex,
-        selectedItemColor: MyColors.lightBlue,
+        selectedItemColor: MyColors.darkBlue,
         onTap: _onItemTapped,
       ),
       // backgroundColor: Theme.of(context).primaryColor,
@@ -1175,7 +1175,7 @@ class _HomeScreenState extends State<HomeScreen> {
 */
 
                     SizedBox(
-                      height: isTablet ? 300 : 210,
+                      height: isTablet ? 300 : 190,
                       child: PageView.builder(
                         controller: _pageController,
                         itemCount: attendanceBanners.length,

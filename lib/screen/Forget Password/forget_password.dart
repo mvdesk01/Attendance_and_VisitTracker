@@ -374,7 +374,7 @@
 //                 color: Colors.black.withOpacity(0.5),
 //                 child: const Center(
 //                   child: CircularProgressIndicator(
-//                     color: MyColors.lightBlue,
+//                     color: MyColors.darkBlue,
 //                   ),
 //                 )
 //             )
@@ -765,7 +765,7 @@
 //
 //   final ButtonStyle raisedButtonStyle = ElevatedButton.styleFrom(
 //     foregroundColor: Colors.white,
-//     backgroundColor: MyColors.lightBlue,
+//     backgroundColor: MyColors.darkBlue,
 //     minimumSize: const Size(92, 40),
 //     shape: const RoundedRectangleBorder(
 //       borderRadius: BorderRadius.all(Radius.circular(8)),
@@ -931,7 +931,7 @@
 //           onPressed: () => Navigator.of(context).pop(),
 //         ),
 //         title: const Text("Forget Password"),
-//         backgroundColor: MyColors.lightBlue,
+//         backgroundColor: MyColors.darkBlue,
 //         titleTextStyle: GoogleFonts.roboto(
 //           fontWeight: FontWeight.bold,
 //           fontSize: 18.0,
@@ -992,7 +992,7 @@
 //                   ElevatedButton(
 //                     style: raisedButtonStyle.copyWith(
 //                       backgroundColor: MaterialStateProperty.all(
-//                         _isResendDisabled ? Colors.grey : MyColors.lightBlue,
+//                         _isResendDisabled ? Colors.grey : MyColors.darkBlue,
 //                       ),
 //                     ),
 //                     onPressed: _isResendDisabled ? null : _sendOtp,
@@ -1063,7 +1063,7 @@
 // class _ForgetPasswordState extends State<ForgetPassword> {
 //
 //   final ButtonStyle raisedButtonStyle = ElevatedButton.styleFrom(
-//     foregroundColor: Colors.white, backgroundColor: MyColors.lightBlue,
+//     foregroundColor: Colors.white, backgroundColor: MyColors.darkBlue,
 //     minimumSize: const Size(92, 40),
 //     // padding: EdgeInsets.symmetric(horizontal: 0),
 //     shape: const RoundedRectangleBorder(
@@ -1089,7 +1089,7 @@
 //         ),
 //
 //         title: const Text("Forget Password"),
-//         backgroundColor: MyColors.lightBlue,
+//         backgroundColor: MyColors.darkBlue,
 //         // centerTitle: true,
 //         titleTextStyle: GoogleFonts.roboto(
 //         fontWeight: FontWeight.bold,

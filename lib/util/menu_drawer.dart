@@ -44,7 +44,7 @@ class _MenuDrawerState extends State<MenuDrawer> {
         padding: EdgeInsets.zero,
         children: [
           Container(
-            color: MyColors.lightBlue,
+            color: MyColors.darkBlue,
             child: Column(
               children: [
                 const Padding(padding: EdgeInsets.symmetric(vertical: 8)),

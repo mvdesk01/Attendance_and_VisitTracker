@@ -149,7 +149,7 @@ class _DebitcoffscreenState extends State<Debitcoffscreen> {
                 Navigator.of(context).pop(), // Simple pop to go back
           ),
           title: const Text("C-Off Debit (-)"),
-          backgroundColor: MyColors.lightBlue,
+          backgroundColor: MyColors.darkBlue,
           centerTitle: true,
           titleTextStyle: GoogleFonts.roboto(
             fontWeight: FontWeight.bold,

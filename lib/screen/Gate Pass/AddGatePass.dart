@@ -136,7 +136,7 @@ class _AddGatePassState extends State<AddGatePass> {
                           },
                           child: GatePass())))),
           title: const Text("Add Gate Pass"),
-          backgroundColor: MyColors.lightBlue,
+          backgroundColor: MyColors.darkBlue,
           centerTitle: true,
           titleTextStyle: GoogleFonts.roboto(
             fontWeight: FontWeight.bold,

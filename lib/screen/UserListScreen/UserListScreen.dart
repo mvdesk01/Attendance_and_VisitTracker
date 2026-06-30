@@ -158,7 +158,7 @@ class _UserListScreenState extends State<UserListScreen> {
             size: 28,
           ),
           title: const Text("User List"),
-          backgroundColor: MyColors.lightBlue,
+          backgroundColor: MyColors.darkBlue,
           centerTitle: true,
           titleTextStyle: GoogleFonts.roboto(
             fontWeight: FontWeight.bold,
@@ -270,7 +270,7 @@ class _UserListScreenState extends State<UserListScreen> {
                   child: Card(
                     margin: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                     shape: RoundedRectangleBorder(
-                      side: BorderSide(width: 1, color: MyColors.lightBlue),
+                      side: BorderSide(width: 1, color: MyColors.darkBlue),
                       borderRadius: BorderRadius.circular(10.0),
                     ),
                     child: Container(
@@ -297,7 +297,7 @@ class _UserListScreenState extends State<UserListScreen> {
                     (context, index) {
                       return Card(
                         shape: RoundedRectangleBorder(
-                          side: BorderSide(width: 1, color: MyColors.lightBlue),
+                          side: BorderSide(width: 1, color: MyColors.darkBlue),
                           borderRadius: BorderRadius.circular(10.0),
                         ),
                         child: GestureDetector(
@@ -518,7 +518,7 @@ class _UserListScreenState extends State<UserListScreen> {
           ),
         ),
         floatingActionButton: FloatingActionButton(
-          backgroundColor: MyColors.lightBlue,
+          backgroundColor: MyColors.darkBlue,
           onPressed: () async {
             await Navigator.of(context).push(
               new MaterialPageRoute(
@@ -605,7 +605,7 @@ class _UserListScreenState extends State<UserListScreen> {
                       margin:
                           EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                       shape: RoundedRectangleBorder(
-                        side: BorderSide(width: 1, color: MyColors.lightBlue),
+                        side: BorderSide(width: 1, color: MyColors.darkBlue),
                         borderRadius: BorderRadius.circular(10.0),
                       ),
                       child: Container(
@@ -658,7 +658,7 @@ class _UserListScreenState extends State<UserListScreen> {
                                     horizontal: 7, vertical: 5),
                                 shape: RoundedRectangleBorder(
                                   side: BorderSide(
-                                      width: 1, color: MyColors.lightBlue),
+                                      width: 1, color: MyColors.darkBlue),
                                   borderRadius: BorderRadius.circular(6.0),
                                 ),
                                 child: Container(
@@ -720,7 +720,7 @@ class _UserListScreenState extends State<UserListScreen> {
                                     horizontal: 7, vertical: 5),
                                 shape: RoundedRectangleBorder(
                                   side: BorderSide(
-                                      width: 1, color: MyColors.lightBlue),
+                                      width: 1, color: MyColors.darkBlue),
                                   borderRadius: BorderRadius.circular(6.0),
                                 ),
                                 child: Container(
@@ -784,7 +784,7 @@ class _UserListScreenState extends State<UserListScreen> {
                                     horizontal: 7, vertical: 5),
                                 shape: RoundedRectangleBorder(
                                   side: BorderSide(
-                                      width: 1, color: MyColors.lightBlue),
+                                      width: 1, color: MyColors.darkBlue),
                                   borderRadius: BorderRadius.circular(6.0),
                                 ),
                                 child: Container(
@@ -854,7 +854,7 @@ class _UserListScreenState extends State<UserListScreen> {
                                     horizontal: 7, vertical: 5),
                                 shape: RoundedRectangleBorder(
                                   side: BorderSide(
-                                      width: 1, color: MyColors.lightBlue),
+                                      width: 1, color: MyColors.darkBlue),
                                   borderRadius: BorderRadius.circular(6.0),
                                 ),
                                 child: Container(
@@ -1035,7 +1035,7 @@ class _UserListScreenState extends State<UserListScreen> {
             size: 28,
           ),
           title: const Text("User List"),
-          backgroundColor: MyColors.lightBlue,
+          backgroundColor: MyColors.darkBlue,
           centerTitle: true,
           elevation: 4,
           titleTextStyle: GoogleFonts.roboto(
@@ -1163,10 +1163,10 @@ class _UserListScreenState extends State<UserListScreen> {
                         horizontal: 16.0, vertical: 8.0),
                     child: Card(
                       elevation: 4,
-                      shadowColor: MyColors.lightBlue.withOpacity(0.3),
+                      shadowColor: MyColors.darkBlue.withOpacity(0.3),
                       margin: EdgeInsets.zero,
                       shape: RoundedRectangleBorder(
-                        side: BorderSide(width: 1.5, color: MyColors.lightBlue),
+                        side: BorderSide(width: 1.5, color: MyColors.darkBlue),
                         borderRadius: BorderRadius.circular(15.0),
                       ),
                       child: Container(
@@ -1177,7 +1177,7 @@ class _UserListScreenState extends State<UserListScreen> {
                             end: Alignment.bottomRight,
                             colors: [
                               Colors.white,
-                              MyColors.lightBlue.withOpacity(0.05),
+                              MyColors.darkBlue.withOpacity(0.05),
                             ],
                           ),
                         ),
@@ -1188,7 +1188,7 @@ class _UserListScreenState extends State<UserListScreen> {
                           children: [
                             Icon(
                               Icons.people_alt_rounded,
-                              color: MyColors.lightBlue,
+                              color: MyColors.darkBlue,
                               size: 24,
                             ),
                             SizedBox(width: 12),
@@ -1219,7 +1219,7 @@ class _UserListScreenState extends State<UserListScreen> {
                           shape: RoundedRectangleBorder(
                             side: BorderSide(
                                 width: 1,
-                                color: MyColors.lightBlue.withOpacity(0.5)),
+                                color: MyColors.darkBlue.withOpacity(0.5)),
                             borderRadius: BorderRadius.circular(15.0),
                           ),
                           child: GestureDetector(
@@ -1530,7 +1530,7 @@ class _UserListScreenState extends State<UserListScreen> {
           ),
         ),
         floatingActionButton: FloatingActionButton(
-          backgroundColor: MyColors.lightBlue,
+          backgroundColor: MyColors.darkBlue,
           onPressed: () async {
             await Navigator.of(context).push(
               new MaterialPageRoute(
@@ -1618,7 +1618,7 @@ class _UserListScreenState extends State<UserListScreen> {
                       margin:
                           EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                       shape: RoundedRectangleBorder(
-                        side: BorderSide(width: 1.5, color: MyColors.lightBlue),
+                        side: BorderSide(width: 1.5, color: MyColors.darkBlue),
                         borderRadius: BorderRadius.circular(15.0),
                       ),
                       elevation: 2,
@@ -1650,7 +1650,7 @@ class _UserListScreenState extends State<UserListScreen> {
                             style: TextStyle(
                                 fontWeight: FontWeight.w600,
                                 fontSize: 20,
-                                color: MyColors.lightBlue,
+                                color: MyColors.darkBlue,
                                 letterSpacing: 0.5),
                           ),
                         )),
@@ -1678,7 +1678,7 @@ class _UserListScreenState extends State<UserListScreen> {
                                     horizontal: 7, vertical: 5),
                                 shape: RoundedRectangleBorder(
                                   side: BorderSide(
-                                      width: 1.5, color: MyColors.lightBlue),
+                                      width: 1.5, color: MyColors.darkBlue),
                                   borderRadius: BorderRadius.circular(15.0),
                                 ),
                                 elevation: 4,
@@ -1746,7 +1746,7 @@ class _UserListScreenState extends State<UserListScreen> {
                                     horizontal: 7, vertical: 5),
                                 shape: RoundedRectangleBorder(
                                   side: BorderSide(
-                                      width: 1.5, color: MyColors.lightBlue),
+                                      width: 1.5, color: MyColors.darkBlue),
                                   borderRadius: BorderRadius.circular(15.0),
                                 ),
                                 elevation: 4,
@@ -1816,7 +1816,7 @@ class _UserListScreenState extends State<UserListScreen> {
                                     horizontal: 7, vertical: 5),
                                 shape: RoundedRectangleBorder(
                                   side: BorderSide(
-                                      width: 1.5, color: MyColors.lightBlue),
+                                      width: 1.5, color: MyColors.darkBlue),
                                   borderRadius: BorderRadius.circular(15.0),
                                 ),
                                 elevation: 4,
@@ -1893,7 +1893,7 @@ class _UserListScreenState extends State<UserListScreen> {
                                     horizontal: 7, vertical: 5),
                                 shape: RoundedRectangleBorder(
                                   side: BorderSide(
-                                      width: 1.5, color: MyColors.lightBlue),
+                                      width: 1.5, color: MyColors.darkBlue),
                                   borderRadius: BorderRadius.circular(15.0),
                                 ),
                                 elevation: 4,

@@ -64,7 +64,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
             size: 28,
           ),
           title: const Text("Attendance"),
-          backgroundColor: MyColors.lightBlue,
+          backgroundColor: MyColors.darkBlue,
           centerTitle: true,
           titleTextStyle: GoogleFonts.roboto(
             fontWeight: FontWeight.bold,

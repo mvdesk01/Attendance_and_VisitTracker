@@ -80,7 +80,7 @@ class _CoffcreditscreenState extends State<Coffcreditscreen> {
           ),
         ),
         title: const Text("C-Off Credit"),
-        backgroundColor: MyColors.lightBlue,
+        backgroundColor: MyColors.darkBlue,
         centerTitle: true,
         titleTextStyle: GoogleFonts.roboto(
           fontWeight: FontWeight.bold,
@@ -111,7 +111,7 @@ class _CoffcreditscreenState extends State<Coffcreditscreen> {
         child: _addGatePassScreen(),
       ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: MyColors.lightBlue,
+        backgroundColor: MyColors.darkBlue,
         onPressed: () async {
           // ✅ Wait for the result from AddCoffScreen
           bool? result = await Navigator.of(context).push(

@@ -247,7 +247,7 @@ class _ProfileforAdminState extends State<ProfileforAdmin> {
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: const Text("Profile"),
-        backgroundColor: MyColors.lightBlue,
+        backgroundColor: MyColors.darkBlue,
         centerTitle: true,
         titleTextStyle: GoogleFonts.roboto(
           fontWeight: FontWeight.bold,

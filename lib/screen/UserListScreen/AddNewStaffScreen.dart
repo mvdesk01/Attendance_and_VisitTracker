@@ -91,7 +91,7 @@ class _AddNewStaffScreenState extends State<AddNewStaffScreen> {
                               },
                               child: UserListScreen())))),
           title: const Text("Add Staff Entry"),
-          backgroundColor: MyColors.lightBlue,
+          backgroundColor: MyColors.darkBlue,
           centerTitle: true,
           titleTextStyle: GoogleFonts.roboto(
             fontWeight: FontWeight.bold,

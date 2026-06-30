@@ -9,7 +9,7 @@ class MyColors{
   static const Color lightBlack = Color(0xff333232);  // light black
 
   static const Color lightBlue = Color(0xff87C1FF); // light blue
-  // static const Color lightBlue = Color(0xff5DA1D9); // light blue
+  // static const Color darkBlue = Color(0xff5DA1D9); // light blue
 
   static const Color darkBlue = Color(0xff0066C2); // dark blue
 
@@ -74,7 +74,7 @@ class MyColors{
 
   static const Color searchTextColorCode = const Color(0XFFCBCBCB);
 
-  static const Color lightblueColorCode = const Color(0XFFE3EAFF);
+  static const Color darkBlueColorCode = const Color(0XFFE3EAFF);
   static const Color bluereportColorCode = const Color(0XFFE9F2FF);
   static const Color skyblueColorCode = const Color(0XFFB8C6F2);
 

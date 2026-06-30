@@ -296,7 +296,7 @@ Future<String> getAddressFromLatLong(double latitude, double longitude, {int ret
         child: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [Colors.lightBlue.shade50, Colors.blue.shade200],
+              colors: [Colors.darkBlue.shade50, Colors.blue.shade200],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),

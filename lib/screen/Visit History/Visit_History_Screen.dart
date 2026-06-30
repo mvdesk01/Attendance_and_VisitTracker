@@ -115,7 +115,7 @@ class _VisitHistoryScreenState extends State<VisitHistoryScreen> {
             size: 28,
           ),
           title: const Text("Visit History"),
-          backgroundColor: MyColors.lightBlue,
+          backgroundColor: MyColors.darkBlue,
           centerTitle: true,
           titleTextStyle: GoogleFonts.roboto(
             fontWeight: FontWeight.bold,
@@ -518,7 +518,7 @@ class _VisitHistoryScreenState extends State<VisitHistoryScreen> {
                               horizontal: 12, vertical: 10),
                           shape: RoundedRectangleBorder(
                             side:
-                                BorderSide(width: 1, color: MyColors.lightBlue),
+                                BorderSide(width: 1, color: MyColors.darkBlue),
                             borderRadius: BorderRadius.circular(10.0),
                           ),
                           child: ListView.builder(

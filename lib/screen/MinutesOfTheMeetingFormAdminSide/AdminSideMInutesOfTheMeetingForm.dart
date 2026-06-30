@@ -146,7 +146,7 @@ class _AdminSideMinutesOfTheMeetingFormScreenState
     return Scaffold(
       appBar: AppBar(
           title: const Text("Minutes Of The Meeting Form"),
-          backgroundColor: MyColors.lightBlue,
+          backgroundColor: MyColors.darkBlue,
           centerTitle: true,
           titleTextStyle: GoogleFonts.roboto(
             fontWeight: FontWeight.bold,

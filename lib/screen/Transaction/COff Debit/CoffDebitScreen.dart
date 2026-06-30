@@ -72,7 +72,7 @@ class _CoffDebitscreenState extends State<CoffDebitscreen> {
                           },
                           child: HomeScreen())))),
           title: const Text("C-Off Debit"),
-          backgroundColor: MyColors.lightBlue,
+          backgroundColor: MyColors.darkBlue,
           centerTitle: true,
           titleTextStyle: GoogleFonts.roboto(
             fontWeight: FontWeight.bold,
@@ -110,7 +110,7 @@ class _CoffDebitscreenState extends State<CoffDebitscreen> {
         child: _addGatePassScreen(),
       ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: MyColors.lightBlue,
+        backgroundColor: MyColors.darkBlue,
         onPressed: () async {
           await Navigator.of(context).push(
             new MaterialPageRoute(

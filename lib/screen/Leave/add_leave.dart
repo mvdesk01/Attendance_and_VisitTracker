@@ -107,7 +107,7 @@ class _AddLeavePageState extends State<AddLeavePage> {
                           },
                           child: PendingLeave())))),
           title: const Text("Apply For Leave"),
-          backgroundColor: MyColors.lightBlue,
+          backgroundColor: MyColors.darkBlue,
           centerTitle: true,
         ),
         body: BlocListener<MainBloc, MainState>(
@@ -517,7 +517,7 @@ class _AddLeavePageState extends State<AddLeavePage> {
 //             style: GoogleFonts.poppins(
 //                 fontWeight: FontWeight.w700, fontSize: 22, color: Colors.white),
 //           ),
-//           backgroundColor: MyColors.lightBlue,
+//           backgroundColor: MyColors.darkBlue,
 //           centerTitle: true,
 //         ),
 //         body: BlocListener<MainBloc, MainState>(
@@ -552,7 +552,7 @@ class _AddLeavePageState extends State<AddLeavePage> {
 //
 //   Widget _buildStepIndicator() {
 //     return Container(
-//       color: MyColors.lightBlue,
+//       color: MyColors.darkBlue,
 //       padding: const EdgeInsets.only(bottom: 20, left: 20, right: 20),
 //       child: Row(
 //         children: [
@@ -572,7 +572,7 @@ class _AddLeavePageState extends State<AddLeavePage> {
 //           backgroundColor: isActive ? Colors.white : Colors.white24,
 //           child: Text(num,
 //               style: TextStyle(
-//                   color: isActive ? MyColors.lightBlue : Colors.white,
+//                   color: isActive ? MyColors.darkBlue : Colors.white,
 //                   fontWeight: FontWeight.bold)),
 //         ),
 //         const SizedBox(width: 8),
@@ -636,7 +636,7 @@ class _AddLeavePageState extends State<AddLeavePage> {
 //           const SizedBox(width: 15),
 //           ElevatedButton(
 //             style: ElevatedButton.styleFrom(
-//               backgroundColor: MyColors.lightBlue,
+//               backgroundColor: MyColors.darkBlue,
 //               padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 15),
 //               shape: RoundedRectangleBorder(
 //                   borderRadius: BorderRadius.circular(10)),
@@ -692,7 +692,7 @@ class _AddLeavePageState extends State<AddLeavePage> {
 //       ),
 //       child: Row(
 //         children: [
-//           Icon(icon, color: MyColors.lightBlue, size: 24),
+//           Icon(icon, color: MyColors.darkBlue, size: 24),
 //           const SizedBox(width: 12),
 //           Column(
 //             crossAxisAlignment: CrossAxisAlignment.start,

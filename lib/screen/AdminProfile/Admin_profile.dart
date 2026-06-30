@@ -788,7 +788,7 @@ class _AdminUserProfileState extends State<AdminUserProfile> {
 //             onPressed: () => Navigator.of(context).pop(),
 //           ),
 //           title: const Text("Profile"),
-//           backgroundColor: MyColors.lightBlue,
+//           backgroundColor: MyColors.darkBlue,
 //           centerTitle: true,
 //           titleTextStyle: GoogleFonts.roboto(
 //             fontWeight: FontWeight.bold,

@@ -278,7 +278,7 @@ class _VisitReportDetailedScreenState extends State<VisitReportDetailedScreen> {
             size: 28,
           ),
           title: const Text("Visit Report"),
-          backgroundColor: MyColors.lightBlue,
+          backgroundColor: MyColors.darkBlue,
           centerTitle: true,
           titleTextStyle: GoogleFonts.roboto(
             fontWeight: FontWeight.bold,
@@ -455,7 +455,7 @@ class _VisitReportDetailedScreenState extends State<VisitReportDetailedScreen> {
                   child: Column(children: [
                     Card(
                       shape: RoundedRectangleBorder(
-                        side: BorderSide(width: 2, color: MyColors.lightBlue),
+                        side: BorderSide(width: 2, color: MyColors.darkBlue),
                         borderRadius: BorderRadius.circular(10.0),
                       ),
                       //  color: MyColors.lighterRedColorCode,
@@ -1002,7 +1002,7 @@ class _VisitReportDetailedScreenState extends State<VisitReportDetailedScreen> {
         //     size: 28,
         //   ),
         //   title: const Text("Visit Report"),
-        //   backgroundColor: MyColors.lightBlue,
+        //   backgroundColor: MyColors.darkBlue,
         //   centerTitle: true,
         //   titleTextStyle: GoogleFonts.roboto(
         //     fontWeight: FontWeight.bold,
@@ -1017,7 +1017,7 @@ class _VisitReportDetailedScreenState extends State<VisitReportDetailedScreen> {
             size: 28,
           ),
           title: const Text("Visit Report"),
-          backgroundColor: MyColors.lightBlue,
+          backgroundColor: MyColors.darkBlue,
           centerTitle: true,
           titleTextStyle: GoogleFonts.roboto(
             fontWeight: FontWeight.bold,
@@ -1215,7 +1215,7 @@ class _VisitReportDetailedScreenState extends State<VisitReportDetailedScreen> {
                         Card(
                           shape:
                           RoundedRectangleBorder(
-                            side: BorderSide(width: 2, color: MyColors.lightBlue),
+                            side: BorderSide(width: 2, color: MyColors.darkBlue),
                             borderRadius: BorderRadius.circular(10.0),
                           ),
                           //  color: MyColors.lighterRedColorCode,
@@ -1670,7 +1670,7 @@ class _VisitReportDetailedScreenState extends State<VisitReportDetailedScreen>
             size: 28,
           ),
           title: const Text("Visit Report"),
-          backgroundColor: MyColors.lightBlue,
+          backgroundColor: MyColors.darkBlue,
           centerTitle: true,
           titleTextStyle: GoogleFonts.roboto(
             fontWeight: FontWeight.bold,
@@ -1865,7 +1865,7 @@ class _VisitReportDetailedScreenState extends State<VisitReportDetailedScreen>
                 Card(
                   shape:
                   RoundedRectangleBorder(
-                    side: BorderSide(width: 2, color: MyColors.lightBlue),
+                    side: BorderSide(width: 2, color: MyColors.darkBlue),
                     borderRadius: BorderRadius.circular(10.0),
 
                   ),

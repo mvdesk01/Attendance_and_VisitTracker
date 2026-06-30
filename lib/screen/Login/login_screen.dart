@@ -13,6 +13,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:loading_overlay/loading_overlay.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -49,7 +50,7 @@ class _LoginScreenState extends State<LoginScreen> {
   void activate() {}
 
   final ButtonStyle raisedButtonStyle = ElevatedButton.styleFrom(
-    foregroundColor: Colors.white, backgroundColor: MyColors.lightBlue,
+    foregroundColor: Colors.white, backgroundColor: MyColors.darkBlue,
     minimumSize: const Size(92, 40),
     // padding: EdgeInsets.symmetric(horizontal: 0),
     shape: const RoundedRectangleBorder(
@@ -249,7 +250,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         Column(
                           children: [
                             Image.asset(
-                              "assets/icons/graphic-design.png",
+                              "assets/icons/appLogo.png",
                               width: 100,
                               height: 110,
                             ),
@@ -396,14 +397,34 @@ class _LoginScreenState extends State<LoginScreen> {
                             // ),
                             const SizedBox(width: 10),
                             TextButton(
-                              onPressed: () {
-                                Navigator.push(
+                              onPressed: () async {
+                                final staffCode = await Navigator.push<String>(
                                   context,
                                   MaterialPageRoute(
-                                      builder: (_) => const RegisterScreen()),
+                                    builder: (_) => const RegisterScreen(),
+                                  ),
                                 );
+
+                                if (staffCode != null && staffCode.isNotEmpty) {
+                                  _CardIdtextController.text = staffCode;
+
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        'Registration successful. Your Staff Code is $staffCode',
+                                      ),
+                                    ),
+                                  );
+                                }
                               },
-                              child: const Text("Register"),
+                              child: Text(
+                                "Register Now",
+                                style: GoogleFonts.poppins(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: MyColors.appDefaultColorCode,
+                                ),
+                              ),
                             ),
                           ],
                         ),

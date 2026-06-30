@@ -245,7 +245,7 @@ class UpdatedeviceidState extends State<Updatedeviceid>{
     }
   }
   final ButtonStyle raisedButtonStyle = ElevatedButton.styleFrom(
-    foregroundColor: Colors.white, backgroundColor: MyColors.lightBlue,
+    foregroundColor: Colors.white, backgroundColor: MyColors.darkBlue,
     minimumSize: const Size(92, 40),
     // padding: EdgeInsets.symmetric(horizontal: 0),
     shape: const RoundedRectangleBorder(
