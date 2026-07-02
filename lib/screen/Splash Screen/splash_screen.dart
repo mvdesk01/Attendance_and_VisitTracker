@@ -42,7 +42,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1200),
+      duration: const Duration(milliseconds: 1000),
     );
 
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
@@ -282,7 +282,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
           FadeTransition(
             opacity: _fadeAnimation,
             child: const Text(
-              "Attendance System",
+              "Attendance System(kd)",
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 28,
@@ -305,11 +305,11 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
             child: const Padding(
               padding: EdgeInsets.only(bottom: 30),
               child: Text(
-                "@ Copy 2025 M-Tech Innovations Ltd",
+                "@ Copy 2026 M-Tech Innovations Ltd",
                 style: TextStyle(
                   color: Colors.white70,
                   fontWeight: FontWeight.w500,
-                  fontSize: 14,
+                  fontSize: 16,
                   letterSpacing: 0.5,
                 ),
               ),
