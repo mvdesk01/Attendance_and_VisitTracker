@@ -1006,7 +1006,7 @@ class _HomeScreenState extends State<HomeScreen> {
               remotelong = user.remoteLongitude;
               addressflag = user.addressapproveFlag;
               atsflag = user.atsCheckflag;
-              plantcode = user.plantCode;
+              plantcode = "002"/*user.plantCode*/;
             });
 
             REMOTELOCATION = remotelocation.toString();
@@ -2025,7 +2025,7 @@ class _HomeScreenState extends State<HomeScreen> {
               _currentAddress!,
               _currentLat!,
               _currentLon!,
-              plantcode?.toString() ?? "01");
+              plantcode?.toString() ?? "002");
 
           print("result $result");
 
@@ -2120,7 +2120,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   _currentAddress!,
                   _currentLat!,
                   _currentLon!,
-                  plantcode?.toString() ?? "01");
+                  plantcode?.toString() ?? "002");
               print(currentDate);
               print(currentTime);
               print(currentDateTime);
@@ -2188,7 +2188,7 @@ class _HomeScreenState extends State<HomeScreen> {
               _currentAddress!,
               _currentLat!,
               _currentLon!,
-              plantcode?.toString() ?? "01");
+              plantcode?.toString() ?? "002");
 
           Fluttertoast.showToast(
               msg: "Not in zone!!",
@@ -2255,7 +2255,7 @@ class _HomeScreenState extends State<HomeScreen> {
               _currentAddress!,
               _currentLat!,
               _currentLon!,
-              plantcode?.toString() ?? "01");
+              plantcode?.toString() ?? "002");
 
           print("result $result");
 
@@ -2348,7 +2348,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   _currentAddress!,
                   _currentLat!,
                   _currentLon!,
-                  plantcode?.toString() ?? "01");
+                  plantcode?.toString() ?? "002");
 
               setState(() {
                 isButtonDisabledOut = true;
@@ -2417,7 +2417,7 @@ class _HomeScreenState extends State<HomeScreen> {
               _currentAddress!,
               _currentLat!,
               _currentLon!,
-              plantcode?.toString() ?? "01");
+              plantcode?.toString() ?? "002");
           Fluttertoast.showToast(
               msg: "Not in zone!!",
               toastLength: Toast.LENGTH_SHORT,
@@ -2530,7 +2530,7 @@ class _HomeScreenState extends State<HomeScreen> {
       String Longitude,
       String plantcode) async {
     try {
-      print("plantcode" + plantcode);
+      print("plantcode while punch In: " + plantcode);
       final response = await http.post(
         Uri.parse("http://114.143.140.28:8091/api/InOut/InOutSaveData"),
         headers: <String, String>{
@@ -2609,7 +2609,7 @@ class _HomeScreenState extends State<HomeScreen> {
       String Longitude,
       String plantcode) async {
     try {
-      print("plantcodeout" + plantcode);
+      print("plantcode while Punch out: " + plantcode);
       final response = await http.post(
         Uri.parse("http://114.143.140.28:8091/api/InOut/InOutSaveData"),
         headers: <String, String>{
