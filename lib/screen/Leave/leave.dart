@@ -14,7 +14,6 @@ import 'package:loading_overlay/loading_overlay.dart';
 import '../../model/Leave/CancelLeave.dart';
 import '../../service/log_file_manager.dart';
 import '../../util/MyColor.dart';
-import 'add_leave.dart';
 import 'apply_leave.dart';
 
 class PendingLeave extends StatefulWidget {
@@ -73,6 +72,14 @@ class _PendingLeaveState extends State<PendingLeave> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        elevation: 0,
+        backgroundColor: MyColors.lightBlue,
+        centerTitle: true,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            bottom: Radius.circular(20),
+          ),
+        ),
         leading: IconButton(
             icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
             onPressed: () => (Navigator.canPop(context))
@@ -85,9 +92,14 @@ class _PendingLeaveState extends State<PendingLeave> {
                               return MainBloc(webService: WebService());
                             },
                             child: HomeScreen())))),
-        title: const Text(" Leave "),
-        backgroundColor: MyColors.lightBlue,
-        centerTitle: true,
+        title: const Text(
+          "Leave",
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+            fontSize: 20,
+          ),
+        ),
         titleTextStyle: GoogleFonts.roboto(
           fontWeight: FontWeight.bold,
           fontSize: 18.0,
@@ -115,25 +127,19 @@ class _PendingLeaveState extends State<PendingLeave> {
         },
         child: _leavescreen(),
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.extended(
         backgroundColor: MyColors.lightBlue,
+        icon: const Icon(Icons.add, color: Colors.white),
+        label: const Text(
+          "Apply Leave",
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
         onPressed: () {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (_) => BlocProvider(
-                create: (context) => MainBloc(webService: WebService()),
-                child: AddLeavePage(
-                  flag: 1,
-                  leaveData: pendingLeaveList.isNotEmpty
-                      ? pendingLeaveList.first
-                      : null,
-                ),
-              ),
-            ),
-          );
+          // KEEP EXISTING CODE
         },
-        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
@@ -190,22 +196,33 @@ class _PendingLeaveState extends State<PendingLeave> {
             onRefresh: getData,
             child: pendingLeaveList.isEmpty
                 ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Image.asset(
-                          "assets/icons/no_data.png",
-                          height: 150,
-                        ),
-                        SizedBox(height: 20),
-                        Text(
-                          "No Data Available",
-                          style: TextStyle(
-                              fontSize: 18,
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Image.asset(
+                            "assets/icons/no_data.png",
+                            height: 170,
+                          ),
+                          const SizedBox(height: 25),
+                          const Text(
+                            "No Pending Leave",
+                            style: TextStyle(
+                              fontSize: 22,
                               fontWeight: FontWeight.bold,
-                              color: Colors.blue),
-                        ),
-                      ],
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            "Tap the Apply Leave button to create a leave request.",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Colors.grey.shade600,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   )
                 : ListView.builder(
@@ -234,89 +251,143 @@ class _PendingLeaveState extends State<PendingLeave> {
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text("STATUS: PENDING",
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: MyColors.greenColorCode)),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 6,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.green.shade50,
+                                      borderRadius: BorderRadius.circular(30),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: const [
+                                        Icon(
+                                          Icons.circle,
+                                          color: Colors.green,
+                                          size: 8,
+                                        ),
+                                        SizedBox(width: 6),
+                                        Text(
+                                          "Pending",
+                                          style: TextStyle(
+                                            color: Colors.green,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        )
+                                      ],
+                                    ),
+                                  ),
                                   Row(
                                     children: [
-                                      GestureDetector(
-                                        onTap: () async {
-                                          final result = await Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (_) => BlocProvider(
-                                                create: (context) => MainBloc(
-                                                    webService: WebService()),
-                                                child: LeaveDetailsPage(
-                                                  flag: 2,
-                                                  tokennn: Auth_Token!,
-                                                  leaveData:
-                                                      pendingLeaveList[index],
+                                      // Your gesture detector content
+                                      Container(
+                                        height: 32,
+                                        margin:
+                                            EdgeInsets.only(top: 7, left: 20),
+                                        padding: EdgeInsets.symmetric(
+                                            horizontal: 20, vertical: 5),
+                                        decoration: BoxDecoration(
+                                            color: MyColors.blueColorCode,
+                                            borderRadius: BorderRadius.all(
+                                                Radius.circular(10))),
+                                        child: OutlinedButton.icon(
+                                          icon:
+                                              const Icon(Icons.edit, size: 18),
+                                          label: const Text("Edit"),
+                                          style: OutlinedButton.styleFrom(
+                                            foregroundColor:
+                                                MyColors.blueColorCode,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(30),
+                                            ),
+                                          ),
+                                          onPressed: () async {
+                                            final result = await Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (_) => BlocProvider(
+                                                  create: (context) => MainBloc(
+                                                      webService: WebService()),
+                                                  child: LeaveDetailsPage(
+                                                    flag: 2,
+                                                    tokennn: Auth_Token!,
+                                                    leaveData:
+                                                        pendingLeaveList[index],
+                                                  ),
                                                 ),
                                               ),
-                                            ),
-                                          );
-                                          // Refresh data if update was successful
-                                          if (result == true) {
-                                            getData();
-                                          }
-                                        }, // Your gesture detector content
-                                        child: Container(
-                                          height: 32,
-                                          margin:
-                                              EdgeInsets.only(top: 7, left: 20),
-                                          padding: EdgeInsets.symmetric(
-                                              horizontal: 20, vertical: 5),
-                                          decoration: BoxDecoration(
-                                              color: MyColors.blueColorCode,
-                                              borderRadius: BorderRadius.all(
-                                                  Radius.circular(10))),
-                                          child: Text(
-                                            "EDIT",
-                                            style: TextStyle(
-                                                color: MyColors.whiteColorCode,
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.bold),
-                                          ),
+                                            );
+                                            // Refresh data if update was successful
+                                            if (result == true) {
+                                              getData();
+                                            }
+                                          },
                                         ),
                                       ),
-                                      GestureDetector(
-                                        onTap: () {
-                                          _showDeleteDialog(context, leave);
-                                        },
-                                        child: Container(
-                                          height: 32,
-                                          margin:
-                                              EdgeInsets.only(top: 7, left: 20),
-                                          padding: EdgeInsets.symmetric(
-                                              horizontal: 20, vertical: 5),
-                                          decoration: BoxDecoration(
-                                              color: MyColors.redColorCode,
+                                      const SizedBox(width: 8),
+                                      Container(
+                                        height: 32,
+                                        margin:
+                                            EdgeInsets.only(top: 7, left: 20),
+                                        padding: EdgeInsets.symmetric(
+                                            horizontal: 20, vertical: 5),
+                                        decoration: BoxDecoration(
+                                            color: MyColors.redColorCode,
+                                            borderRadius:
+                                                BorderRadius.circular(10)),
+                                        child: OutlinedButton.icon(
+                                          icon: const Icon(Icons.delete_outline,
+                                              size: 18),
+                                          label: const Text("Delete"),
+                                          style: OutlinedButton.styleFrom(
+                                            foregroundColor: Colors.red,
+                                            shape: RoundedRectangleBorder(
                                               borderRadius:
-                                                  BorderRadius.circular(10)),
-                                          child: Text(
-                                            "DELETE",
-                                            style: TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                color: MyColors.whiteColorCode,
-                                                fontSize: 12),
+                                                  BorderRadius.circular(30),
+                                            ),
                                           ),
+                                          onPressed: () {
+                                            _showDeleteDialog(context, leave);
+                                          },
                                         ),
-                                      ),
+                                      )
                                     ],
                                   ),
                                 ],
                               ),
                               SizedBox(height: 10),
-                              _buildRow("Applied Date",
-                                  _formatDate(leave.transactionDate)),
-                              _buildRow(
-                                  "From Date", _formatDate(leave.startingDate)),
-                              _buildRow(
-                                  "To Date", _formatDate(leave.endingDate)),
-                              _buildRow("Reason", leave.reason ?? "N/A"),
-                              _buildRow('Leave', leave.leaveTypeCode!),
+                              _infoTile(
+                                Icons.calendar_today,
+                                "Applied Date",
+                                _formatDate(leave.transactionDate),
+                              ),
+                              const SizedBox(height: 12),
+                              _infoTile(
+                                Icons.event,
+                                "From Date",
+                                _formatDate(leave.startingDate),
+                              ),
+                              const SizedBox(height: 12),
+                              _infoTile(
+                                Icons.event_available,
+                                "To Date",
+                                _formatDate(leave.endingDate),
+                              ),
+                              const SizedBox(height: 12),
+                              _infoTile(
+                                Icons.info_outline,
+                                "Reason",
+                                leave.reason ?? "N/A",
+                              ),
+                              const SizedBox(height: 12),
+                              _infoTile(
+                                Icons.category_outlined,
+                                "Leave Type",
+                                leave.leaveTypeCode ?? "",
+                              ),
                             ],
                           ),
                         ),
@@ -326,6 +397,55 @@ class _PendingLeaveState extends State<PendingLeave> {
           ),
         );
       },
+    );
+  }
+
+  Widget _infoTile(
+    IconData icon,
+    String title,
+    String value,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Colors.grey.shade300,
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            icon,
+            size: 20,
+            color: MyColors.lightBlue,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 15,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 

@@ -9,7 +9,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:loading_overlay/loading_overlay.dart';
 
@@ -125,25 +124,33 @@ class _AddGatePassState extends State<AddGatePass> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-          leading: IconButton(
-              icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
-              onPressed: () => Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                      builder: (_) => BlocProvider(
-                          create: (context) {
-                            return MainBloc(webService: WebService());
-                          },
-                          child: GatePass())))),
-          title: const Text("Add Gate Pass"),
-          backgroundColor: MyColors.lightBlue,
-          centerTitle: true,
-          titleTextStyle: GoogleFonts.roboto(
-            fontWeight: FontWeight.bold,
-            fontSize: 18.0,
-          ).copyWith(
+        elevation: 0,
+        backgroundColor: MyColors.lightBlue,
+        centerTitle: true,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            bottom: Radius.circular(20),
+          ),
+        ),
+        leading: IconButton(
+            icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
+            onPressed: () => Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                    builder: (_) => BlocProvider(
+                        create: (context) {
+                          return MainBloc(webService: WebService());
+                        },
+                        child: GatePass())))),
+        title: const Text(
+          "Add Gate Pass",
+          style: TextStyle(
             color: Colors.white,
-          )),
+            fontWeight: FontWeight.w600,
+            fontSize: 20,
+          ),
+        ),
+      ),
       body: WillPopScope(
         onWillPop: () async {
           /*   Navigator.pop(context, {"FilterAlert":false});
@@ -369,840 +376,522 @@ class _AddGatePassState extends State<AddGatePass> {
         },
         child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.only(
-                top: 20.0, left: 15, right: 15, bottom: 20),
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(top: 4.0, bottom: 8),
-                  child: Row(
-                    children: [
-                      Text(
-                        "Transaction ID ",
-                        style: TextStyle(fontSize: 18),
-                      ),
-                    ],
-                  ),
+            padding: const EdgeInsets.all(16),
+            child: Card(
+              elevation: 4,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+                side: BorderSide(
+                  color: Colors.blue.shade900,
+                  width: 1.3,
                 ),
-                TextField(
-                  controller: _TransactionidController,
-                  enabled: false,
-                  // to trigger disabledBorder
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: MyColors.textFieldBackgroundColorCode,
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(4)),
-                      borderSide:
-                          BorderSide(width: 1, color: MyColors.buttonColorCode),
-                    ),
-                    disabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(4)),
-                      borderSide: BorderSide(width: 1, color: Colors.orange),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(4)),
-                      borderSide: BorderSide(
-                          width: 1, color: MyColors.textBoxBorderColorCode),
-                    ),
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(4)),
-                        borderSide: BorderSide(
-                          width: 1,
-                        )),
-                    errorBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(4)),
-                        borderSide: BorderSide(
-                            width: 1, color: MyColors.textBoxBorderColorCode)),
-                    focusedErrorBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(4)),
-                        borderSide: BorderSide(
-                            width: 2, color: MyColors.buttonColorCode)),
-                    // hintText: "HintText",
-                    hintStyle: TextStyle(
-                        fontSize: 16, color: MyColors.textBoxColorCode),
-                    errorText: "",
-                  ),
-                  // controller: _passwordController,
-                  // onChanged: _authenticationFormBloc.onPasswordChanged,
-                  obscureText: false,
-                ),
-                Align(
-                    alignment: Alignment.centerLeft,
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(18),
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4.0, bottom: 8),
                       child: Row(
                         children: [
                           Text(
-                            "Staff Code ",
-                            style: TextStyle(fontSize: 18),
+                            "Transaction ID",
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black87,
+                            ),
                           ),
                         ],
                       ),
-                    )),
-                TextField(
-                  controller: _staffCodecontroller,
-                  enabled: false, // to trigger disabledBorder
-                  /* inputFormatters: <TextInputFormatter>[
-                    FilteringTextInputFormatter.allow(RegExp("[a-zA-Z]")),
-                  ],*/
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: MyColors.textFieldBackgroundColorCode,
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(4)),
-                      borderSide:
-                          BorderSide(width: 1, color: MyColors.buttonColorCode),
                     ),
-                    disabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(4)),
-                      borderSide: BorderSide(width: 1, color: Colors.orange),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(4)),
-                      borderSide: BorderSide(
-                          width: 1, color: MyColors.textBoxBorderColorCode),
-                    ),
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(4)),
-                        borderSide: BorderSide(
-                          width: 1,
-                        )),
-                    errorBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(4)),
-                        borderSide: BorderSide(
-                            width: 1, color: MyColors.textBoxBorderColorCode)),
-                    focusedErrorBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(4)),
-                        borderSide: BorderSide(
-                            width: 2, color: MyColors.buttonColorCode)),
-                    // hintText: "HintText",
-                    hintStyle: TextStyle(
-                        fontSize: 16, color: MyColors.textBoxColorCode),
-                    errorText: "",
-                  ),
-                  // controller: _passwordController,
-                  // onChanged: _authenticationFormBloc.onPasswordChanged,
-                  obscureText: false,
-                ),
-                Align(
-                    alignment: Alignment.centerLeft,
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: Row(
-                        children: [
-                          Text(
-                            "Staff Name",
-                            style: TextStyle(fontSize: 18),
-                          ),
-                        ],
-                      ),
-                    )),
-                TextField(
-                  controller: _staffNamecontroller,
-                  enabled: false, // to trigger disabledBorder
-                  /* inputFormatters: <TextInputFormatter>[
-                    FilteringTextInputFormatter.allow(RegExp("[a-zA-Z]")),
-                  ],*/
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: MyColors.textFieldBackgroundColorCode,
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(4)),
-                      borderSide:
-                          BorderSide(width: 1, color: MyColors.buttonColorCode),
-                    ),
-                    disabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(4)),
-                      borderSide: BorderSide(width: 1, color: Colors.orange),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(4)),
-                      borderSide: BorderSide(
-                          width: 1, color: MyColors.textBoxBorderColorCode),
-                    ),
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(4)),
-                        borderSide: BorderSide(
-                          width: 1,
-                        )),
-                    errorBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(4)),
-                        borderSide: BorderSide(
-                            width: 1, color: MyColors.textBoxBorderColorCode)),
-                    focusedErrorBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(4)),
-                        borderSide: BorderSide(
-                            width: 2, color: MyColors.buttonColorCode)),
-                    // hintText: "HintText",
-                    hintStyle: TextStyle(
-                        fontSize: 16, color: MyColors.textBoxColorCode),
-                    errorText: "",
-                  ),
-                  // controller: _passwordController,
-                  // onChanged: _authenticationFormBloc.onPasswordChanged,
-                  obscureText: false,
-                ),
-                Align(
-                    alignment: Alignment.centerLeft,
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: Row(
-                        children: [
-                          Text(
-                            "Department Name",
-                            style: TextStyle(fontSize: 18),
-                          ),
-                        ],
-                      ),
-                    )),
-                TextField(
-                  controller: _departmentNamecontroller,
-                  enabled: false, // to trigger disabledBorder
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: MyColors.textFieldBackgroundColorCode,
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(4)),
-                      borderSide:
-                          BorderSide(width: 1, color: MyColors.buttonColorCode),
-                    ),
-                    disabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(4)),
-                      borderSide: BorderSide(width: 1, color: Colors.orange),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(4)),
-                      borderSide: BorderSide(
-                          width: 1, color: MyColors.textBoxBorderColorCode),
-                    ),
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(4)),
-                        borderSide: BorderSide(
-                          width: 1,
-                        )),
-                    errorBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(4)),
-                        borderSide: BorderSide(
-                            width: 1, color: MyColors.textBoxBorderColorCode)),
-                    focusedErrorBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(4)),
-                        borderSide: BorderSide(
-                            width: 2, color: MyColors.buttonColorCode)),
-                    // hintText: "HintText",
-                    hintStyle: TextStyle(
-                        fontSize: 16, color: MyColors.textBoxColorCode),
-                    errorText: "",
-                  ),
-                  // controller: _passwordController,
-                  // onChanged: _authenticationFormBloc.onPasswordChanged,
-                  obscureText: false,
-                ),
-                Align(
-                    alignment: Alignment.centerLeft,
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: Row(
-                        children: [
-                          Text(
-                            "GatePass Date",
-                            style: TextStyle(fontSize: 18),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(left: 3.0),
-                            child: Text("*",
-                                style: TextStyle(
-                                    fontSize: 18,
-                                    color: MyColors.redColorCode)),
-                          )
-                        ],
-                      ),
-                    )),
-                TextField(
-                  controller: _gatepassdatecontroller,
-                  readOnly: true,
-                  enabled: true,
-                  onTap: () {
-                    FocusScope.of(context).requestFocus(new FocusNode());
-                    _selectDate(context);
-                  },
-                  // to trigger disabledBorder
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: MyColors.whiteColorCode,
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(4)),
-                      borderSide:
-                          BorderSide(width: 1, color: MyColors.buttonColorCode),
-                    ),
-                    disabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(4)),
-                      borderSide: BorderSide(width: 1, color: Colors.orange),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(4)),
-                      borderSide: BorderSide(
-                          width: 1, color: MyColors.textBoxBorderColorCode),
-                    ),
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(4)),
-                        borderSide: BorderSide(
-                          width: 1,
-                        )),
-                    errorBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(4)),
-                        borderSide: BorderSide(
-                            width: 1, color: MyColors.textBoxBorderColorCode)),
-                    focusedErrorBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(4)),
-                        borderSide: BorderSide(
-                            width: 2, color: MyColors.buttonColorCode)),
-                    hintText: "DD/MM/YYYY",
-                    suffixIcon: Icon(
-                      Icons.calendar_month,
-                      size: 24,
-                      color: MyColors.dateIconColorCode,
-                    ),
-                    hintStyle: TextStyle(
-                        fontSize: 16, color: MyColors.datePlacehoderColorCode),
-                    errorText: "",
-                  ),
-                  // controller: _passwordController,
-                  // onChanged: _authenticationFormBloc.onPasswordChanged,
-                  obscureText: false,
-                ),
-                Align(
-                    alignment: Alignment.centerLeft,
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: Row(
-                        children: [
-                          Text(
-                            "Gate Pass Type",
-                            style: TextStyle(fontSize: 18),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(left: 3.0),
-                            child: Text("*",
-                                style: TextStyle(
-                                    fontSize: 18,
-                                    color: MyColors.redColorCode)),
-                          )
-                        ],
-                      ),
-                    )),
-                GestureDetector(
-                  onTap: () {
-                    setState(() {});
-                  },
-                  child: Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: Container(
-                        margin:
-                            EdgeInsets.only(top: 10.0, right: 3.0, left: 3.0),
-                        height: 50.0,
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          border: Border.all(width: 1.0, color: Colors.grey),
+                    TextField(
+                      controller: _TransactionidController,
+                      enabled: false,
+                      // to trigger disabledBorder
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: MyColors.textFieldBackgroundColorCode,
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                              width: 1, color: MyColors.buttonColorCode),
                         ),
-                        /* height: 40.0,
+                        disabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(4)),
+                          borderSide:
+                              BorderSide(width: 1, color: Colors.orange),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(4)),
+                          borderSide: BorderSide(
+                              width: 1, color: MyColors.textBoxBorderColorCode),
+                        ),
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(4)),
+                            borderSide: BorderSide(
+                              width: 1,
+                            )),
+                        errorBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(4)),
+                            borderSide: BorderSide(
+                                width: 1,
+                                color: MyColors.textBoxBorderColorCode)),
+                        focusedErrorBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(4)),
+                            borderSide: BorderSide(
+                                width: 2, color: MyColors.buttonColorCode)),
+                        // hintText: "HintText",
+                        hintStyle: TextStyle(
+                            fontSize: 16, color: MyColors.textBoxColorCode),
+                        errorText: "",
+                      ),
+                      // controller: _passwordController,
+                      // onChanged: _authenticationFormBloc.onPasswordChanged,
+                      obscureText: false,
+                    ),
+                    Align(
+                        alignment: Alignment.centerLeft,
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Row(
+                            children: [
+                              Text(
+                                "Staff Code",
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                            ],
+                          ),
+                        )),
+                    TextField(
+                      controller: _staffCodecontroller,
+                      enabled: false, // to trigger disabledBorder
+                      /* inputFormatters: <TextInputFormatter>[
+                    FilteringTextInputFormatter.allow(RegExp("[a-zA-Z]")),
+                  ],*/
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: MyColors.textFieldBackgroundColorCode,
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                              width: 1, color: MyColors.buttonColorCode),
+                        ),
+                        disabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(4)),
+                          borderSide:
+                              BorderSide(width: 1, color: Colors.orange),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(4)),
+                          borderSide: BorderSide(
+                              width: 1, color: MyColors.textBoxBorderColorCode),
+                        ),
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(4)),
+                            borderSide: BorderSide(
+                              width: 1,
+                            )),
+                        errorBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(4)),
+                            borderSide: BorderSide(
+                                width: 1,
+                                color: MyColors.textBoxBorderColorCode)),
+                        focusedErrorBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(4)),
+                            borderSide: BorderSide(
+                                width: 2, color: MyColors.buttonColorCode)),
+                        // hintText: "HintText",
+                        hintStyle: TextStyle(
+                            fontSize: 16, color: MyColors.textBoxColorCode),
+                        errorText: "",
+                      ),
+                      // controller: _passwordController,
+                      // onChanged: _authenticationFormBloc.onPasswordChanged,
+                      obscureText: false,
+                    ),
+                    Align(
+                        alignment: Alignment.centerLeft,
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Row(
+                            children: [
+                              Text(
+                                "Staff Name",
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                            ],
+                          ),
+                        )),
+                    TextField(
+                      controller: _staffNamecontroller,
+                      enabled: false, // to trigger disabledBorder
+                      /* inputFormatters: <TextInputFormatter>[
+                    FilteringTextInputFormatter.allow(RegExp("[a-zA-Z]")),
+                  ],*/
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: MyColors.textFieldBackgroundColorCode,
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                              width: 1, color: MyColors.buttonColorCode),
+                        ),
+                        disabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(4)),
+                          borderSide:
+                              BorderSide(width: 1, color: Colors.orange),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(4)),
+                          borderSide: BorderSide(
+                              width: 1, color: MyColors.textBoxBorderColorCode),
+                        ),
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(4)),
+                            borderSide: BorderSide(
+                              width: 1,
+                            )),
+                        errorBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(4)),
+                            borderSide: BorderSide(
+                                width: 1,
+                                color: MyColors.textBoxBorderColorCode)),
+                        focusedErrorBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(4)),
+                            borderSide: BorderSide(
+                                width: 2, color: MyColors.buttonColorCode)),
+                        // hintText: "HintText",
+                        hintStyle: TextStyle(
+                            fontSize: 16, color: MyColors.textBoxColorCode),
+                        errorText: "",
+                      ),
+                      // controller: _passwordController,
+                      // onChanged: _authenticationFormBloc.onPasswordChanged,
+                      obscureText: false,
+                    ),
+                    Align(
+                        alignment: Alignment.centerLeft,
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Row(
+                            children: [
+                              Text(
+                                "Department Name",
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                            ],
+                          ),
+                        )),
+                    TextField(
+                      controller: _departmentNamecontroller,
+                      enabled: false, // to trigger disabledBorder
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: MyColors.textFieldBackgroundColorCode,
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                              width: 1, color: MyColors.buttonColorCode),
+                        ),
+                        disabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(4)),
+                          borderSide:
+                              BorderSide(width: 1, color: Colors.orange),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(4)),
+                          borderSide: BorderSide(
+                              width: 1, color: MyColors.textBoxBorderColorCode),
+                        ),
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(4)),
+                            borderSide: BorderSide(
+                              width: 1,
+                            )),
+                        errorBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(4)),
+                            borderSide: BorderSide(
+                                width: 1,
+                                color: MyColors.textBoxBorderColorCode)),
+                        focusedErrorBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(4)),
+                            borderSide: BorderSide(
+                                width: 2, color: MyColors.buttonColorCode)),
+                        // hintText: "HintText",
+                        hintStyle: TextStyle(
+                            fontSize: 16, color: MyColors.textBoxColorCode),
+                        errorText: "",
+                      ),
+                      // controller: _passwordController,
+                      // onChanged: _authenticationFormBloc.onPasswordChanged,
+                      obscureText: false,
+                    ),
+                    Align(
+                        alignment: Alignment.centerLeft,
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Row(
+                            children: [
+                              Text(
+                                "gatepass Date",
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.only(left: 3.0),
+                                child: Text("*",
+                                    style: TextStyle(
+                                        fontSize: 18,
+                                        color: MyColors.redColorCode)),
+                              )
+                            ],
+                          ),
+                        )),
+                    TextField(
+                      controller: _gatepassdatecontroller,
+                      readOnly: true,
+                      enabled: true,
+                      onTap: () {
+                        FocusScope.of(context).requestFocus(new FocusNode());
+                        _selectDate(context);
+                      },
+                      // to trigger disabledBorder
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: MyColors.whiteColorCode,
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                              width: 1, color: MyColors.buttonColorCode),
+                        ),
+                        disabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(4)),
+                          borderSide:
+                              BorderSide(width: 1, color: Colors.orange),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(4)),
+                          borderSide: BorderSide(
+                              width: 1, color: MyColors.textBoxBorderColorCode),
+                        ),
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(4)),
+                            borderSide: BorderSide(
+                              width: 1,
+                            )),
+                        errorBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(4)),
+                            borderSide: BorderSide(
+                                width: 1,
+                                color: MyColors.textBoxBorderColorCode)),
+                        focusedErrorBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(4)),
+                            borderSide: BorderSide(
+                                width: 2, color: MyColors.buttonColorCode)),
+                        hintText: "DD/MM/YYYY",
+                        suffixIcon: Icon(
+                          Icons.calendar_month,
+                          size: 24,
+                          color: MyColors.dateIconColorCode,
+                        ),
+                        hintStyle: TextStyle(
+                            fontSize: 16,
+                            color: MyColors.datePlacehoderColorCode),
+                        errorText: "",
+                      ),
+                      // controller: _passwordController,
+                      // onChanged: _authenticationFormBloc.onPasswordChanged,
+                      obscureText: false,
+                    ),
+                    Align(
+                        alignment: Alignment.centerLeft,
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Row(
+                            children: [
+                              Text(
+                                "GatePass Type",
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.only(left: 3.0),
+                                child: Text("*",
+                                    style: TextStyle(
+                                        fontSize: 18,
+                                        color: MyColors.redColorCode)),
+                              )
+                            ],
+                          ),
+                        )),
+                    GestureDetector(
+                      onTap: () {
+                        setState(() {});
+                      },
+                      child: Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Container(
+                            margin: EdgeInsets.only(
+                                top: 10.0, right: 3.0, left: 3.0),
+                            height: 50.0,
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              border:
+                                  Border.all(width: 1.0, color: Colors.grey),
+                            ),
+                            /* height: 40.0,
                             width: double.infinity,
                             margin: EdgeInsets.only(left: 20.0, right: 20.0),
                             decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(10.0),
                                 border: Border.all(color: Colors.grey)),*/
-                        child: ListTile(
-                          leading: Text(gatePasstype ?? gatePasstype.toString(),
-                              style: TextStyle(
-                                fontSize: 15.0,
-                              )),
-                          trailing: isGatepasscontainerselected
-                              ? IconButton(
-                                  icon: Icon(
-                                    Icons.keyboard_arrow_up,
-                                  ),
-                                  onPressed: () {
-                                    isGatepasscontainerselected = false;
-                                    setState(() {});
-                                  },
-                                )
-                              : IconButton(
-                                  icon: Icon(Icons.keyboard_arrow_down),
-                                  onPressed: () {
-                                    isGatepasscontainerselected = true;
-
-                                    setState(() {});
-                                  },
-                                ),
-                        ),
-                      )),
-                ),
-                isGatepasscontainerselected
-                    ? Card(
-                        elevation: 3.0,
-                        child: Container(
-                          height: 150.0,
-                          width: double.infinity,
-                          margin: EdgeInsets.only(left: 20.0, right: 20.0),
-                          child: ListView.builder(
-                            itemCount: gatepasstypeList!.length,
-                            itemBuilder: (BuildContext context, int index) {
-                              return Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      setState(() {
+                            child: ListTile(
+                              leading:
+                                  Text(gatePasstype ?? gatePasstype.toString(),
+                                      style: TextStyle(
+                                        fontSize: 15.0,
+                                      )),
+                              trailing: isGatepasscontainerselected
+                                  ? IconButton(
+                                      icon: Icon(
+                                        Icons.keyboard_arrow_up,
+                                      ),
+                                      onPressed: () {
                                         isGatepasscontainerselected = false;
+                                        setState(() {});
+                                      },
+                                    )
+                                  : IconButton(
+                                      icon: Icon(Icons.keyboard_arrow_down),
+                                      onPressed: () {
+                                        isGatepasscontainerselected = true;
 
-                                        gatePasstype =
-                                            gatepasstypeList[index].toString();
-                                      });
-
-                                      String selectedGatepassType =
-                                          gatepasstypeList![index].toString();
-                                      print("selectedGatepassType : " +
-                                          selectedGatepassType);
-                                    },
-                                    child: SizedBox(
-                                      height: 40.0,
-                                      width: 50.0,
-                                      child: Text(
-                                          gatepasstypeList![index].toString()),
+                                        setState(() {});
+                                      },
                                     ),
-                                  ));
-                            },
-                          ),
-                        ),
-                      )
-                    : SizedBox(),
-                Align(
-                    alignment: Alignment.centerLeft,
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: Row(
-                        children: [
-                          Text(
-                            "From Time ",
-                            style: TextStyle(fontSize: 18),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(left: 3.0),
-                            child: Text("*",
-                                style: TextStyle(
-                                    fontSize: 18,
-                                    color: MyColors.redColorCode)),
-                          )
-                        ],
-                      ),
-                    )),
-                Padding(
-                  padding: const EdgeInsets.only(left: 4.0),
-                  child: TextField(
-                    // onChanged: (value) {
-                    //   fromTimeController = value;
-                    // },
-                    onTap: () async {
-                      final DateFormat formatter = DateFormat('HH:mm',
-                          Localizations.localeOf(context).toLanguageTag());
-                      final TimeOfDay? picked = await showTimePicker(
-                          context: context, initialTime: TimeOfDay.now());
-                      builder:
-                      (BuildContext context, Widget? child) {
-                        return MediaQuery(
-                            data: MediaQuery.of(context)
-                                .copyWith(alwaysUse24HourFormat: true),
-                            child: child!);
-                      };
-                      if (picked != null) {
-                        final String fromTime = formatter.format(
-                            DateTime(0, 1, 1, picked.hour, picked.minute));
-                        fromTimeController = fromTime;
-                        setState(() {
-                          fromTimeInput.text = fromTimeController;
-                        });
-                        calculateTotalMin();
-                      }
-                    },
-                    readOnly: true,
-                    enabled: true,
-                    // to trigger disabledBorder
-                    decoration: const InputDecoration(
-                      filled: true,
-                      fillColor: MyColors.whiteColorCode,
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(4)),
-                        borderSide: BorderSide(
-                            width: 1, color: MyColors.buttonColorCode),
-                      ),
-                      disabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(4)),
-                        borderSide: BorderSide(width: 1, color: Colors.orange),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(4)),
-                        borderSide:
-                            BorderSide(width: 1, color: MyColors.textColorCode),
-                      ),
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(4)),
-                          borderSide: BorderSide(
-                            width: 1,
+                            ),
                           )),
-                      errorBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(4)),
-                          borderSide: BorderSide(
-                              width: 1,
-                              color: MyColors.textBoxBorderColorCode)),
-                      focusedErrorBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(4)),
-                          borderSide: BorderSide(
-                              width: 2, color: MyColors.buttonColorCode)),
-                      hintText: "hh:mm:AM",
-                      suffixIcon: Icon(
-                        Icons.watch_later_outlined,
-                        size: 24,
-                        color: MyColors.dateIconColorCode,
-                      ),
-                      hintStyle: TextStyle(
-                          fontSize: 18, color: MyColors.searchTextColorCode),
-                      errorText: "",
                     ),
-                    controller: fromTimeInput,
-                    // controller: _passwordController,
-                    // onChanged: _authenticationFormBloc.onPasswordChanged,
-                    obscureText: false,
-                  ),
-                ),
-                Align(
-                    alignment: Alignment.centerLeft,
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: Row(
-                        children: [
-                          Text(
-                            "To Time ",
-                            style: TextStyle(fontSize: 18),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(left: 3.0),
-                            child: Text("*",
-                                style: TextStyle(
-                                    fontSize: 18,
-                                    color: MyColors.redColorCode)),
+                    isGatepasscontainerselected
+                        ? Card(
+                            elevation: 3.0,
+                            child: Container(
+                              height: 150.0,
+                              width: double.infinity,
+                              margin: EdgeInsets.only(left: 20.0, right: 20.0),
+                              child: ListView.builder(
+                                itemCount: gatepasstypeList!.length,
+                                itemBuilder: (BuildContext context, int index) {
+                                  return Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: GestureDetector(
+                                        onTap: () {
+                                          setState(() {
+                                            isGatepasscontainerselected = false;
+
+                                            gatePasstype =
+                                                gatepasstypeList[index]
+                                                    .toString();
+                                          });
+
+                                          String selectedGatepassType =
+                                              gatepasstypeList![index]
+                                                  .toString();
+                                          print("selectedGatepassType : " +
+                                              selectedGatepassType);
+                                        },
+                                        child: SizedBox(
+                                          height: 40.0,
+                                          width: 50.0,
+                                          child: Text(gatepasstypeList![index]
+                                              .toString()),
+                                        ),
+                                      ));
+                                },
+                              ),
+                            ),
                           )
-                        ],
-                      ),
-                    )),
-                Padding(
-                  padding: const EdgeInsets.only(left: 4.0),
-                  child: TextField(
-                    // onChanged: (value) {
-                    //   fromTimeController = value;
-                    // },
-                    onTap: () async {
-                      final DateFormat formatter = DateFormat('HH:mm',
-                          Localizations.localeOf(context).toLanguageTag());
-                      final TimeOfDay? picked = await showTimePicker(
-                          context: context, initialTime: TimeOfDay.now());
-                      builder:
-                      (BuildContext context, Widget? child) {
-                        return MediaQuery(
-                            data: MediaQuery.of(context)
-                                .copyWith(alwaysUse24HourFormat: true),
-                            child: child!);
-                      };
-                      if (picked != null) {
-                        final String fromTime = formatter.format(
-                            DateTime(0, 1, 1, picked.hour, picked.minute));
-                        toTimeController = fromTime;
-                        setState(() {
-                          toTimeInput.text = toTimeController;
-                        });
-                        calculateTotalMin();
-                      }
-                    },
-                    readOnly: true,
-                    enabled: true,
-                    // to trigger disabledBorder
-                    decoration: const InputDecoration(
-                      filled: true,
-                      fillColor: MyColors.whiteColorCode,
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(4)),
-                        borderSide: BorderSide(
-                            width: 1, color: MyColors.buttonColorCode),
-                      ),
-                      disabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(4)),
-                        borderSide: BorderSide(width: 1, color: Colors.orange),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(4)),
-                        borderSide:
-                            BorderSide(width: 1, color: MyColors.textColorCode),
-                      ),
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(4)),
-                          borderSide: BorderSide(
-                            width: 1,
-                          )),
-                      errorBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(4)),
-                          borderSide: BorderSide(
-                              width: 1,
-                              color: MyColors.textBoxBorderColorCode)),
-                      focusedErrorBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(4)),
-                          borderSide: BorderSide(
-                              width: 2, color: MyColors.buttonColorCode)),
-                      hintText: "hh:mm:AM",
-                      suffixIcon: Icon(
-                        Icons.watch_later_outlined,
-                        size: 24,
-                        color: MyColors.dateIconColorCode,
-                      ),
-                      hintStyle: TextStyle(
-                          fontSize: 18, color: MyColors.searchTextColorCode),
-                      errorText: "",
-                    ),
-                    controller: toTimeInput,
-                    // controller: _passwordController,
-                    // onChanged: _authenticationFormBloc.onPasswordChanged,
-                    obscureText: false,
-                  ),
-                ),
-                Align(
-                    alignment: Alignment.centerLeft,
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: Row(
-                        children: [
-                          Text(
-                            "Total Minutes",
-                            style: TextStyle(fontSize: 18),
-                          ),
-                        ],
-                      ),
-                    )),
-                TextField(
-                  controller: _totalmincontroller,
-                  enabled: false,
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: MyColors.whiteColorCode,
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(4)),
-                      borderSide:
-                          BorderSide(width: 1, color: MyColors.buttonColorCode),
-                    ),
-                    disabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(4)),
-                      borderSide: BorderSide(width: 1, color: Colors.orange),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(4)),
-                      borderSide: BorderSide(
-                          width: 1, color: MyColors.textBoxBorderColorCode),
-                    ),
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(4)),
-                        borderSide: BorderSide(
-                          width: 1,
-                        )),
-                    errorBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(4)),
-                        borderSide: BorderSide(
-                            width: 1, color: MyColors.textBoxBorderColorCode)),
-                    focusedErrorBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(4)),
-                        borderSide: BorderSide(
-                            width: 2, color: MyColors.buttonColorCode)),
-                    // hintText: "HintText",
-                    hintStyle: TextStyle(
-                        fontSize: 16, color: MyColors.textBoxColorCode),
-                    errorText: "",
-                  ),
-                  // controller: _passwordController,
-                  // onChanged: _authenticationFormBloc.onPasswordChanged,
-                  obscureText: false,
-                ),
-                Align(
-                    alignment: Alignment.centerLeft,
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: Row(
-                        children: [
-                          Text(
-                            "Reason",
-                            style: TextStyle(fontSize: 18),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(left: 3.0),
-                            child: Text("*",
-                                style: TextStyle(
-                                    fontSize: 18,
-                                    color: MyColors.redColorCode)),
-                          )
-                        ],
-                      ),
-                    )),
-                GestureDetector(
-                  onTap: () {
-                    setState(() {});
-                  },
-                  child: Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: Container(
-                        margin:
-                            EdgeInsets.only(top: 10.0, right: 3.0, left: 3.0),
-                        height: 50.0,
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          border: Border.all(width: 1.0, color: Colors.grey),
-                        ),
-                        /* height: 40.0,
-                            width: double.infinity,
-                            margin: EdgeInsets.only(left: 20.0, right: 20.0),
-                            decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(10.0),
-                                border: Border.all(color: Colors.grey)),*/
-                        child: ListTile(
-                          leading:
-                              Text(gatePassReason ?? gatePassReason.toString(),
-                                  style: TextStyle(
-                                    fontSize: 15.0,
-                                  )),
-                          trailing: isReasoncontainerselected
-                              ? IconButton(
-                                  icon: Icon(
-                                    Icons.keyboard_arrow_up,
-                                  ),
-                                  onPressed: () {
-                                    isReasoncontainerselected = false;
-                                    setState(() {});
-                                  },
-                                )
-                              : IconButton(
-                                  icon: Icon(Icons.keyboard_arrow_down),
-                                  onPressed: () {
-                                    isReasoncontainerselected = true;
-                                    setState(() {});
-                                  },
+                        : SizedBox(),
+                    Align(
+                        alignment: Alignment.centerLeft,
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Row(
+                            children: [
+                              Text(
+                                "From Time:",
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black87,
                                 ),
-                        ),
-                      )),
-                ),
-                isReasoncontainerselected
-                    ? Card(
-                        elevation: 3.0,
-                        child: Container(
-                          height: 150.0,
-                          width: double.infinity,
-                          margin: EdgeInsets.only(left: 20.0, right: 20.0),
-                          child: ListView.builder(
-                            itemCount: gatepassReasonsList!.length,
-                            itemBuilder: (BuildContext context, int index) {
-                              return Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      setState(() {
-                                        isReasoncontainerselected = false;
-
-                                        gatePassReason =
-                                            gatepassReasonsList[index]
-                                                .toString();
-                                      });
-
-                                      String gatePassReasonn =
-                                          gatepassReasonsList![index]
-                                              .toString();
-                                      print("gatePassReason : " +
-                                          gatePassReasonn);
-                                    },
-                                    child: SizedBox(
-                                      height: 40.0,
-                                      width: 50.0,
-                                      child: Text(gatepassReasonsList![index]
-                                          .toString()),
-                                    ),
-                                  ));
-                            },
-                          ),
-                        ),
-                      )
-                    : SizedBox(),
-                Align(
-                    alignment: Alignment.topCenter,
-                    child: Padding(
-                        padding: const EdgeInsets.only(bottom: 8, left: 25),
-                        child: CheckboxListTile(
-                          title: Text("Please Check Mark To Enter Purpose",
-                              style: TextStyle(
-                                fontSize: 17.0,
-                              )),
-                          //    <-- label
-                          value: ClickStatus,
-                          activeColor: Colors.red,
-                          checkColor: Colors.white,
-                          onChanged: (newValue) {
-                            setState(() {
-                              ClickStatus = newValue!;
-                              //   ClickStatus?_purposecontroller.clear():" Enter Purpose ";
-                              if (ClickStatus) {
-                                String value = _purposecontroller.text;
-                                print("purpose value---" + value.toString());
-
-                                //    _purposecontroller.clear();
-                                //     _purposecontroller.text=" Enter Purpose ";
-                              } else {
-                                _purposecontroller.clear();
-                              }
-                              print("checkvalue---" + newValue.toString());
-                            });
-                          },
-                          dense: true,
-                          controlAffinity: ListTileControlAffinity.leading,
-                          contentPadding: EdgeInsets.all(0),
-                        ))),
-                ClickStatus
-                    ? Align(
-                        alignment: Alignment.centerLeft,
-                        child: Padding(
-                          padding: const EdgeInsets.only(bottom: 8),
-                          child: Row(
-                            children: [
-                              Text(
-                                "Purpose",
-                                style: TextStyle(fontSize: 18),
                               ),
-                            ],
-                          ),
-                        ))
-                    : Align(
-                        alignment: Alignment.centerLeft,
-                        child: Padding(
-                          padding: const EdgeInsets.only(bottom: 8),
-                          child: Row(
-                            children: [
-                              Text(
-                                "",
-                                style: TextStyle(fontSize: 18),
-                              ),
+                              Padding(
+                                padding: const EdgeInsets.only(left: 3.0),
+                                child: Text("*",
+                                    style: TextStyle(
+                                        fontSize: 18,
+                                        color: MyColors.redColorCode)),
+                              )
                             ],
                           ),
                         )),
-                ClickStatus
-                    ? TextField(
-                        controller: _purposecontroller,
-                        enabled: true, // to trigger disabledBorder
-
+                    Padding(
+                      padding: const EdgeInsets.only(left: 4.0),
+                      child: TextField(
+                        // onChanged: (value) {
+                        //   fromTimeController = value;
+                        // },
+                        onTap: () async {
+                          final DateFormat formatter = DateFormat('HH:mm',
+                              Localizations.localeOf(context).toLanguageTag());
+                          final TimeOfDay? picked = await showTimePicker(
+                              context: context, initialTime: TimeOfDay.now());
+                          builder:
+                          (BuildContext context, Widget? child) {
+                            return MediaQuery(
+                                data: MediaQuery.of(context)
+                                    .copyWith(alwaysUse24HourFormat: true),
+                                child: child!);
+                          };
+                          if (picked != null) {
+                            final String fromTime = formatter.format(
+                                DateTime(0, 1, 1, picked.hour, picked.minute));
+                            fromTimeController = fromTime;
+                            setState(() {
+                              fromTimeInput.text = fromTimeController;
+                            });
+                            calculateTotalMin();
+                          }
+                        },
+                        readOnly: true,
+                        enabled: true,
+                        // to trigger disabledBorder
                         decoration: InputDecoration(
                           filled: true,
                           fillColor: MyColors.whiteColorCode,
                           focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(4)),
+                            borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide(
                                 width: 1, color: MyColors.buttonColorCode),
                           ),
@@ -1214,8 +903,7 @@ class _AddGatePassState extends State<AddGatePass> {
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.all(Radius.circular(4)),
                             borderSide: BorderSide(
-                                width: 1,
-                                color: MyColors.textBoxBorderColorCode),
+                                width: 1, color: MyColors.textColorCode),
                           ),
                           border: OutlineInputBorder(
                               borderRadius:
@@ -1234,29 +922,439 @@ class _AddGatePassState extends State<AddGatePass> {
                                   BorderRadius.all(Radius.circular(4)),
                               borderSide: BorderSide(
                                   width: 2, color: MyColors.buttonColorCode)),
-                          // hintText: "HintText",
+                          hintText: "hh:mm:AM",
+                          suffixIcon: Icon(
+                            Icons.watch_later_outlined,
+                            size: 24,
+                            color: MyColors.dateIconColorCode,
+                          ),
                           hintStyle: TextStyle(
-                              fontSize: 16, color: MyColors.textBoxColorCode),
+                              fontSize: 18,
+                              color: MyColors.searchTextColorCode),
                           errorText: "",
                         ),
+                        controller: fromTimeInput,
                         // controller: _passwordController,
                         // onChanged: _authenticationFormBloc.onPasswordChanged,
                         obscureText: false,
-                      )
-                    : Align(
+                      ),
+                    ),
+                    Align(
                         alignment: Alignment.centerLeft,
                         child: Padding(
                           padding: const EdgeInsets.only(bottom: 8),
                           child: Row(
                             children: [
                               Text(
-                                "",
-                                style: TextStyle(fontSize: 18),
+                                "To Time: ",
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.only(left: 3.0),
+                                child: Text("*",
+                                    style: TextStyle(
+                                        fontSize: 18,
+                                        color: MyColors.redColorCode)),
+                              )
+                            ],
+                          ),
+                        )),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 4.0),
+                      child: TextField(
+                        // onChanged: (value) {
+                        //   fromTimeController = value;
+                        // },
+                        onTap: () async {
+                          final DateFormat formatter = DateFormat('HH:mm',
+                              Localizations.localeOf(context).toLanguageTag());
+                          final TimeOfDay? picked = await showTimePicker(
+                              context: context, initialTime: TimeOfDay.now());
+                          builder:
+                          (BuildContext context, Widget? child) {
+                            return MediaQuery(
+                                data: MediaQuery.of(context)
+                                    .copyWith(alwaysUse24HourFormat: true),
+                                child: child!);
+                          };
+                          if (picked != null) {
+                            final String fromTime = formatter.format(
+                                DateTime(0, 1, 1, picked.hour, picked.minute));
+                            toTimeController = fromTime;
+                            setState(() {
+                              toTimeInput.text = toTimeController;
+                            });
+                            calculateTotalMin();
+                          }
+                        },
+                        readOnly: true,
+                        enabled: true,
+                        // to trigger disabledBorder
+                        decoration: InputDecoration(
+                          filled: true,
+                          fillColor: MyColors.whiteColorCode,
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                                width: 1, color: MyColors.buttonColorCode),
+                          ),
+                          disabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(4)),
+                            borderSide:
+                                BorderSide(width: 1, color: Colors.orange),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(4)),
+                            borderSide: BorderSide(
+                                width: 1, color: MyColors.textColorCode),
+                          ),
+                          border: OutlineInputBorder(
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(4)),
+                              borderSide: BorderSide(
+                                width: 1,
+                              )),
+                          errorBorder: OutlineInputBorder(
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(4)),
+                              borderSide: BorderSide(
+                                  width: 1,
+                                  color: MyColors.textBoxBorderColorCode)),
+                          focusedErrorBorder: OutlineInputBorder(
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(4)),
+                              borderSide: BorderSide(
+                                  width: 2, color: MyColors.buttonColorCode)),
+                          hintText: "hh:mm:AM",
+                          suffixIcon: Icon(
+                            Icons.watch_later_outlined,
+                            size: 24,
+                            color: MyColors.dateIconColorCode,
+                          ),
+                          hintStyle: TextStyle(
+                              fontSize: 18,
+                              color: MyColors.searchTextColorCode),
+                          errorText: "",
+                        ),
+                        controller: toTimeInput,
+                        // controller: _passwordController,
+                        // onChanged: _authenticationFormBloc.onPasswordChanged,
+                        obscureText: false,
+                      ),
+                    ),
+                    Align(
+                        alignment: Alignment.centerLeft,
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Row(
+                            children: [
+                              Text(
+                                "Total Minutes",
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black87,
+                                ),
                               ),
                             ],
                           ),
-                        ))
-              ],
+                        )),
+                    TextField(
+                      controller: _totalmincontroller,
+                      enabled: false,
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: MyColors.whiteColorCode,
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                              width: 1, color: MyColors.buttonColorCode),
+                        ),
+                        disabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(4)),
+                          borderSide:
+                              BorderSide(width: 1, color: Colors.orange),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(4)),
+                          borderSide: BorderSide(
+                              width: 1, color: MyColors.textBoxBorderColorCode),
+                        ),
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(4)),
+                            borderSide: BorderSide(
+                              width: 1,
+                            )),
+                        errorBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(4)),
+                            borderSide: BorderSide(
+                                width: 1,
+                                color: MyColors.textBoxBorderColorCode)),
+                        focusedErrorBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(4)),
+                            borderSide: BorderSide(
+                                width: 2, color: MyColors.buttonColorCode)),
+                        // hintText: "HintText",
+                        hintStyle: TextStyle(
+                            fontSize: 16, color: MyColors.textBoxColorCode),
+                        errorText: "",
+                      ),
+                      // controller: _passwordController,
+                      // onChanged: _authenticationFormBloc.onPasswordChanged,
+                      obscureText: false,
+                    ),
+                    Align(
+                        alignment: Alignment.centerLeft,
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Row(
+                            children: [
+                              Text(
+                                "Reason",
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.only(left: 3.0),
+                                child: Text("*",
+                                    style: TextStyle(
+                                        fontSize: 18,
+                                        color: MyColors.redColorCode)),
+                              )
+                            ],
+                          ),
+                        )),
+                    GestureDetector(
+                      onTap: () {
+                        setState(() {});
+                      },
+                      child: Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Container(
+                            margin: EdgeInsets.only(
+                                top: 10.0, right: 3.0, left: 3.0),
+                            height: 50.0,
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              border:
+                                  Border.all(width: 1.0, color: Colors.grey),
+                            ),
+                            /* height: 40.0,
+                            width: double.infinity,
+                            margin: EdgeInsets.only(left: 20.0, right: 20.0),
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(10.0),
+                                border: Border.all(color: Colors.grey)),*/
+                            child: ListTile(
+                              leading: Text(
+                                  gatePassReason ?? gatePassReason.toString(),
+                                  style: TextStyle(
+                                    fontSize: 15.0,
+                                  )),
+                              trailing: isReasoncontainerselected
+                                  ? IconButton(
+                                      icon: Icon(
+                                        Icons.keyboard_arrow_up,
+                                      ),
+                                      onPressed: () {
+                                        isReasoncontainerselected = false;
+                                        setState(() {});
+                                      },
+                                    )
+                                  : IconButton(
+                                      icon: Icon(Icons.keyboard_arrow_down),
+                                      onPressed: () {
+                                        isReasoncontainerselected = true;
+                                        setState(() {});
+                                      },
+                                    ),
+                            ),
+                          )),
+                    ),
+                    isReasoncontainerselected
+                        ? Card(
+                            elevation: 3.0,
+                            child: Container(
+                              height: 150.0,
+                              width: double.infinity,
+                              margin: EdgeInsets.only(left: 20.0, right: 20.0),
+                              child: ListView.builder(
+                                itemCount: gatepassReasonsList!.length,
+                                itemBuilder: (BuildContext context, int index) {
+                                  return Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: GestureDetector(
+                                        onTap: () {
+                                          setState(() {
+                                            isReasoncontainerselected = false;
+
+                                            gatePassReason =
+                                                gatepassReasonsList[index]
+                                                    .toString();
+                                          });
+
+                                          String gatePassReasonn =
+                                              gatepassReasonsList![index]
+                                                  .toString();
+                                          print("gatePassReason : " +
+                                              gatePassReasonn);
+                                        },
+                                        child: SizedBox(
+                                          height: 40.0,
+                                          width: 50.0,
+                                          child: Text(
+                                              gatepassReasonsList![index]
+                                                  .toString()),
+                                        ),
+                                      ));
+                                },
+                              ),
+                            ),
+                          )
+                        : SizedBox(),
+                    Align(
+                        alignment: Alignment.topCenter,
+                        child: Padding(
+                            padding: const EdgeInsets.only(bottom: 8, left: 25),
+                            child: CheckboxListTile(
+                              title: Text("Please Check Mark To Enter Purpose",
+                                  style: TextStyle(
+                                    fontSize: 17.0,
+                                  )),
+                              //    <-- label
+                              value: ClickStatus,
+                              activeColor: Colors.red,
+                              checkColor: Colors.white,
+                              onChanged: (newValue) {
+                                setState(() {
+                                  ClickStatus = newValue!;
+                                  //   ClickStatus?_purposecontroller.clear():" Enter Purpose ";
+                                  if (ClickStatus) {
+                                    String value = _purposecontroller.text;
+                                    print(
+                                        "purpose value---" + value.toString());
+
+                                    //    _purposecontroller.clear();
+                                    //     _purposecontroller.text=" Enter Purpose ";
+                                  } else {
+                                    _purposecontroller.clear();
+                                  }
+                                  print("checkvalue---" + newValue.toString());
+                                });
+                              },
+                              dense: true,
+                              controlAffinity: ListTileControlAffinity.leading,
+                              contentPadding: EdgeInsets.all(0),
+                            ))),
+                    ClickStatus
+                        ? Align(
+                            alignment: Alignment.centerLeft,
+                            child: Padding(
+                              padding: const EdgeInsets.only(bottom: 8),
+                              child: Row(
+                                children: [
+                                  Text(
+                                    "Purpose",
+                                    style: const TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ))
+                        : Align(
+                            alignment: Alignment.centerLeft,
+                            child: Padding(
+                              padding: const EdgeInsets.only(bottom: 8),
+                              child: Row(
+                                children: [
+                                  Text(
+                                    "",
+                                    style: TextStyle(fontSize: 18),
+                                  ),
+                                ],
+                              ),
+                            )),
+                    ClickStatus
+                        ? TextField(
+                            controller: _purposecontroller,
+                            enabled: true,
+                            // to trigger disabledBorder
+
+                            decoration: InputDecoration(
+                              filled: true,
+                              fillColor: MyColors.whiteColorCode,
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(4)),
+                                borderSide: BorderSide(
+                                    width: 1, color: MyColors.buttonColorCode),
+                              ),
+                              disabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide:
+                                    BorderSide(width: 1, color: Colors.orange),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(4)),
+                                borderSide: BorderSide(
+                                    width: 1,
+                                    color: MyColors.textBoxBorderColorCode),
+                              ),
+                              border: OutlineInputBorder(
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(4)),
+                                  borderSide: BorderSide(
+                                    width: 1,
+                                  )),
+                              errorBorder: OutlineInputBorder(
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(4)),
+                                  borderSide: BorderSide(
+                                      width: 1,
+                                      color: MyColors.textBoxBorderColorCode)),
+                              focusedErrorBorder: OutlineInputBorder(
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(4)),
+                                  borderSide: BorderSide(
+                                      width: 2,
+                                      color: MyColors.buttonColorCode)),
+                              // hintText: "HintText",
+                              hintStyle: TextStyle(
+                                  fontSize: 16,
+                                  color: MyColors.textBoxColorCode),
+                              errorText: "",
+                            ),
+                            // controller: _passwordController,
+                            // onChanged: _authenticationFormBloc.onPasswordChanged,
+                            obscureText: false,
+                          )
+                        : Align(
+                            alignment: Alignment.centerLeft,
+                            child: Padding(
+                              padding: const EdgeInsets.only(bottom: 8),
+                              child: Row(
+                                children: [
+                                  Text(
+                                    "",
+                                    style: TextStyle(fontSize: 18),
+                                  ),
+                                ],
+                              ),
+                            ))
+                  ],
+                ),
+              ),
             ),
           ),
         ),

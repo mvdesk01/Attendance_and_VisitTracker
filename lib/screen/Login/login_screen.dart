@@ -1,18 +1,10 @@
-import 'dart:convert';
-import 'dart:io';
-
-import 'package:android_id/android_id.dart';
 import 'package:attendance_system_ios/bloc/main_bloc.dart';
 import 'package:attendance_system_ios/bloc/main_event.dart';
 import 'package:attendance_system_ios/bloc/main_state.dart';
-import 'package:attendance_system_ios/screen/Forget%20Password/forget_password.dart';
 import 'package:attendance_system_ios/screen/Home/home.dart';
 import 'package:attendance_system_ios/screen/Register/register_screen.dart';
 import 'package:attendance_system_ios/service/WebService.dart';
-import 'package:attendance_system_ios/service/log_file_manager.dart';
-import 'package:bcrypt/bcrypt.dart';
 import 'package:device_info_plus/device_info_plus.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -21,15 +13,11 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:loading_overlay/loading_overlay.dart';
 import 'package:local_auth/local_auth.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../../main.dart';
+
+import '../../model/subscription/subscription_service.dart';
 import '../../util/MyColor.dart';
-import '../../service/internet_service.dart';
 import '../AdminHomeScreen/AdminHome.dart';
-import '../Forget Password/forgetpassword.dart';
 import '../password_retrieval/password_retrieval.dart';
-import 'UpdateDeviceID.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -74,7 +62,8 @@ class _LoginScreenState extends State<LoginScreen> {
       isLoading: _isLoading,
       opacity: 0.3,
       color: Colors.black,
-      progressIndicator: const CircularProgressIndicator(color: Colors.lightBlue),
+      progressIndicator:
+          const CircularProgressIndicator(color: Colors.lightBlue),
       child: BlocListener<MainBloc, MainState>(
         listener: (context, state) async {
           if (state is LoginLoadingState) {
@@ -82,10 +71,18 @@ class _LoginScreenState extends State<LoginScreen> {
           } else if (state is LoginLoadedState) {
             setState(() => _isLoading = false);
             if (state.loginResponse?.message != null) {
-              await storage.write(key: 'Auth_Token', value: state.loginResponse!.token!.result!.token);
-              await storage.write(key: 'Staff_Code', value: state.loginResponse!.message!.staffCode);
-              await storage.write(key: 'Staff_Name', value: state.loginResponse!.message!.displayName);
-              await storage.write(key: 'Plant_Code', value: state.loginResponse!.message!.plantCode);
+              await storage.write(
+                  key: 'Auth_Token',
+                  value: state.loginResponse!.token!.result!.token);
+              await storage.write(
+                  key: 'Staff_Code',
+                  value: state.loginResponse!.message!.staffCode);
+              await storage.write(
+                  key: 'Staff_Name',
+                  value: state.loginResponse!.message!.displayName);
+              await storage.write(
+                  key: 'Plant_Code',
+                  value: state.loginResponse!.message!.plantCode);
 
               if (isAdminLogin) {
                 Navigator.pushReplacement(
@@ -140,7 +137,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     child: Image.asset(
                       "assets/icons/new_app_icon.png",
-                      errorBuilder: (context, error, stackTrace) => const Icon(Icons.fingerprint, size: 50, color: Colors.white),
+                      errorBuilder: (context, error, stackTrace) => const Icon(
+                          Icons.fingerprint,
+                          size: 50,
+                          color: Colors.white),
                     ),
                   ),
                 ),
@@ -203,7 +203,6 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                           const SizedBox(height: 40),
-
                           _buildTextField(
                             controller: _CardIdtextController,
                             hint: "Staff Code",
@@ -216,9 +215,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             icon: Icons.lock_outline,
                             isPassword: true,
                             obscureText: passwordVisibility,
-                            onSuffixPressed: () => setState(() => passwordVisibility = !passwordVisibility),
+                            onSuffixPressed: () => setState(
+                                () => passwordVisibility = !passwordVisibility),
                           ),
-
                           const SizedBox(height: 16),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -231,19 +230,27 @@ class _LoginScreenState extends State<LoginScreen> {
                                     child: Checkbox(
                                       value: _switchValue,
                                       activeColor: MyColors.appDefaultColorCode,
-                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                                      onChanged: (v) => setState(() => _switchValue = v!),
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(4)),
+                                      onChanged: (v) =>
+                                          setState(() => _switchValue = v!),
                                     ),
                                   ),
                                   const SizedBox(width: 8),
                                   Text(
                                     "Remember me",
-                                    style: GoogleFonts.poppins(fontSize: 13, color: Colors.black54),
+                                    style: GoogleFonts.poppins(
+                                        fontSize: 13, color: Colors.black54),
                                   ),
                                 ],
                               ),
                               TextButton(
-                                onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PasswordRetrieval())),
+                                onPressed: () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (_) =>
+                                            const PasswordRetrieval())),
                                 child: Text(
                                   "Forgot Retrieval?",
                                   style: GoogleFonts.poppins(
@@ -255,7 +262,6 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             ],
                           ),
-
                           const SizedBox(height: 32),
                           SizedBox(
                             width: double.infinity,
@@ -265,35 +271,42 @@ class _LoginScreenState extends State<LoginScreen> {
                                 backgroundColor: MyColors.lightBlue,
                                 foregroundColor: Colors.white,
                                 elevation: 4,
-                                shadowColor: MyColors.appDefaultColorCode.withOpacity(0.4),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                shadowColor: MyColors.appDefaultColorCode
+                                    .withOpacity(0.4),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16)),
                               ),
-                              onPressed: _validation,
+                              onPressed: () async {
+                                await _validation();
+                              },
                               child: Text(
                                 "LOGIN",
-                                style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.bold),
+                                style: GoogleFonts.poppins(
+                                    fontSize: 16, fontWeight: FontWeight.bold),
                               ),
                             ),
                           ),
-
                           const SizedBox(height: 32),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
                                 "Don't have an account?",
-                                style: GoogleFonts.poppins(fontSize: 14, color: Colors.black54),
+                                style: GoogleFonts.poppins(
+                                    fontSize: 14, color: Colors.black54),
                               ),
                               TextButton(
                                 onPressed: () async {
-                                  final staffCode = await Navigator.push<String>(
+                                  final staffCode =
+                                      await Navigator.push<String>(
                                     context,
                                     MaterialPageRoute(
                                       builder: (_) => const RegisterScreen(),
                                     ),
                                   );
 
-                                  if (staffCode != null && staffCode.isNotEmpty) {
+                                  if (staffCode != null &&
+                                      staffCode.isNotEmpty) {
                                     _CardIdtextController.text = staffCode;
 
                                     ScaffoldMessenger.of(context).showSnackBar(
@@ -351,12 +364,15 @@ class _LoginScreenState extends State<LoginScreen> {
           prefixIcon: Icon(icon, color: MyColors.appDefaultColorCode, size: 20),
           suffixIcon: isPassword
               ? IconButton(
-            icon: Icon(obscureText ? Icons.visibility_off : Icons.visibility, size: 20),
-            onPressed: onSuffixPressed,
-          )
+                  icon: Icon(
+                      obscureText ? Icons.visibility_off : Icons.visibility,
+                      size: 20),
+                  onPressed: onSuffixPressed,
+                )
               : null,
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         ),
       ),
     );
@@ -366,21 +382,22 @@ class _LoginScreenState extends State<LoginScreen> {
     _mainBloc.add(LoginEvents(username: username, password: passwordd));
   }
 
-  void _validation() {
+  Future<void> _validation() async {
     if (_CardIdtextController.text.isEmpty) {
       Fluttertoast.showToast(msg: "Please Enter Staff Code");
     } else if (_PasswordtextController.text.isEmpty) {
       Fluttertoast.showToast(msg: "Please Enter Password");
     } else {
-      checkLoggingUser();
+      await checkLoggingUser();
     }
   }
 
-  void checkLoggingUser() {
+  Future<void> checkLoggingUser() async {
     String cardId = _CardIdtextController.text;
     String password = _PasswordtextController.text;
 
-    if ((cardId == "mzdl002" && password == "Admin@123\$") || (cardId == "kdzl002" && password == "KdAdmin@1234\$")) {
+    if ((cardId == "mzdl002" && password == "Admin@123\$") ||
+        (cardId == "kdzl002" && password == "KdAdmin@1234\$")) {
       isAdminLogin = true;
     } else {
       isAdminLogin = false;
@@ -393,6 +410,28 @@ class _LoginScreenState extends State<LoginScreen> {
       storage.delete(key: 'username');
       storage.delete(key: 'password');
     }
+    if (isAdminLogin) {
+      doLogin(cardId, password);
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    bool isSubscribed = await SubscriptionService().checkSubscription(cardId);
+    setState(() {
+      _isLoading = false;
+    });
+    if (!isSubscribed) {
+      Fluttertoast.showToast(
+        msg: "Please subscribe to a valid plan to access the application.",
+        toastLength: Toast.LENGTH_LONG,
+      );
+      return;
+    }
+
+    /// Subscription Active
     doLogin(cardId, password);
   }
 
