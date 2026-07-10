@@ -51,7 +51,7 @@ android {
     signingConfigs {
         create("release") {
             keyAlias = "upload"/*keystoreProperties["keyAlias"] as String*/
-            keyPassword =  "Admin@12345\$"/*keystoreProperties["keyPassword"] as String*/
+            keyPassword = "Admin@12345\$"/*keystoreProperties["keyPassword"] as String*/
             storeFile = file("upload-keystore.jks")
             storePassword = "Admin@12345\$"/*keystoreProperties["storePassword"] as String*/
         }

@@ -1,17 +1,11 @@
-import 'dart:convert';
-import 'dart:io';
-
-import 'package:android_id/android_id.dart';
 import 'package:attendance_system_ios/bloc/main_bloc.dart';
 import 'package:attendance_system_ios/bloc/main_event.dart';
 import 'package:attendance_system_ios/bloc/main_state.dart';
 import 'package:attendance_system_ios/screen/AdminHomeScreen/AdminHome.dart';
-import 'package:attendance_system_ios/screen/Forget%20Password/forget_password.dart';
 import 'package:attendance_system_ios/screen/Home/home.dart';
 import 'package:attendance_system_ios/screen/Register/register_screen.dart';
 import 'package:attendance_system_ios/service/WebService.dart';
 import 'package:attendance_system_ios/service/log_file_manager.dart';
-import 'package:bcrypt/bcrypt.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -23,12 +17,11 @@ import 'package:loading_overlay/loading_overlay.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../main.dart';
 import '../../util/MyColor.dart';
-import '../../service/internet_service.dart';
 import '../Forget Password/forgetpassword.dart';
 import '../password retrieval/password_retrieval.dart';
-import 'UpdateDeviceID.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -38,7 +31,6 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-
   var checkedValue;
   var isLoading;
   bool _switchValue = true;
@@ -49,15 +41,13 @@ class _LoginScreenState extends State<LoginScreen> {
   final storage = FlutterSecureStorage();
   TextEditingController _CardIdtextController = TextEditingController();
   TextEditingController _PasswordtextController = TextEditingController();
-  String? mdeviceId="";
+  String? mdeviceId = "";
 
-  bool isAdminLogin=false;
+  bool isAdminLogin = false;
   LocalAuthentication auth = LocalAuthentication();
 
   @override
-  void activate() {
-
-  }
+  void activate() {}
 
   final ButtonStyle raisedButtonStyle = ElevatedButton.styleFrom(
     foregroundColor: Colors.white, backgroundColor: MyColors.lightBlue,
@@ -72,14 +62,14 @@ class _LoginScreenState extends State<LoginScreen> {
   void initState() {
     super.initState();
     print(isloggedIn);
+
     ///changes
     // WidgetsBinding.instance.addPostFrameCallback((_) {
     //   InternetService().startListening(MyApp.navigatorKey.currentState!.overlay!.context);
     // });
-
   }
-  void dispose() {
 
+  void dispose() {
     super.dispose();
   }
 
@@ -92,29 +82,27 @@ class _LoginScreenState extends State<LoginScreen> {
       print("File access permission already granted.");
     } else {
       // If permission is not granted, request the permission
-      PermissionStatus newStatus = await Permission.manageExternalStorage.request();
+      PermissionStatus newStatus =
+          await Permission.manageExternalStorage.request();
 
       if (newStatus.isGranted) {
         print("File access permission granted after request.");
       } else if (newStatus.isDenied) {
         print("File access permission denied.");
       } else if (newStatus.isPermanentlyDenied) {
-        print("File access permission permanently denied. Please enable it from settings.");
+        print(
+            "File access permission permanently denied. Please enable it from settings.");
         // Optionally, open the app settings for the user
         await openAppSettings();
       }
     }
   }
 
-
   Future<String?> _getId() async {
-
     DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
     AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
     print(androidInfo.id);
     return androidInfo.id; // This should return ANDROID_ID
-
-
 
     // var deviceInfo = DeviceInfoPlugin();
     // if (Platform.isIOS) { // import 'dart:io'
@@ -134,7 +122,6 @@ class _LoginScreenState extends State<LoginScreen> {
     _mainBloc = BlocProvider.of(context);
     return Scaffold(
       resizeToAvoidBottomInset: true,
-
       body: _loginscreen(),
     );
   }
@@ -154,9 +141,7 @@ class _LoginScreenState extends State<LoginScreen> {
               setState(() {
                 _isLoading = true;
               });
-            }
-
-            else if (state is LoginLoadedState) {
+            } else if (state is LoginLoadedState) {
               setState(() {
                 _isLoading = false;
               });
@@ -169,19 +154,25 @@ class _LoginScreenState extends State<LoginScreen> {
                 // );
 
                 // Store Auth Token and other details
-                await storage.write(key: 'Auth_Token', value: state.loginResponse!.token!.result!.token);
-                await storage.write(key: 'Staff_Code', value: state.loginResponse!.message!.staffCode);
-                await storage.write(key: 'Staff_Name', value: state.loginResponse!.message!.displayName);
+                await storage.write(
+                    key: 'Auth_Token',
+                    value: state.loginResponse!.token!.result!.token);
+                await storage.write(
+                    key: 'Staff_Code',
+                    value: state.loginResponse!.message!.staffCode);
+                await storage.write(
+                    key: 'Staff_Name',
+                    value: state.loginResponse!.message!.displayName);
 
                 SharedPreferences prefs = await SharedPreferences.getInstance();
 
                 // Save values to shared preferences
-                await prefs.setString('Auth_TokenVal', state.loginResponse!.token!.result!.token.toString());
+                await prefs.setString('Auth_TokenVal',
+                    state.loginResponse!.token!.result!.token.toString());
                 String? Auth_TokenVall = prefs.getString("Auth_TokenVal");
 
-
                 print(isloggedIn);
-                print("HEREEEEEEEEEEEEEEEEEEEEEEEEEE "+Auth_TokenVall!);
+                print("HEREEEEEEEEEEEEEEEEEEEEEEEEEE " + Auth_TokenVall!);
                 if (isAdminLogin) {
                   // Admin login does not require device ID check
                   Navigator.pushReplacement(
@@ -195,8 +186,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                   );
-                }
-                else{
+                } else {
                   await checkBiometrics();
                 }
                 // else {
@@ -235,36 +225,32 @@ class _LoginScreenState extends State<LoginScreen> {
                 //     );
                 //   }
                 // }
-              } else {                          // uncomment if login gives the issue in second time login
+              } else {
+                // uncomment if login gives the issue in second time login
                 storage.delete(key: 'username');
                 storage.delete(key: 'password');
               }
-            }
-
-            else if (state is LoginErrorState)
-            {
+            } else if (state is LoginErrorState) {
               print("login error state message");
               // if(state.msg ==)
               setState(() {
                 _isLoading = false;
               });
-
             }
           },
-          child:
-          CustomScrollView(
+          child: CustomScrollView(
             slivers: [
               SliverFillRemaining(
                   hasScrollBody: false,
                   child: Column(
-                    // mainAxisAlignment: MainAxisAlignment.center,
+                      // mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.center,
-                      children:[
+                      children: [
                         const SizedBox(height: 100),
-
                         Column(
                           children: [
-                            Image.asset("assets/icons/graphic-design.png",
+                            Image.asset(
+                              "assets/icons/graphic-design.png",
                               width: 100,
                               height: 110,
                             ),
@@ -288,20 +274,19 @@ class _LoginScreenState extends State<LoginScreen> {
                           ],
                         ),
                         const SizedBox(height: 30),
-
-                        const Text("Login", style: TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 20,
-
-                        ),
+                        const Text(
+                          "Login",
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 20,
+                          ),
                         ),
                         SizedBox(height: 5),
-
                         const SizedBox(height: 30),
-
                         Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 32, vertical: 12),
                           child: TextFormField(
                             controller: _CardIdtextController,
                             decoration: InputDecoration(
@@ -313,9 +298,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                         ),
-
                         Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 32, vertical: 12),
                           child: TextFormField(
                             controller: _PasswordtextController,
                             obscureText: passwordVisibility,
@@ -340,7 +325,6 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                         ),
-
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 32),
                           child: Row(
@@ -365,9 +349,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             ],
                           ),
                         ),
-
                         Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 32, vertical: 20),
                           child: SizedBox(
                             width: double.infinity,
                             height: 48,
@@ -386,7 +370,6 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                         ),
-
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -394,39 +377,40 @@ class _LoginScreenState extends State<LoginScreen> {
                               onPressed: () {
                                 Navigator.push(
                                   context,
-                                  MaterialPageRoute(builder: (_) => const PasswordRetrieval()),
+                                  MaterialPageRoute(
+                                      builder: (_) =>
+                                          const PasswordRetrieval()),
                                 );
                               },
                               child: const Text("Password Retrieval"),
                             ),
-                            // TextButton(
-                            //   onPressed: () {
-                            //     Navigator.push(
-                            //       context,
-                            //       MaterialPageRoute(builder: (_) => const ForgotPassword()),
-                            //     );
-                            //   },
-                            //   child: const Text("Forgot Password?"),
-                            // ),
+                            TextButton(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (_) => const ForgotPassword()),
+                                );
+                              },
+                              child: const Text(
+                                  "Forgot Password?\n (only for operators) "),
+                            ),
                             const SizedBox(width: 10),
                             TextButton(
                               onPressed: () {
                                 Navigator.push(
                                   context,
-                                  MaterialPageRoute(builder: (_) => const RegisterScreen()),
+                                  MaterialPageRoute(
+                                      builder: (_) => const RegisterScreen()),
                                 );
                               },
                               child: const Text("Register"),
                             ),
                           ],
                         ),
-
-                      ]
-                  )
-              ),
+                      ])),
             ],
-          )
-      ),
+          )),
     );
   }
 
@@ -441,7 +425,7 @@ class _LoginScreenState extends State<LoginScreen> {
   //   ],
   // )
 
-  void doLogin(String username,String passwordd) {
+  void doLogin(String username, String passwordd) {
     String userName = username;
     String password = passwordd;
 
@@ -451,25 +435,19 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _validation() {
-
-    if(_CardIdtextController.text.isEmpty)
-    {
+    if (_CardIdtextController.text.isEmpty) {
       Fluttertoast.showToast(
         msg: "  Please Enter Your CardId...!   ",
         toastLength: Toast.LENGTH_SHORT,
         timeInSecForIosWeb: 1,
       );
-    }
-    else if(_PasswordtextController.text.isEmpty)
-    {
+    } else if (_PasswordtextController.text.isEmpty) {
       Fluttertoast.showToast(
         msg: "  Please Enter Password...!   ",
         toastLength: Toast.LENGTH_SHORT,
         timeInSecForIosWeb: 1,
       );
-    }
-    else
-    {
+    } else {
       checkLoggingUser();
     }
   }
@@ -479,12 +457,13 @@ class _LoginScreenState extends State<LoginScreen> {
     String password = _PasswordtextController.text;
 
     // Check if the user is admin (you can adapt this logic as necessary)
-    if (cardId == "mzdl002" && password == "Admin@123\$" || cardId == "kdzl002" && password =="KdAdmin@1234\$") {
+    if (cardId == "mzdl002" && password == "Admin@123\$" ||
+        cardId == "kdzl002" && password == "KdAdmin@1234\$") {
       isAdminLogin = true;
-      doLogin(cardId,password);
+      doLogin(cardId, password);
     } else {
       isAdminLogin = false;
-      doLogin(cardId,password);
+      doLogin(cardId, password);
     }
 
     // If "Remember Me" is selected, save the login credentials
@@ -498,19 +477,16 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> checkBiometrics() async {
-    try
-    {
+    try {
       bool canCheckBiometrics = await auth.canCheckBiometrics;
-      if (canCheckBiometrics)
-      {
-        List<BiometricType> availableBiometrics = await auth.getAvailableBiometrics();
+      if (canCheckBiometrics) {
+        List<BiometricType> availableBiometrics =
+            await auth.getAvailableBiometrics();
         print("Available biometrics: $availableBiometrics");
         LogFileManager.writeLog("Available biometrics: $availableBiometrics");
         //LogFileManager.saveData("Available biometrics: $availableBiometrics","hereeeee");
         await authenticate();
-      }
-      else
-      {
+      } else {
         Fluttertoast.showToast(
           msg: "  No biometrics available on this device...!   ",
           toastLength: Toast.LENGTH_SHORT,
@@ -524,9 +500,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
         await authenticate();
       }
-    }
-    catch (e)
-    {
+    } catch (e) {
       LogFileManager.writeLog('Error checking biometrics: $e');
       print("Error checking biometrics: $e");
     }
@@ -556,9 +530,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
         );
-      }
-      else
-      {
+      } else {
         Fluttertoast.showToast(
           msg: "Authentication failed. Please try again!",
           toastLength: Toast.LENGTH_LONG,
@@ -567,15 +539,13 @@ class _LoginScreenState extends State<LoginScreen> {
         print("Authentication failed.");
       }
     } catch (e) {
-      if (e is PlatformException)
-      {
-
-        print ("Authentication e.code----"+e.code);
-        LogFileManager.writeLog("Authentication e.code----"+e.code);
-        switch (e.code)
-        {
+      if (e is PlatformException) {
+        print("Authentication e.code----" + e.code);
+        LogFileManager.writeLog("Authentication e.code----" + e.code);
+        switch (e.code) {
           case 'NotAvailable':
-            LogFileManager.writeLog("Biometric authentication is not available on this device.");
+            LogFileManager.writeLog(
+                "Biometric authentication is not available on this device.");
             print("Biometric authentication is not available on this device.");
             Fluttertoast.showToast(
               msg: "Biometric authentication is not available on this device.",
@@ -594,19 +564,25 @@ class _LoginScreenState extends State<LoginScreen> {
 
             break;
           case 'NotEnrolled':
-            LogFileManager.writeLog("No biometrics enrolled. Please enroll your fingerprint or Face ID in device settings.");
-            print("No biometrics enrolled. Please enroll your fingerprint or Face ID in device settings.");
+            LogFileManager.writeLog(
+                "No biometrics enrolled. Please enroll your fingerprint or Face ID in device settings.");
+            print(
+                "No biometrics enrolled. Please enroll your fingerprint or Face ID in device settings.");
             Fluttertoast.showToast(
-              msg: "No biometrics enrolled. Please enroll your fingerprint or Face ID in device settings.",
+              msg:
+                  "No biometrics enrolled. Please enroll your fingerprint or Face ID in device settings.",
               toastLength: Toast.LENGTH_LONG,
               timeInSecForIosWeb: 1,
             );
             break;
           case 'LockedOut':
-            print("Biometric authentication is temporarily locked. Please try again later.");
-            LogFileManager.writeLog("Biometric authentication is temporarily locked. Please try again later.");
+            print(
+                "Biometric authentication is temporarily locked. Please try again later.");
+            LogFileManager.writeLog(
+                "Biometric authentication is temporarily locked. Please try again later.");
             Fluttertoast.showToast(
-              msg: "Biometric authentication is temporarily locked. Please try again later.",
+              msg:
+                  "Biometric authentication is temporarily locked. Please try again later.",
               toastLength: Toast.LENGTH_LONG,
               timeInSecForIosWeb: 1,
             );
@@ -631,7 +607,8 @@ class _LoginScreenState extends State<LoginScreen> {
             break;
           case 'PasscodeNotSet':
             print("A passcode must be set to use biometric authentication.");
-            LogFileManager.writeLog("A passcode must be set to use biometric authentication.");
+            LogFileManager.writeLog(
+                "A passcode must be set to use biometric authentication.");
             Fluttertoast.showToast(
               msg: "A passcode must be set to use biometric authentication.",
               toastLength: Toast.LENGTH_LONG,
@@ -640,7 +617,8 @@ class _LoginScreenState extends State<LoginScreen> {
             break;
           default:
             print("An unexpected error occurred: ${e.message}");
-            LogFileManager.writeLog("An unexpected error occurred: ${e.message}");
+            LogFileManager.writeLog(
+                "An unexpected error occurred: ${e.message}");
             Fluttertoast.showToast(
               msg: "An unexpected error occurred: ${e.message}",
               toastLength: Toast.LENGTH_LONG,
@@ -650,5 +628,4 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     }
   }
-
 }

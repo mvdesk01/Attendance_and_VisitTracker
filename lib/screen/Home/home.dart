@@ -6,7 +6,6 @@ import 'package:attendance_system_ios/bloc/main_bloc.dart';
 import 'package:attendance_system_ios/bloc/main_event.dart';
 import 'package:attendance_system_ios/bloc/main_state.dart';
 import 'package:attendance_system_ios/main.dart';
-import 'package:attendance_system_ios/screen/AdminHomeScreen/AdminHome.dart';
 import 'package:attendance_system_ios/screen/Gate%20Pass/gate_pass.dart';
 import 'package:attendance_system_ios/screen/Home/report.dart';
 import 'package:attendance_system_ios/screen/Leave/leave.dart';
@@ -14,7 +13,6 @@ import 'package:attendance_system_ios/screen/Login/login_screen.dart';
 import 'package:attendance_system_ios/screen/Profile/profile.dart';
 import 'package:attendance_system_ios/screen/Remote%20Location/remote_location.dart';
 import 'package:attendance_system_ios/screen/Transaction/COff%20Debit/CoffDebitScreen.dart';
-import 'package:attendance_system_ios/screen/Transaction/CoffCreditScreen.dart';
 import 'package:attendance_system_ios/screen/Visit%20History/Visit_History_Screen.dart';
 import 'package:attendance_system_ios/service/LocationHandler.dart';
 import 'package:attendance_system_ios/service/WebService.dart';
@@ -57,7 +55,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   String todayDate =
-  DateFormat('dd-MM-yyyy HH:mm:ss').format(DateTime.now()).substring(0, 10);
+      DateFormat('dd-MM-yyyy HH:mm:ss').format(DateTime.now()).substring(0, 10);
   String currentTime = DateFormat('dd-MM-yyyy HH:mm:ss')
       .format(DateTime.now())
       .substring(10, 19);
@@ -250,7 +248,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (!hasPermission) {
       Fluttertoast.showToast(
         msg:
-        "Allow location permission from settings to use Punch-In Punch-Out feature!",
+            "Allow location permission from settings to use Punch-In Punch-Out feature!",
         toastLength: Toast.LENGTH_SHORT,
         gravity: ToastGravity.BOTTOM,
         fontSize: 14.0,
@@ -265,22 +263,22 @@ class _HomeScreenState extends State<HomeScreen> {
 
       // Format the date to 'dd/MM/yyyy' format as required by the API
       String formattedFromDate =
-      DateFormat('dd/MM/yyyy').format(DateTime.now());
+          DateFormat('dd/MM/yyyy').format(DateTime.now());
       String formattedToDate = DateFormat('dd/MM/yyyy').format(DateTime.now());
 
       final response = await http
           .post(
-        Uri.parse('http://114.143.140.28:8020/api/InOut/InOutDetails'),
-        headers: {
-          "Content-Type": "application/json",
-          'Authorization': 'Bearer $Auth_Token'
-        },
-        body: jsonEncode({
-          "staffCode": staffCode,
-          "fromDate": formattedFromDate,
-          "toDate": formattedToDate,
-        }),
-      )
+            Uri.parse('http://114.143.140.28:8020/api/InOut/InOutDetails'),
+            headers: {
+              "Content-Type": "application/json",
+              'Authorization': 'Bearer $Auth_Token'
+            },
+            body: jsonEncode({
+              "staffCode": staffCode,
+              "fromDate": formattedFromDate,
+              "toDate": formattedToDate,
+            }),
+          )
           .timeout(const Duration(seconds: 15));
 
       print("home inout details statuscode: ${response.statusCode}");
@@ -290,7 +288,7 @@ class _HomeScreenState extends State<HomeScreen> {
         List<dynamic> data = decoded['data'] ?? [];
 
         List<InOutDetail> details =
-        data.map((item) => InOutDetail.fromJson(item)).toList();
+            data.map((item) => InOutDetail.fromJson(item)).toList();
 
         setState(() {
           isLoading = false;
@@ -436,7 +434,7 @@ class _HomeScreenState extends State<HomeScreen> {
             end: Alignment.bottomRight,
           ),
           borderRadius:
-          BorderRadius.circular(8), // ✅ rounded gradient background
+              BorderRadius.circular(8), // ✅ rounded gradient background
         ),
         padding: EdgeInsets.all(16),
         child: Text(
@@ -600,7 +598,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         CircleAvatar(
                           radius: 52,
                           backgroundImage:
-                          AssetImage("assets/icons/profile.png"),
+                              AssetImage("assets/icons/profile.png"),
                         ),
                         Text(
                           "${staffName!}",
@@ -652,7 +650,7 @@ class _HomeScreenState extends State<HomeScreen> {
               leading: const Icon(Icons.book_outlined),
               title: const Text('Gate Pass'),
               onTap: () {
-                Navigator.pushReplacement(
+                Navigator.push(
                     context,
                     MaterialPageRoute(
                         builder: (_) => BlocProvider(
@@ -660,24 +658,8 @@ class _HomeScreenState extends State<HomeScreen> {
                               return MainBloc(webService: WebService());
                             },
                             child: GatePass())));
-                //    Navigator.push(context, MaterialPageRoute(builder: (context) => const GatePass()));
               },
             ),
-            // ListTile(
-            //   leading: const Icon(Icons.book_outlined),
-            //   title: const Text('COff Credit'),
-            //   onTap: () {
-            //     Navigator.pushReplacement(
-            //         context,
-            //         MaterialPageRoute(
-            //             builder: (_) => BlocProvider(
-            //                 create: (context) {
-            //                   return MainBloc(webService: WebService());
-            //                 },
-            //                 child: Coffcreditscreen())));
-            //     //    Navigator.push(context, MaterialPageRoute(builder: (context) => const GatePass()));
-            //   },
-            // ),
             ListTile(
               leading: const Icon(Icons.book_outlined),
               title: const Text('COff Debit'),
@@ -690,25 +672,9 @@ class _HomeScreenState extends State<HomeScreen> {
                               return MainBloc(webService: WebService());
                             },
                             child: CoffDebitscreen())));
-                //    Navigator.push(context, MaterialPageRoute(builder: (context) => const GatePass()));
               },
             ),
-            // ListTile(
-            //   leading: const Icon(Icons.book_outlined),
-            //   title: const Text('Cancellation Request'),
-            //   onTap: (){
-            //     Navigator.pushReplacement(
-            //         context,
-            //         MaterialPageRoute(
-            //             builder: (_) => BlocProvider(
-            //                 create: (context) {
-            //                   return MainBloc(
-            //                       webService: WebService());
-            //                 },
-            //                 child: CancellationRequestScreen())));
-            //     //    Navigator.push(context, MaterialPageRoute(builder: (context) => const GatePass()));
-            //   },
-            // ),
+
             ListTile(
               leading: const Icon(Icons.money_off_outlined),
               title: const Text('Expense Management'),
@@ -774,8 +740,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     context,
                     MaterialPageRoute(
                         builder: (context) => VisitStartStopScreen(
-                          visit: null,
-                        )));
+                              visit: null,
+                            )));
                 //  mainBloc.add(GetMinutesOfMeetingFormNoEvents(UserId: "cd03080",SrNo: "844",token: Auth_Token!));
               },
             ),
@@ -867,7 +833,6 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
-
 
       //Bottom Navigation bar
       bottomNavigationBar: BottomNavigationBar(
@@ -1044,7 +1009,7 @@ class _HomeScreenState extends State<HomeScreen> {
               isLoading = true;
             });
           } else if (state is GetMultiRemoteLocationLoadedState) {
-            if(state.response != null) {
+            if (state.response != null) {
               multiLatLongList = state.response;
             }
             setState(() {
@@ -1251,7 +1216,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           GestureDetector(
                             onTap: () {
-                              Navigator.pushReplacement(
+                              Navigator.push(
                                   context,
                                   MaterialPageRoute(
                                       builder: (_) => BlocProvider(
@@ -1278,7 +1243,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                           color: Colors.blueAccent
                                               .withOpacity(0.1),
                                           borderRadius:
-                                          BorderRadius.circular(8),
+                                              BorderRadius.circular(8),
                                         ),
                                         child: const Icon(
                                           Icons.backpack_outlined,
@@ -1291,7 +1256,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     const Expanded(
                                       child: Column(
                                         crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                            CrossAxisAlignment.start,
                                         children: [
                                           Text(
                                             "Leave",
@@ -1319,7 +1284,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           GestureDetector(
                             onTap: () {
-                              Navigator.pushReplacement(
+                              Navigator.push(
                                   context,
                                   MaterialPageRoute(
                                       builder: (_) => BlocProvider(
@@ -1346,7 +1311,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                           color: Colors.blueAccent
                                               .withOpacity(0.1),
                                           borderRadius:
-                                          BorderRadius.circular(8),
+                                              BorderRadius.circular(8),
                                         ),
                                         child: const Icon(
                                           Icons.book_outlined,
@@ -1359,7 +1324,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     const Expanded(
                                       child: Column(
                                         crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                            CrossAxisAlignment.start,
                                         children: [
                                           Text(
                                             "Gate Pass",
@@ -1471,18 +1436,18 @@ class _HomeScreenState extends State<HomeScreen> {
                                 onPressed: isButtonDisabledIn
                                     ? null
                                     : () async {
-                                  Navigator.of(context).pop();
-                                  setState(() {
-                                    isLoading =
-                                    true; // Show progress indicator
-                                  });
-                                  await checkBiometrics();
-                                  //await punchIn();
-                                  setState(() {
-                                    isLoading =
-                                    false; // Show progress indicator
-                                  });
-                                },
+                                        Navigator.of(context).pop();
+                                        setState(() {
+                                          isLoading =
+                                              true; // Show progress indicator
+                                        });
+                                        await checkBiometrics();
+                                        //await punchIn();
+                                        setState(() {
+                                          isLoading =
+                                              false; // Show progress indicator
+                                        });
+                                      },
                                 child: const Text("OK"),
                                 /* isLoading
                                           ? CircularProgressIndicator()
@@ -1616,18 +1581,18 @@ class _HomeScreenState extends State<HomeScreen> {
                                 onPressed: isButtonDisabledOut
                                     ? null
                                     : () async {
-                                  Navigator.of(context).pop();
-                                  setState(() {
-                                    isLoading =
-                                    true; // Show progress indicator
-                                  });
-                                  await checkbiometricspunchout();
-                                  //await punchOut();
-                                  setState(() {
-                                    isLoading =
-                                    false; // Show progress indicator
-                                  });
-                                },
+                                        Navigator.of(context).pop();
+                                        setState(() {
+                                          isLoading =
+                                              true; // Show progress indicator
+                                        });
+                                        await checkbiometricspunchout();
+                                        //await punchOut();
+                                        setState(() {
+                                          isLoading =
+                                              false; // Show progress indicator
+                                        });
+                                      },
                                 child: const Text("OK"),
                               ),
                               /*   TextButton(onPressed: () {
@@ -1806,7 +1771,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           Text(
                             'Schedule your visit',
                             style:
-                            TextStyle(fontSize: 14, color: Colors.black54),
+                                TextStyle(fontSize: 14, color: Colors.black54),
                           ),
                         ],
                       ),
@@ -1872,7 +1837,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           Text(
                             'Start and Stop your active visit',
                             style:
-                            TextStyle(fontSize: 14, color: Colors.black54),
+                                TextStyle(fontSize: 14, color: Colors.black54),
                           ),
                         ],
                       ),
@@ -1940,7 +1905,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           Text(
                             'Track your visit history location',
                             style:
-                            TextStyle(fontSize: 14, color: Colors.black54),
+                                TextStyle(fontSize: 14, color: Colors.black54),
                           ),
                         ],
                       ),
@@ -2147,7 +2112,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                     content:
-                    const Text('Already Marked!! or First Punch Out!!'),
+                        const Text('Already Marked!! or First Punch Out!!'),
                     action: SnackBarAction(
                         label: 'X',
                         onPressed: () {
@@ -2177,8 +2142,12 @@ class _HomeScreenState extends State<HomeScreen> {
           _currentLat = LocationHandler.currentLat.toString();
           _currentLon = LocationHandler.currentLon.toString();
           _currentAddress = LocationHandler.currentAddress;
-          String currentDate = DateFormat('dd-MM-yyyy HH:mm:ss').format(DateTime.now()).substring(0, 19);
-          String currentDateTime = DateFormat('dd-MM-yyyy HH:mm:ss').format(DateTime.now()).substring(0, 19);
+          String currentDate = DateFormat('dd-MM-yyyy HH:mm:ss')
+              .format(DateTime.now())
+              .substring(0, 19);
+          String currentDateTime = DateFormat('dd-MM-yyyy HH:mm:ss')
+              .format(DateTime.now())
+              .substring(0, 19);
 
           String? result = await storeNotInZoneEntry(
               currentDate,
@@ -2758,7 +2727,7 @@ class _HomeScreenState extends State<HomeScreen> {
         return AlertDialog(
           title: const Text("Stop Visit Tracking"),
           content:
-          const Text("Are you sure you want to stop tracking the visit?"),
+              const Text("Are you sure you want to stop tracking the visit?"),
           actions: [
             TextButton(
               onPressed: () {
@@ -2803,7 +2772,7 @@ class _HomeScreenState extends State<HomeScreen> {
               },
               child: LoginScreen()),
         ),
-            (Route<dynamic> route) => false);
+        (Route<dynamic> route) => false);
   }
 
   // Function to clear specific keys
@@ -2825,7 +2794,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> retorepunchdata() async {
     final dbHelper = DatabaseHelper();
     List<Map<String, dynamic>> offlineEntries =
-    await dbHelper.getOfflinePunchEntries();
+        await dbHelper.getOfflinePunchEntries();
 
     for (var entry in offlineEntries) {
       try {
@@ -2852,7 +2821,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
           // Only update UI if this was the most recent operation
           final lastEntry =
-          await dbHelper.getLastPunchEntry(entry['staff_code']);
+              await dbHelper.getLastPunchEntry(entry['staff_code']);
           if (lastEntry != null && lastEntry['id'] == entry['id']) {
             setState(() {
               if (entry['flag_value'] == "001") {
@@ -2874,7 +2843,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> retorepunchoutdata() async {
     final dbHelper = DatabaseHelperPunchout();
     List<Map<String, dynamic>> offlineEntries =
-    await dbHelper.getOfflinePunchoutEntries();
+        await dbHelper.getOfflinePunchoutEntries();
 
     for (var entry in offlineEntries) {
       try {
@@ -2901,7 +2870,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
           // Only update UI if this was the most recent operation
           final lastEntry =
-          await dbHelper.getLastPunchoutEntry(entry['staff_code']);
+              await dbHelper.getLastPunchoutEntry(entry['staff_code']);
           if (lastEntry != null && lastEntry['id'] == entry['id']) {
             setState(() {
               if (entry['flag_value'] == "001") {
@@ -2921,14 +2890,14 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> sqlitePunchIN(
-      String transactionDate,
-      String transactionTime,
-      String staffCode,
-      String flagvalue,
-      String address,
-      String latitude,
-      String longitude,
-      ) async {
+    String transactionDate,
+    String transactionTime,
+    String staffCode,
+    String flagvalue,
+    String address,
+    String latitude,
+    String longitude,
+  ) async {
     final dbHelper = DatabaseHelper();
 
     // Check if entry already exists
@@ -2979,7 +2948,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     // Check if entry already exists
     bool exists =
-    await dbHelper.checkDuplicatePunchOut(staffCode, transactionDate, s);
+        await dbHelper.checkDuplicatePunchOut(staffCode, transactionDate, s);
     if (exists) {
       LogFileManager.writeLog(
           "Duplicate offline entry skipped for $staffCode on $transactionDate with flag $s");
@@ -3018,7 +2987,7 @@ class _HomeScreenState extends State<HomeScreen> {
       bool canCheckBiometrics = await auth.canCheckBiometrics;
       if (canCheckBiometrics) {
         List<BiometricType> availableBiometrics =
-        await auth.getAvailableBiometrics();
+            await auth.getAvailableBiometrics();
         print("Available biometrics: $availableBiometrics");
         LogFileManager.writeLog("Available biometrics: $availableBiometrics");
         //LogFileManager.saveData("Available biometrics: $availableBiometrics","hereeeee");
@@ -3138,11 +3107,11 @@ class _HomeScreenState extends State<HomeScreen> {
             print("An unexpected error occurred: ${e.message}");
             LogFileManager.writeLog(
                 "An unexpected error occurred: ${e.message}");
-        // Fluttertoast.showToast(
-        //   msg: "An unexpected error occurred: ${e.message}",
-        //   toastLength: Toast.LENGTH_LONG,
-        //   timeInSecForIosWeb: 1,
-        // );
+          // Fluttertoast.showToast(
+          //   msg: "An unexpected error occurred: ${e.message}",
+          //   toastLength: Toast.LENGTH_LONG,
+          //   timeInSecForIosWeb: 1,
+          // );
         }
       }
     }
@@ -3153,7 +3122,7 @@ class _HomeScreenState extends State<HomeScreen> {
       bool canCheckBiometrics = await auth.canCheckBiometrics;
       if (canCheckBiometrics) {
         List<BiometricType> availableBiometrics =
-        await auth.getAvailableBiometrics();
+            await auth.getAvailableBiometrics();
         print("Available biometrics: $availableBiometrics");
         LogFileManager.writeLog("Available biometrics: $availableBiometrics");
         //LogFileManager.saveData("Available biometrics: $availableBiometrics","hereeeee");
@@ -3273,11 +3242,11 @@ class _HomeScreenState extends State<HomeScreen> {
             print("An unexpected error occurred: ${e.message}");
             LogFileManager.writeLog(
                 "An unexpected error occurred: ${e.message}");
-        // Fluttertoast.showToast(
-        //   msg: "An unexpected error occurred: ${e.message}",
-        //   toastLength: Toast.LENGTH_LONG,
-        //   timeInSecForIosWeb: 1,
-        // );
+          // Fluttertoast.showToast(
+          //   msg: "An unexpected error occurred: ${e.message}",
+          //   toastLength: Toast.LENGTH_LONG,
+          //   timeInSecForIosWeb: 1,
+          // );
         }
       }
     }
