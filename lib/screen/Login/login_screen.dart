@@ -17,6 +17,7 @@ import 'package:local_auth/local_auth.dart';
 import '../../model/subscription/subscription_service.dart';
 import '../../util/MyColor.dart';
 import '../AdminHomeScreen/AdminHome.dart';
+import '../Forget Password/forgetpassword.dart';
 import '../password_retrieval/password_retrieval.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -329,6 +330,22 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             ],
                           ),
+                          // const SizedBox(height: 0),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children:[
+                              TextButton(
+                                onPressed:() { Navigator.push(context, MaterialPageRoute(builder: (context) => const ForgotPassword()));},
+                                child: const Text('Forgot Password',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: MyColors.appDefaultColorCode,
+                                  ),),
+                              ),
+                              const Text('(Only for operators)')
+                            ]
+                          )
                         ],
                       ),
                     ),
