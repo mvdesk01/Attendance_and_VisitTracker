@@ -1,5 +1,7 @@
 
+import 'package:attendance_system_ios/screen/Settings/subscription_details.dart';
 import 'package:attendance_system_ios/service/menu_rights_service.dart';
+import 'package:attendance_system_ios/util/MyColor.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../Punchremainder/Punchremainder.dart';
@@ -38,8 +40,12 @@ class _SettingsPageState extends State<SettingsPage> {
         centerTitle: true,
         title: const Text(
           'Settings',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(
+              fontWeight: FontWeight.bold,
+            color: Colors.white
+          ),
         ),
+        backgroundColor: MyColors.lightBlue,
         elevation: 0,
       ),
       body: Padding(
@@ -64,7 +70,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     context,
                     icon: Icons.notifications_active_outlined,
                     title: 'Set Punch In-Out Reminder',
-                    description: 'Get reminders to punch in and out on time.',
+                    description: 'Reminders to punch in and out on time.',
                     onTap: () {
                       // Navigate to TimerPage when tapped
                       Navigator.push(
@@ -72,12 +78,20 @@ class _SettingsPageState extends State<SettingsPage> {
                         MaterialPageRoute(
                           // Uncomment the appropriate screen to navigate
                           // builder: (context) => PunchRemainderScreen(),
-                          builder: (context) => AlarmScreen(),
+                          builder: (context) => const AlarmScreen(),
                         ),
                       );
                     },
                   ),
-
+                  const SizedBox(height: 20),
+                  _buildSettingItem(
+                      context,
+                      icon: Icons.subscriptions,
+                      title: "Subscriptions Details",
+                      description : "check your subscription details",
+                      onTap:() {
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => const SubscriptionDetailsScreen()));}
+                  )
                 ],
               ),
 
