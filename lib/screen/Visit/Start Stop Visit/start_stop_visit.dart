@@ -386,8 +386,8 @@ class VisitDropdownScreenState extends State<VisitStartStopScreen>
     }
 
     // ✅ Always continue visit start
-    await startLocationTracking(visit);
     backgroundService.setServiceAsForeGround();
+    await startLocationTracking(visit);
     LogFileManager.writeLog(
         "Visit started ${visit.reason} At: ${DateTime.now()}");
   }
@@ -568,8 +568,7 @@ class VisitDropdownScreenState extends State<VisitStartStopScreen>
     print("Tracking started for visit: ${visit.reason /*['VisitName']*/}");
   }
 
-  Future<void> updateVisitStatusStartingLatLong(
-      double latitude, double longitude, Data visit) async {
+  Future<void> updateVisitStatusStartingLatLong( double latitude, double longitude, Data visit) async {
     try {
       final response = await http.post(
           Uri.parse(
@@ -592,8 +591,7 @@ class VisitDropdownScreenState extends State<VisitStartStopScreen>
   }
 
   ///newWithofflineSupport
-  Future<void> sendLocation(
-      double latitude, double longitude, Data visit) async {
+  Future<void> sendLocation( double latitude, double longitude, Data visit) async {
     int? transactionId = visit.srNo;
     String actualDate =
         DateFormat('dd/MM/yyyy').format(DateTime.now()).split(" ").first;
@@ -766,17 +764,14 @@ class VisitDropdownScreenState extends State<VisitStartStopScreen>
       VisitState.runningVisitSrNo = null;
       await storage.delete(key: 'RunningVisitSrNo');
       backgroundService.stopService();
-      BackgroundServiceAutoStart backgroundServiceAutoStart =
-          BackgroundServiceAutoStart();
+      BackgroundServiceAutoStart backgroundServiceAutoStart = BackgroundServiceAutoStart();
       backgroundServiceAutoStart.stopService();
       // ❗️ Manually cancel the notification (especially for iOS)
-      await FlutterLocalNotificationsPlugin()
-          .cancel(foregroundServiceNotificationId);
+      await FlutterLocalNotificationsPlugin().cancel(foregroundServiceNotificationId);
       await FlutterLocalNotificationsPlugin().cancel(889);
       await FlutterLocalNotificationsPlugin().cancelAll();
       if (Platform.isIOS) {
-        await NativeLocationBridge
-            .stopNativeTracking(); // 👈 Native ios stop tracking
+        await NativeLocationBridge.stopNativeTracking(); // 👈 Native ios stop tracking
       }
       Fluttertoast.showToast(msg: "Visit stopped.");
       LogFileManager.writeLog("Visit Stopped At: ${DateTime.now()}");
@@ -1330,6 +1325,7 @@ class VisitDropdownScreenState extends State<VisitStartStopScreen>
     // localNotifications.cancelAll(); // Remove notification
   }
 }
+
 
 ///dropdown
 ///current

@@ -375,7 +375,7 @@ void onStart(ServiceInstance service) async {
     // ✅ Optimized Android location settings
     final androidSettings = AndroidSettings(
       accuracy: LocationAccuracy.bestForNavigation, // high accuracy + fused provider if available
-      intervalDuration: const Duration(seconds: 7), // update interval
+      intervalDuration: const Duration(seconds: 5), // update interval
       distanceFilter: 8, // increased from 5 to 8, to overcome the speed inconsistancy due to frequent updates // frequent updates may cause speed inaccuracy
       // ❌ Removed forceLocationManager,   //let system choose fused/GPS(fused usually better)
       // foregroundNotificationConfig: const ForegroundNotificationConfig(
@@ -491,7 +491,8 @@ void onStart(ServiceInstance service) async {
           parsedEndTime.minute,
         );
 
-        if (now.isAfter(visitEndTime)) {
+        if (now.isAfter(visitEndTime))
+        {
           LogFileManager.writeLog("Auto-stopped visit: time expired at $visitEndTime");
 
           // Stop tracking service
@@ -505,9 +506,12 @@ void onStart(ServiceInstance service) async {
           await storage.delete(key: 'SelectedVisit');
           await storage.delete(key: 'AutoStartVisit');
           await storage.delete(key: 'isVisitRunning');
+          await storage.delete(key: 'RunningVisitSrNo');
+
           // ✅ Update global state only
           VisitState.isVisitRunning.value = false;
           VisitState.isVisitStarted.value = false;
+          VisitState.runningVisitSrNo = null;
 
           BackgroundService backgroundService = BackgroundService();
           backgroundService.stopService();
@@ -529,8 +533,9 @@ void onStart(ServiceInstance service) async {
       }
 
       /// ✅ Filter to overcome position data inconcistancy, or smoothning raw location data
+      // filters(position);
 
-      if (position.accuracy > 60) {
+      if (position.accuracy > 80) {
         LogFileManager.writeLog("Skipped due to poor accuracy: ${position.accuracy}m");
         print("⛔️ Skipped due to poor accuracy: ${position.accuracy}m");
         return;
@@ -568,6 +573,7 @@ void onStart(ServiceInstance service) async {
           }
         }
       }
+
 
       // ✅ smoothing → average with last 3 positions
       lastPositions.add(position);
@@ -641,6 +647,56 @@ void onStart(ServiceInstance service) async {
     print("Error in onStart: $e");
     LogFileManager.writeLog("Error in onStart $e");
   }
+}
+
+void filters(Position position){
+  DateTime now = DateTime.now();
+
+  if (position.accuracy > 60) {
+    LogFileManager.writeLog("Skipped due to poor accuracy: ${position.accuracy}m");
+    print("⛔️ Skipped due to poor accuracy: ${position.accuracy}m");
+    return;
+  }
+
+  // ✅ time filter (ignore too frequent updates)
+  if (lastTime != null && now.difference(lastTime!).inSeconds < 5) {
+    LogFileManager.writeLog("Skipped due to frequest update ${lastPosition!.latitude}: ${lastPosition!.longitude}  m");
+    return;
+  }
+
+  // ✅ distance filter
+  double distance = lastPosition == null
+      ? 9999
+      : Geolocator.distanceBetween(
+    lastPosition!.latitude, lastPosition!.longitude,
+    position.latitude, position.longitude,
+  );
+
+  if (distance < 8) {
+    LogFileManager.writeLog("Skipping jitter point ${lastPosition!.latitude}: ${lastPosition!.longitude}  m");
+    print("🧠 Skipping jitter point (moved only $distance m)");
+    return;
+  }
+
+  // ✅ speed sanity check (ignore unrealistic jumps)
+  if (lastPosition != null && lastTime != null) {
+    int timeDiff = now.difference(lastTime!).inSeconds;
+    if (timeDiff > 0) {
+      double speed = distance / timeDiff; // m/s
+      if (speed > 45) {
+        LogFileManager.writeLog("Skipped unrealistic speed ${lastPosition!.latitude}: ${lastPosition!.longitude}:${speed}  m");
+        print("⚠️ Skipped unrealistic speed: $speed m/s");
+        return;
+      }
+    }
+  }
+
+  // ✅ smoothing → average with last 3 positions
+  lastPositions.add(position);
+  if (lastPositions.length > 3) lastPositions.removeAt(0);
+  double avgLat = lastPositions.map((p) => p.latitude).reduce((a, b) => a + b) / lastPositions.length;
+  double avgLng = lastPositions.map((p) => p.longitude).reduce((a, b) => a + b) / lastPositions.length;
+  LogFileManager.writeLog("smoothing ${avgLat}: ${avgLng}");
 }
 
 /// with indoor and outdoor logic

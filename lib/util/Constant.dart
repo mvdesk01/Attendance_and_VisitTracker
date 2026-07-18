@@ -1,7 +1,8 @@
 class Constant {
 
-  // static String baseUrl = 'http://114.143.140.28:8020/';
-  static String baseUrl = 'http://114.143.140.28:8020/';
+  // static String baseUrl = 'https://attendanceappapi.m-techinnovations.com/';
+  // static String baseUrl = 'http://192.168.1.19:8015/';       // local server
+  static String baseUrl = 'http://114.143.140.28:8020/';       // live server
 
   static String loginUrl = baseUrl + 'Users/GetLoginData?';
   static String staffDetailsUrl = baseUrl + 'api/GatePass/GetStaffDetails/';
