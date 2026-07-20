@@ -72,8 +72,7 @@ class _PunchRemainderScreenState extends State<PunchRemainderScreen> {
   }
 
   // Schedule Alarm and Show Toast for Punch In/Out
-  Future<void> _scheduleAlarm(
-      TimeOfDay time, String message, String sound) async {
+  Future<void> _scheduleAlarm( TimeOfDay time, String message, String sound ) async {
     print('Scheduling alarm: $message at ${time.format(context)}');
     try {
       final now = DateTime.now();

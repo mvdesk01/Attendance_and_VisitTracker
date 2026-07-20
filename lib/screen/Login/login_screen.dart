@@ -11,8 +11,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import 'package:loading_overlay/loading_overlay.dart';
 import 'package:local_auth/local_auth.dart';
+import 'package:workmanager/workmanager.dart';
 
 import '../../model/subscription/subscription_service.dart';
 import '../../util/MyColor.dart';
@@ -436,11 +438,11 @@ class _LoginScreenState extends State<LoginScreen> {
       _isLoading = true;
     });
 
-    bool isSubscribed = await SubscriptionService().checkSubscription(cardId);
+    final subscriptionDetails = await SubscriptionService().checkSubscription(cardId);
     setState(() {
       _isLoading = false;
     });
-    if (!isSubscribed) {
+    if (subscriptionDetails == null || subscriptionDetails['status'] == false) {
       Fluttertoast.showToast(
         msg: "Please subscribe to a valid plan to access the application.",
         toastLength: Toast.LENGTH_LONG,
@@ -448,9 +450,41 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
+    String expiryDate = subscriptionDetails['data']['endDate'];
+     await _scheduleSubscriptionExpiryNotification(expiryDate);
+
     /// Subscription Active
     doLogin(cardId, password);
   }
+
+  Future<void> _scheduleSubscriptionExpiryNotification(String expiryDate) async {
+    final DateTime expiry = DateTime.parse(expiryDate);
+
+    // Reminder 2 days before expiry at the same time
+    final DateTime reminderTime =  expiry.subtract(const Duration(days: 2));
+
+    final DateTime now = DateTime.now();
+
+    // Don't schedule if the reminder time has already passed
+    if (reminderTime.isBefore(now)) {
+      return;
+    }
+
+    final Duration delay = reminderTime.difference(now);
+
+    // Remove any previously scheduled reminder
+    await Workmanager().cancelByUniqueName("subscription_expiry_reminder");
+
+    await Workmanager().registerOneOffTask(            // unique name, task name, delay, input dat
+      "subscription_expiry_reminder",
+      "subscription_expiry_reminder",
+      initialDelay: delay,
+      existingWorkPolicy: ExistingWorkPolicy.replace,
+    );
+
+    debugPrint( "Subscription reminder scheduled for $reminderTime", );
+  }
+
 
   Future<void> checkBiometrics() async {
     try {

@@ -5,10 +5,10 @@ import 'package:http/http.dart' as http;
 import '../../util/Constant.dart';
 
 class SubscriptionService {
-  Future<bool> checkSubscription(String userId) async {
+  Future<dynamic> checkSubscription(String userId) async {
     try {
       final response = await http.get(
-        Uri.parse(Constant.checkmenurights + userId),
+        Uri.parse(Constant.checkActiveSubscription + userId),
       );
 
       print("SUBSCRIPTION STATUS : ${response.statusCode}");
@@ -16,14 +16,14 @@ class SubscriptionService {
 
       if (response.statusCode == 200) {
         final json = jsonDecode(response.body);
-
-        return json["status"] == true;
+        return json;
+        // return json["status"] == true;
       }
 
-      return false;
+      return null;
     } catch (e) {
       print("Subscription Error : $e");
-      return false;
+      return null;
     }
   }
 }

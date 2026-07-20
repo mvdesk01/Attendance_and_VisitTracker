@@ -13,6 +13,634 @@ class AlarmScreen extends StatefulWidget {
   State<AlarmScreen> createState() => _AlarmScreenState();
 }
 
+class _AlarmScreenState extends State<AlarmScreen> with WidgetsBindingObserver {
+  ReminderSettings? _punchInReminder;
+  ReminderSettings? _punchOutReminder;
+
+  final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
+  FlutterLocalNotificationsPlugin();
+
+  Timer? _cleanupTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _initializeNotifications();
+    _loadReminderSettings().then((_) {
+      _checkAndCleanExpiredReminders();
+    });
+
+    _cleanupTimer = Timer.periodic(const Duration(minutes: 1), (timer) {
+      if (mounted) {
+        _checkAndCleanExpiredReminders();
+      }
+    });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _loadReminderSettings().then((_) {
+        _checkAndCleanExpiredReminders();
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _cleanupTimer?.cancel();
+    super.dispose();
+  }
+
+  void _initializeNotifications() async {
+    tz.initializeTimeZones();
+    const androidSettings =
+    AndroidInitializationSettings('@mipmap/ic_launcher');
+    final iosSettings = DarwinInitializationSettings(
+      requestAlertPermission: true,
+      requestBadgePermission: true,
+      requestSoundPermission: true,
+    );
+
+    final initSettings =
+    InitializationSettings(android: androidSettings, iOS: iosSettings);
+    await _flutterLocalNotificationsPlugin.initialize(initSettings);
+  }
+
+  void _checkAndCleanExpiredReminders() {
+    final now = DateTime.now();
+    bool needsRefresh = false;
+
+    if (_punchInReminder != null &&
+        !_punchInReminder!.isDaily &&
+        _punchInReminder!.hasReminder) {
+      final reminderTime = DateTime(now.year, now.month, now.day,
+          _punchInReminder!.time.hour, _punchInReminder!.time.minute);
+      if (now.isAfter(reminderTime)) {
+        setState(() => _punchInReminder = null);
+        _clearReminderSettings('punch_in');
+        needsRefresh = true;
+      }
+    }
+
+    if (_punchOutReminder != null &&
+        !_punchOutReminder!.isDaily &&
+        _punchOutReminder!.hasReminder) {
+      final reminderTime = DateTime(now.year, now.month, now.day,
+          _punchOutReminder!.time.hour, _punchOutReminder!.time.minute);
+      if (now.isAfter(reminderTime)) {
+        setState(() => _punchOutReminder = null);
+        _clearReminderSettings('punch_out');
+        needsRefresh = true;
+      }
+    }
+  }
+
+  Future<void> _loadReminderSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    _punchInReminder = _getSettingsFromPrefs(prefs, 'punch_in', 1001);
+    _punchOutReminder = _getSettingsFromPrefs(prefs, 'punch_out', 1002);
+    setState(() {});
+  }
+
+  ReminderSettings? _getSettingsFromPrefs(
+      SharedPreferences prefs, String type, int defaultId) {
+    final hasReminder = prefs.getBool('${type}_has_reminder') ?? false;
+    if (hasReminder) {
+      final hour = prefs.getInt('${type}_hour');
+      final minute = prefs.getInt('${type}_minute');
+      if (hour != null && minute != null) {
+        return ReminderSettings(
+          time: TimeOfDay(hour: hour, minute: minute),
+          isDaily: prefs.getBool('${type}_is_daily') ?? false,
+          alarmId: prefs.getInt('${type}_alarm_id') ?? defaultId,
+          hasReminder: true,
+        );
+      }
+    }
+    return null;
+  }
+
+  Future<void> _saveReminderSettings(
+      String type, ReminderSettings settings) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('${type}_hour', settings.time.hour);
+    await prefs.setInt('${type}_minute', settings.time.minute);
+    await prefs.setBool('${type}_is_daily', settings.isDaily);
+    await prefs.setInt('${type}_alarm_id', settings.alarmId);
+    await prefs.setBool('${type}_has_reminder', true);
+  }
+
+  Future<void> _clearReminderSettings(String type) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('${type}_has_reminder', false);
+  }
+
+  void _pickTime(String type) async {
+    TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+
+    if (picked != null) {
+      setState(() {
+        final newReminder = ReminderSettings(
+          time: picked,
+          isDaily: false,
+          alarmId: type == 'punch_in' ? 1001 : 1002,
+          hasReminder: false, // UI updates time, but buttons aren't grey yet
+        );
+
+        if (type == 'punch_in') {
+          _punchInReminder = newReminder;
+        } else {
+          _punchOutReminder = newReminder;
+        }
+      });
+    }
+  }
+
+  Future<void> _scheduleReminder(String type, bool isDaily) async {
+    ReminderSettings? reminder =
+    type == 'punch_in' ? _punchInReminder : _punchOutReminder;
+
+    if (reminder == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please pick a time first')));
+      return;
+    }
+
+    try {
+      final now = DateTime.now();
+      DateTime scheduledDateTime = DateTime(now.year, now.month, now.day,
+          reminder.time.hour, reminder.time.minute);
+      if (scheduledDateTime.isBefore(now))
+        scheduledDateTime = scheduledDateTime.add(const Duration(days: 1));
+
+      final initialDelay = scheduledDateTime.difference(now);
+      final workId = '${type}_reminder_${reminder.alarmId}';
+
+      if (isDaily) {
+        await Workmanager().registerOneOffTask(
+          '${workId}_daily',
+          'punch_reminder_daily',
+          initialDelay: initialDelay,
+          inputData: {
+            'alarmId': reminder.alarmId,
+            'type': type,
+            'isDaily': true,
+            'hour': reminder.time.hour,
+            'minute': reminder.time.minute
+          },
+          existingWorkPolicy: ExistingWorkPolicy.replace,
+        );
+      } else {
+        await Workmanager().registerOneOffTask(
+          workId,
+          'punch_reminder',
+          initialDelay: initialDelay,
+          inputData: {
+            'alarmId': reminder.alarmId,
+            'type': type,
+            'isDaily': false
+          },
+          existingWorkPolicy: ExistingWorkPolicy.replace,
+        );
+      }
+
+      final updatedReminder = ReminderSettings(
+        time: reminder.time,
+        isDaily: isDaily,
+        alarmId: reminder.alarmId,
+        hasReminder: true,
+      );
+
+      setState(() {
+        if (type == 'punch_in')
+          _punchInReminder = updatedReminder;
+        else
+          _punchOutReminder = updatedReminder;
+      });
+
+      await _saveReminderSettings(type, updatedReminder);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('${isDaily ? "Daily" : "Once"} reminder set!')));
+    } catch (e) {
+      print('Error: $e');
+    }
+  }
+
+  Future<void> _cancelReminder(String type) async {
+    try {
+      int alarmId = type == 'punch_in' ? 1001 : 1002;
+      await Workmanager().cancelByUniqueName('${type}_reminder_$alarmId');
+      await Workmanager()
+          .cancelByUniqueName('${type}_reminder_${alarmId}_daily');
+      await _flutterLocalNotificationsPlugin.cancel(alarmId);
+
+      setState(() {
+        if (type == 'punch_in')
+          _punchInReminder = null;
+        else
+          _punchOutReminder = null;
+      });
+      await _clearReminderSettings(type);
+    } catch (e) {
+      print('Error: $e');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.grey[50],
+      appBar: AppBar(
+        title: const Text('Reminders',
+            style:
+            TextStyle(fontWeight: FontWeight.w800, color: Colors.black87)),
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        centerTitle: true,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            _buildPunchCard(
+              title: "Punch In",
+              reminder: _punchInReminder,
+              icon: Icons.login_rounded,
+              color: Colors.indigo,
+              type: 'punch_in',
+            ),
+            const SizedBox(height: 20),
+            _buildPunchCard(
+              title: "Punch Out",
+              reminder: _punchOutReminder,
+              icon: Icons.logout_rounded,
+              color: Colors.deepOrange,
+              type: 'punch_out',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPunchCard({
+    required String title,
+    required ReminderSettings? reminder,
+    required IconData icon,
+    required Color color,
+    required String type,
+  }) {
+    final bool isScheduled = reminder != null && reminder.hasReminder;
+    final bool hasTimePicked = reminder != null;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 20,
+              offset: const Offset(0, 10)),
+        ],
+      ),
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              CircleAvatar(
+                backgroundColor: color.withOpacity(0.1),
+                child: Icon(icon, color: color),
+              ),
+              const SizedBox(width: 15),
+              Text(title,
+                  style: const TextStyle(
+                      fontSize: 18, fontWeight: FontWeight.bold)),
+              const Spacer(),
+              if (isScheduled)
+                Chip(
+                  label: Text(reminder.isDaily ? "Daily" : "Once",
+                      style:
+                      const TextStyle(fontSize: 10, color: Colors.white)),
+                  backgroundColor: color,
+                  padding: EdgeInsets.zero,
+                  visualDensity: VisualDensity.compact,
+                ),
+            ],
+          ),
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 20),
+            child: Divider(height: 1),
+          ),
+          Text(
+            hasTimePicked ? reminder.time.format(context) : "No time selected",
+            style: TextStyle(
+              fontSize: 32,
+              fontWeight: FontWeight.w300,
+              color: hasTimePicked ? Colors.black87 : Colors.grey[400],
+            ),
+          ),
+          const SizedBox(height: 25),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _actionBtn("Time", Icons.timer_outlined, Colors.grey[800]!,
+                      () => _pickTime(type)),
+              _actionBtn("Once", Icons.event_available, Colors.green,
+                  isScheduled ? null : () => _scheduleReminder(type, false)),
+              _actionBtn("Daily", Icons.update, Colors.blue,
+                  isScheduled ? null : () => _scheduleReminder(type, true)),
+              _actionBtn("Clear", Icons.delete_sweep_outlined, Colors.red,
+                  isScheduled ? () => _cancelReminder(type) : null),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _actionBtn(
+      String label, IconData icon, Color color, VoidCallback? onTap) {
+    bool isDisabled = onTap == null;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Opacity(
+        opacity: isDisabled ? 0.3 : 1.0,
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: isDisabled ? Colors.grey[200] : color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child:
+              Icon(icon, color: isDisabled ? Colors.grey : color, size: 22),
+            ),
+            const SizedBox(height: 6),
+            Text(label,
+                style: TextStyle(
+                    fontSize: 12,
+                    color: isDisabled ? Colors.grey : Colors.black87,
+                    fontWeight: FontWeight.w500)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+@pragma('vm:entry-point')
+void callbackDispatcher() {
+  Workmanager().executeTask((taskName, inputData) async {
+    print('WorkManager task triggered: $taskName');
+
+    if (taskName == 'punch_reminder') {
+      final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+
+      const AndroidInitializationSettings androidSettings =
+      AndroidInitializationSettings('@mipmap/ic_launcher');
+
+      final DarwinInitializationSettings iosSettings =
+      DarwinInitializationSettings(
+        requestAlertPermission: false,
+        requestBadgePermission: false,
+        requestSoundPermission: false,
+      );
+
+      await flutterLocalNotificationsPlugin.initialize(
+        InitializationSettings(
+          android: androidSettings,
+          iOS: iosSettings,
+        ),
+      );
+
+      final type = inputData?['type'] ?? 'punch';
+      final isDaily = inputData?['isDaily'] ?? false;
+      final title =
+      type == 'punch_in' ? 'PUNCH IN REMINDER' : 'PUNCH OUT REMINDER';
+      final body =
+      type == 'punch_in' ? 'Time to punch in!' : 'Time to punch out!';
+
+      await flutterLocalNotificationsPlugin.show(
+        inputData?['alarmId'] ?? 0,
+        title,
+        body,
+        const NotificationDetails(
+          android: AndroidNotificationDetails(
+            'punch_channel',
+            'Punch Reminders',
+            importance: Importance.high,
+            priority: Priority.high,
+            icon: '@mipmap/ic_launcher',
+          ),
+          iOS: DarwinNotificationDetails(
+            presentAlert: true,
+            presentBadge: true,
+            presentSound: true,
+            sound: 'default',
+          ),
+        ),
+      );
+
+      // If it's a one-time reminder, clear it after showing
+      if (!isDaily) {
+        final prefs = await SharedPreferences.getInstance();
+        if (type == 'punch_in') {
+          await prefs.remove('punch_in_hour');
+          await prefs.remove('punch_in_minute');
+          await prefs.remove('punch_in_is_daily');
+          await prefs.remove('punch_in_alarm_id');
+          await prefs.setBool('punch_in_has_reminder', false);
+        } else {
+          await prefs.remove('punch_out_hour');
+          await prefs.remove('punch_out_minute');
+          await prefs.remove('punch_out_is_daily');
+          await prefs.remove('punch_out_alarm_id');
+          await prefs.setBool('punch_out_has_reminder', false);
+        }
+
+        // Add this to refresh UI when app comes to foreground
+        // Using WorkManager's native way to trigger UI update
+        print('One-time reminder cleared after showing');
+      }
+
+      print('Reminder shown for $type');
+    }
+    if (taskName == 'punch_reminder_daily') {
+      final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+
+      const AndroidInitializationSettings androidSettings =
+      AndroidInitializationSettings('@mipmap/ic_launcher');
+
+      final DarwinInitializationSettings iosSettings =
+      DarwinInitializationSettings(
+        requestAlertPermission: false,
+        requestBadgePermission: false,
+        requestSoundPermission: false,
+      );
+
+      await flutterLocalNotificationsPlugin.initialize(
+        InitializationSettings(
+          android: androidSettings,
+          iOS: iosSettings,
+        ),
+      );
+
+      final type = inputData?['type'] ?? 'punch_in';
+      final alarmId = inputData?['alarmId'] ?? 0;
+      final hour = inputData?['hour'] ?? 9;
+      final minute = inputData?['minute'] ?? 0;
+      final isDaily = inputData?['isDaily'] ?? false;
+
+      final title =
+      type == 'punch_in' ? 'PUNCH IN REMINDER' : 'PUNCH OUT REMINDER';
+      final body =
+      type == 'punch_in' ? 'Time to punch in!' : 'Time to punch out!';
+
+      // Show notification
+      await flutterLocalNotificationsPlugin.show(
+        alarmId,
+        title,
+        body,
+        NotificationDetails(
+          android: AndroidNotificationDetails(
+            'punch_channel',
+            'Punch Reminders',
+            importance: Importance.high,
+            priority: Priority.high,
+            icon: '@mipmap/ic_launcher',
+          ),
+          iOS: DarwinNotificationDetails(
+            presentAlert: true,
+            presentBadge: true,
+            presentSound: true,
+            sound: 'default',
+          ),
+        ),
+      );
+
+      // RESCHEDULE FOR TOMORROW if it's daily
+      if (isDaily) {
+        final now = DateTime.now();
+        DateTime tomorrowScheduled = DateTime(
+          now.year,
+          now.month,
+          now.day,
+          hour,
+          minute,
+        ).add(const Duration(days: 1));
+
+        final delay = tomorrowScheduled.difference(now);
+        final workId = '${type}_daily_reminder_$alarmId';
+
+        await Workmanager().registerOneOffTask(
+          workId,
+          'punch_reminder_daily',
+          initialDelay: delay,
+          inputData: {
+            'alarmId': alarmId,
+            'type': type,
+            'isDaily': true,
+            'hour': hour,
+            'minute': minute,
+          },
+          existingWorkPolicy: ExistingWorkPolicy.replace,
+        );
+
+        print('Rescheduled daily reminder for tomorrow at $tomorrowScheduled');
+      }
+
+      print('Reminder shown for $type');
+    }
+    if (taskName == 'subscription_expiry_reminder') {
+
+      final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+
+      const AndroidInitializationSettings androidSettings =
+      AndroidInitializationSettings('@mipmap/ic_launcher');
+
+      final DarwinInitializationSettings iosSettings =
+      DarwinInitializationSettings(
+        requestAlertPermission: false,
+        requestBadgePermission: false,
+        requestSoundPermission: false,
+      );
+
+      await flutterLocalNotificationsPlugin.initialize(
+        InitializationSettings(
+          android: androidSettings,
+          iOS: iosSettings,
+        ),
+      );
+
+      await flutterLocalNotificationsPlugin.show(
+        7001,
+        'Subscription Expiring Soon',
+        'Your subscription will expire in 2 days. Renew now to continue using Attendance & Visit Tracking.',
+        const NotificationDetails(
+          android: AndroidNotificationDetails(
+            'subscription_channel',
+            'Subscription Reminder',
+            channelDescription: 'Subscription expiry reminders',
+            importance: Importance.high,
+            priority: Priority.high,
+            icon: '@mipmap/ic_launcher',
+          ),
+          iOS: DarwinNotificationDetails(
+            presentAlert: true,
+            presentBadge: true,
+            presentSound: true,
+          ),
+        ),
+      );
+    }
+
+
+    return Future.value(true);
+  });
+}
+
+class ReminderSettings {
+  final TimeOfDay time;
+  final bool isDaily;
+  final int alarmId;
+  final bool hasReminder; // Changed from isActive to hasReminder
+
+  ReminderSettings({
+    required this.time,
+    required this.isDaily,
+    required this.alarmId,
+    this.hasReminder = true,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'hour': time.hour,
+    'minute': time.minute,
+    'isDaily': isDaily,
+    'alarmId': alarmId,
+    'hasReminder': hasReminder,
+  };
+
+  factory ReminderSettings.fromJson(Map<String, dynamic> json) {
+    return ReminderSettings(
+      time: TimeOfDay(hour: json['hour'], minute: json['minute']),
+      isDaily: json['isDaily'],
+      alarmId: json['alarmId'],
+      hasReminder: json['hasReminder'] ?? true,
+    );
+  }
+}
+
 ///android alarm manager
 // class _AlarmScreenState extends State<AlarmScreen> {
 //   TimeOfDay? _punchInTime;
@@ -1637,205 +2265,6 @@ class AlarmScreen extends StatefulWidget {
 //   }
 // }
 
-@pragma('vm:entry-point')
-void callbackDispatcher() {
-  Workmanager().executeTask((taskName, inputData) async {
-    print('WorkManager task triggered: $taskName');
-
-    if (taskName == 'punch_reminder') {
-      final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-
-      const AndroidInitializationSettings androidSettings =
-          AndroidInitializationSettings('@mipmap/ic_launcher');
-
-      final DarwinInitializationSettings iosSettings =
-          DarwinInitializationSettings(
-        requestAlertPermission: false,
-        requestBadgePermission: false,
-        requestSoundPermission: false,
-      );
-
-      await flutterLocalNotificationsPlugin.initialize(
-        InitializationSettings(
-          android: androidSettings,
-          iOS: iosSettings,
-        ),
-      );
-
-      final type = inputData?['type'] ?? 'punch';
-      final isDaily = inputData?['isDaily'] ?? false;
-      final title =
-          type == 'punch_in' ? 'PUNCH IN REMINDER' : 'PUNCH OUT REMINDER';
-      final body =
-          type == 'punch_in' ? 'Time to punch in!' : 'Time to punch out!';
-
-      await flutterLocalNotificationsPlugin.show(
-        inputData?['alarmId'] ?? 0,
-        title,
-        body,
-        NotificationDetails(
-          android: AndroidNotificationDetails(
-            'punch_channel',
-            'Punch Reminders',
-            importance: Importance.high,
-            priority: Priority.high,
-            icon: '@mipmap/ic_launcher',
-          ),
-          iOS: DarwinNotificationDetails(
-            presentAlert: true,
-            presentBadge: true,
-            presentSound: true,
-            sound: 'default',
-          ),
-        ),
-      );
-
-      // If it's a one-time reminder, clear it after showing
-      if (!isDaily) {
-        final prefs = await SharedPreferences.getInstance();
-        if (type == 'punch_in') {
-          await prefs.remove('punch_in_hour');
-          await prefs.remove('punch_in_minute');
-          await prefs.remove('punch_in_is_daily');
-          await prefs.remove('punch_in_alarm_id');
-          await prefs.setBool('punch_in_has_reminder', false);
-        } else {
-          await prefs.remove('punch_out_hour');
-          await prefs.remove('punch_out_minute');
-          await prefs.remove('punch_out_is_daily');
-          await prefs.remove('punch_out_alarm_id');
-          await prefs.setBool('punch_out_has_reminder', false);
-        }
-
-        // Add this to refresh UI when app comes to foreground
-        // Using WorkManager's native way to trigger UI update
-        print('One-time reminder cleared after showing');
-      }
-
-      print('Reminder shown for $type');
-    }
-    if (taskName == 'punch_reminder_daily') {
-      final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-
-      const AndroidInitializationSettings androidSettings =
-          AndroidInitializationSettings('@mipmap/ic_launcher');
-
-      final DarwinInitializationSettings iosSettings =
-          DarwinInitializationSettings(
-        requestAlertPermission: false,
-        requestBadgePermission: false,
-        requestSoundPermission: false,
-      );
-
-      await flutterLocalNotificationsPlugin.initialize(
-        InitializationSettings(
-          android: androidSettings,
-          iOS: iosSettings,
-        ),
-      );
-
-      final type = inputData?['type'] ?? 'punch_in';
-      final alarmId = inputData?['alarmId'] ?? 0;
-      final hour = inputData?['hour'] ?? 9;
-      final minute = inputData?['minute'] ?? 0;
-      final isDaily = inputData?['isDaily'] ?? false;
-
-      final title =
-          type == 'punch_in' ? 'PUNCH IN REMINDER' : 'PUNCH OUT REMINDER';
-      final body =
-          type == 'punch_in' ? 'Time to punch in!' : 'Time to punch out!';
-
-      // Show notification
-      await flutterLocalNotificationsPlugin.show(
-        alarmId,
-        title,
-        body,
-        NotificationDetails(
-          android: AndroidNotificationDetails(
-            'punch_channel',
-            'Punch Reminders',
-            importance: Importance.high,
-            priority: Priority.high,
-            icon: '@mipmap/ic_launcher',
-          ),
-          iOS: DarwinNotificationDetails(
-            presentAlert: true,
-            presentBadge: true,
-            presentSound: true,
-            sound: 'default',
-          ),
-        ),
-      );
-
-      // RESCHEDULE FOR TOMORROW if it's daily
-      if (isDaily) {
-        final now = DateTime.now();
-        DateTime tomorrowScheduled = DateTime(
-          now.year,
-          now.month,
-          now.day,
-          hour,
-          minute,
-        ).add(const Duration(days: 1));
-
-        final delay = tomorrowScheduled.difference(now);
-        final workId = '${type}_daily_reminder_$alarmId';
-
-        await Workmanager().registerOneOffTask(
-          workId,
-          'punch_reminder_daily',
-          initialDelay: delay,
-          inputData: {
-            'alarmId': alarmId,
-            'type': type,
-            'isDaily': true,
-            'hour': hour,
-            'minute': minute,
-          },
-          existingWorkPolicy: ExistingWorkPolicy.replace,
-        );
-
-        print('Rescheduled daily reminder for tomorrow at $tomorrowScheduled');
-      }
-
-      print('Reminder shown for $type');
-    }
-
-    return Future.value(true);
-  });
-}
-
-class ReminderSettings {
-  final TimeOfDay time;
-  final bool isDaily;
-  final int alarmId;
-  final bool hasReminder; // Changed from isActive to hasReminder
-
-  ReminderSettings({
-    required this.time,
-    required this.isDaily,
-    required this.alarmId,
-    this.hasReminder = true,
-  });
-
-  Map<String, dynamic> toJson() => {
-        'hour': time.hour,
-        'minute': time.minute,
-        'isDaily': isDaily,
-        'alarmId': alarmId,
-        'hasReminder': hasReminder,
-      };
-
-  factory ReminderSettings.fromJson(Map<String, dynamic> json) {
-    return ReminderSettings(
-      time: TimeOfDay(hour: json['hour'], minute: json['minute']),
-      isDaily: json['isDaily'],
-      alarmId: json['alarmId'],
-      hasReminder: json['hasReminder'] ?? true,
-    );
-  }
-}
-
 /*
 class _AlarmScreenState extends State<AlarmScreen> with WidgetsBindingObserver {
   ReminderSettings? _punchInReminder;
@@ -2556,388 +2985,3 @@ class _AlarmScreenState extends State<AlarmScreen> with WidgetsBindingObserver {
   }
 }
 */
-class _AlarmScreenState extends State<AlarmScreen> with WidgetsBindingObserver {
-  ReminderSettings? _punchInReminder;
-  ReminderSettings? _punchOutReminder;
-
-  final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
-      FlutterLocalNotificationsPlugin();
-
-  Timer? _cleanupTimer;
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-    _initializeNotifications();
-    _loadReminderSettings().then((_) {
-      _checkAndCleanExpiredReminders();
-    });
-
-    _cleanupTimer = Timer.periodic(const Duration(minutes: 1), (timer) {
-      if (mounted) {
-        _checkAndCleanExpiredReminders();
-      }
-    });
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      _loadReminderSettings().then((_) {
-        _checkAndCleanExpiredReminders();
-      });
-    }
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    _cleanupTimer?.cancel();
-    super.dispose();
-  }
-
-  void _initializeNotifications() async {
-    tz.initializeTimeZones();
-    const androidSettings =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
-    final iosSettings = DarwinInitializationSettings(
-      requestAlertPermission: true,
-      requestBadgePermission: true,
-      requestSoundPermission: true,
-    );
-
-    final initSettings =
-        InitializationSettings(android: androidSettings, iOS: iosSettings);
-    await _flutterLocalNotificationsPlugin.initialize(initSettings);
-  }
-
-  void _checkAndCleanExpiredReminders() {
-    final now = DateTime.now();
-    bool needsRefresh = false;
-
-    if (_punchInReminder != null &&
-        !_punchInReminder!.isDaily &&
-        _punchInReminder!.hasReminder) {
-      final reminderTime = DateTime(now.year, now.month, now.day,
-          _punchInReminder!.time.hour, _punchInReminder!.time.minute);
-      if (now.isAfter(reminderTime)) {
-        setState(() => _punchInReminder = null);
-        _clearReminderSettings('punch_in');
-        needsRefresh = true;
-      }
-    }
-
-    if (_punchOutReminder != null &&
-        !_punchOutReminder!.isDaily &&
-        _punchOutReminder!.hasReminder) {
-      final reminderTime = DateTime(now.year, now.month, now.day,
-          _punchOutReminder!.time.hour, _punchOutReminder!.time.minute);
-      if (now.isAfter(reminderTime)) {
-        setState(() => _punchOutReminder = null);
-        _clearReminderSettings('punch_out');
-        needsRefresh = true;
-      }
-    }
-  }
-
-  Future<void> _loadReminderSettings() async {
-    final prefs = await SharedPreferences.getInstance();
-    _punchInReminder = _getSettingsFromPrefs(prefs, 'punch_in', 1001);
-    _punchOutReminder = _getSettingsFromPrefs(prefs, 'punch_out', 1002);
-    setState(() {});
-  }
-
-  ReminderSettings? _getSettingsFromPrefs(
-      SharedPreferences prefs, String type, int defaultId) {
-    final hasReminder = prefs.getBool('${type}_has_reminder') ?? false;
-    if (hasReminder) {
-      final hour = prefs.getInt('${type}_hour');
-      final minute = prefs.getInt('${type}_minute');
-      if (hour != null && minute != null) {
-        return ReminderSettings(
-          time: TimeOfDay(hour: hour, minute: minute),
-          isDaily: prefs.getBool('${type}_is_daily') ?? false,
-          alarmId: prefs.getInt('${type}_alarm_id') ?? defaultId,
-          hasReminder: true,
-        );
-      }
-    }
-    return null;
-  }
-
-  Future<void> _saveReminderSettings(
-      String type, ReminderSettings settings) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('${type}_hour', settings.time.hour);
-    await prefs.setInt('${type}_minute', settings.time.minute);
-    await prefs.setBool('${type}_is_daily', settings.isDaily);
-    await prefs.setInt('${type}_alarm_id', settings.alarmId);
-    await prefs.setBool('${type}_has_reminder', true);
-  }
-
-  Future<void> _clearReminderSettings(String type) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('${type}_has_reminder', false);
-  }
-
-  void _pickTime(String type) async {
-    TimeOfDay? picked = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.now(),
-    );
-
-    if (picked != null) {
-      setState(() {
-        final newReminder = ReminderSettings(
-          time: picked,
-          isDaily: false,
-          alarmId: type == 'punch_in' ? 1001 : 1002,
-          hasReminder: false, // UI updates time, but buttons aren't grey yet
-        );
-
-        if (type == 'punch_in') {
-          _punchInReminder = newReminder;
-        } else {
-          _punchOutReminder = newReminder;
-        }
-      });
-    }
-  }
-
-  Future<void> _scheduleReminder(String type, bool isDaily) async {
-    ReminderSettings? reminder =
-        type == 'punch_in' ? _punchInReminder : _punchOutReminder;
-
-    if (reminder == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please pick a time first')));
-      return;
-    }
-
-    try {
-      final now = DateTime.now();
-      DateTime scheduledDateTime = DateTime(now.year, now.month, now.day,
-          reminder.time.hour, reminder.time.minute);
-      if (scheduledDateTime.isBefore(now))
-        scheduledDateTime = scheduledDateTime.add(const Duration(days: 1));
-
-      final initialDelay = scheduledDateTime.difference(now);
-      final workId = '${type}_reminder_${reminder.alarmId}';
-
-      if (isDaily) {
-        await Workmanager().registerOneOffTask(
-          '${workId}_daily',
-          'punch_reminder_daily',
-          initialDelay: initialDelay,
-          inputData: {
-            'alarmId': reminder.alarmId,
-            'type': type,
-            'isDaily': true,
-            'hour': reminder.time.hour,
-            'minute': reminder.time.minute
-          },
-          existingWorkPolicy: ExistingWorkPolicy.replace,
-        );
-      } else {
-        await Workmanager().registerOneOffTask(
-          workId,
-          'punch_reminder',
-          initialDelay: initialDelay,
-          inputData: {
-            'alarmId': reminder.alarmId,
-            'type': type,
-            'isDaily': false
-          },
-          existingWorkPolicy: ExistingWorkPolicy.replace,
-        );
-      }
-
-      final updatedReminder = ReminderSettings(
-        time: reminder.time,
-        isDaily: isDaily,
-        alarmId: reminder.alarmId,
-        hasReminder: true,
-      );
-
-      setState(() {
-        if (type == 'punch_in')
-          _punchInReminder = updatedReminder;
-        else
-          _punchOutReminder = updatedReminder;
-      });
-
-      await _saveReminderSettings(type, updatedReminder);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('${isDaily ? "Daily" : "Once"} reminder set!')));
-    } catch (e) {
-      print('Error: $e');
-    }
-  }
-
-  Future<void> _cancelReminder(String type) async {
-    try {
-      int alarmId = type == 'punch_in' ? 1001 : 1002;
-      await Workmanager().cancelByUniqueName('${type}_reminder_$alarmId');
-      await Workmanager()
-          .cancelByUniqueName('${type}_reminder_${alarmId}_daily');
-      await _flutterLocalNotificationsPlugin.cancel(alarmId);
-
-      setState(() {
-        if (type == 'punch_in')
-          _punchInReminder = null;
-        else
-          _punchOutReminder = null;
-      });
-      await _clearReminderSettings(type);
-    } catch (e) {
-      print('Error: $e');
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        title: const Text('Reminders',
-            style:
-                TextStyle(fontWeight: FontWeight.w800, color: Colors.black87)),
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-        centerTitle: true,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            _buildPunchCard(
-              title: "Punch In",
-              reminder: _punchInReminder,
-              icon: Icons.login_rounded,
-              color: Colors.indigo,
-              type: 'punch_in',
-            ),
-            const SizedBox(height: 20),
-            _buildPunchCard(
-              title: "Punch Out",
-              reminder: _punchOutReminder,
-              icon: Icons.logout_rounded,
-              color: Colors.deepOrange,
-              type: 'punch_out',
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPunchCard({
-    required String title,
-    required ReminderSettings? reminder,
-    required IconData icon,
-    required Color color,
-    required String type,
-  }) {
-    final bool isScheduled = reminder != null && reminder.hasReminder;
-    final bool hasTimePicked = reminder != null;
-
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 20,
-              offset: const Offset(0, 10)),
-        ],
-      ),
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              CircleAvatar(
-                backgroundColor: color.withOpacity(0.1),
-                child: Icon(icon, color: color),
-              ),
-              const SizedBox(width: 15),
-              Text(title,
-                  style: const TextStyle(
-                      fontSize: 18, fontWeight: FontWeight.bold)),
-              const Spacer(),
-              if (isScheduled)
-                Chip(
-                  label: Text(reminder.isDaily ? "Daily" : "Once",
-                      style:
-                          const TextStyle(fontSize: 10, color: Colors.white)),
-                  backgroundColor: color,
-                  padding: EdgeInsets.zero,
-                  visualDensity: VisualDensity.compact,
-                ),
-            ],
-          ),
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 20),
-            child: Divider(height: 1),
-          ),
-          Text(
-            hasTimePicked ? reminder.time.format(context) : "No time selected",
-            style: TextStyle(
-              fontSize: 32,
-              fontWeight: FontWeight.w300,
-              color: hasTimePicked ? Colors.black87 : Colors.grey[400],
-            ),
-          ),
-          const SizedBox(height: 25),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _actionBtn("Time", Icons.timer_outlined, Colors.grey[800]!,
-                  () => _pickTime(type)),
-              _actionBtn("Once", Icons.event_available, Colors.green,
-                  isScheduled ? null : () => _scheduleReminder(type, false)),
-              _actionBtn("Daily", Icons.update, Colors.blue,
-                  isScheduled ? null : () => _scheduleReminder(type, true)),
-              _actionBtn("Clear", Icons.delete_sweep_outlined, Colors.red,
-                  isScheduled ? () => _cancelReminder(type) : null),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _actionBtn(
-      String label, IconData icon, Color color, VoidCallback? onTap) {
-    bool isDisabled = onTap == null;
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Opacity(
-        opacity: isDisabled ? 0.3 : 1.0,
-        child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: isDisabled ? Colors.grey[200] : color.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child:
-                  Icon(icon, color: isDisabled ? Colors.grey : color, size: 22),
-            ),
-            const SizedBox(height: 6),
-            Text(label,
-                style: TextStyle(
-                    fontSize: 12,
-                    color: isDisabled ? Colors.grey : Colors.black87,
-                    fontWeight: FontWeight.w500)),
-          ],
-        ),
-      ),
-    );
-  }
-}

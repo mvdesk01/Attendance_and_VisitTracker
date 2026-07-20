@@ -123,6 +123,5 @@ class Constant {
   static String updateUserRights =
       baseUrl + 'api/UserMenuRights/UpdateUserRights';
   static String addUserRights = baseUrl + 'api/UserMenuRights/AddUserRights';
-  static String checkmenurights =
-      baseUrl + 'api/Subscription/CheckActiveSubscription/';
+  static String checkActiveSubscription = baseUrl + 'api/Subscription/CheckActiveSubscription/';
 }
