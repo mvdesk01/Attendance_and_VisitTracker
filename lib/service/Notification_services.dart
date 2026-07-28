@@ -10,8 +10,7 @@ class NotificationService {
       this.flutterLocalNotificationsPlugin,
       );
 
-  Future<void> createChannel(
-      AndroidNotificationChannel notificationChannel) async {
+  Future<void> createChannel( AndroidNotificationChannel notificationChannel ) async {
     return await flutterLocalNotificationsPlugin
         .resolvePlatformSpecificImplementation<
         AndroidFlutterLocalNotificationsPlugin>()
@@ -66,8 +65,7 @@ class NotificationService {
     //   priority: Priority.high,
     // );
 
-    var platformChannelSpecifics =
-    NotificationDetails(android: androidNotificationDetails);
+    var platformChannelSpecifics = NotificationDetails(android: androidNotificationDetails);
 
     await flutterLocalNotificationsPlugin.show(
       showNotificationId,

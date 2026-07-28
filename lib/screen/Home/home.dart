@@ -15,7 +15,6 @@ import 'package:attendance_system_ios/screen/Profile/profile.dart';
 import 'package:attendance_system_ios/screen/Remote%20Location/remote_location.dart';
 import 'package:attendance_system_ios/screen/Transaction/COff%20Debit/CoffDebitScreen.dart';
 import 'package:attendance_system_ios/screen/Transaction/CoffCreditScreen.dart';
-import 'package:attendance_system_ios/screen/Visit%20History/Visit_History_Screen.dart';
 import 'package:attendance_system_ios/service/LocationHandler.dart';
 import 'package:attendance_system_ios/service/WebService.dart';
 import 'package:attendance_system_ios/service/log_file_manager.dart';
@@ -44,7 +43,10 @@ import '../AdminProfile/Databsepunchin.dart';
 import '../Expense/ExpenseScreen.dart';
 import '../Settings/Timer.dart';
 import '../Tour/TourmainScreen.dart';
+import '../Visit/MOM/mom_screen.dart';
 import '../Visit/Start Stop Visit/start_stop_visit.dart';
+import '../Visit/Visit History/MinutesOfTheMeetingForm.dart';
+import '../Visit/Visit History/Visit_History_Screen.dart';
 import '../Visit/visit_outside/visit_outside.dart';
 import 'MonthlyInOutReport.dart';
 
@@ -795,6 +797,22 @@ class _HomeScreenState extends State<HomeScreen> {
                         create: (context) =>
                             MainBloc(webService: WebService()),
                         child: VisitHistoryScreen(),
+                      ),
+                    ),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.location_history_outlined),
+                title: const Text('MOM'),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => BlocProvider(
+                        create: (context) =>
+                            MainBloc(webService: WebService()),
+                        child: MOMSFormScreen(visitSrNo: '', minuteforno: '', visitDateMOM: '', toTimeMOM: '', visitNameMOM: '',),
                       ),
                     ),
                   );
@@ -1945,6 +1963,69 @@ class _HomeScreenState extends State<HomeScreen> {
                             'Track your visit history location',
                             style:
                                 TextStyle(fontSize: 14, color: Colors.black54),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Icon(Icons.arrow_forward_ios_rounded,
+                        color: MyColors.lighterBlue),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          GestureDetector(
+            onTap: () {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => BlocProvider(
+                          create: (context) {
+                            return MainBloc(webService: WebService());
+                          },
+                          child: const VisitHistoryScreen())));
+            },
+            child: Card.filled(
+              color: Colors.white,
+              elevation: 2,
+              margin: const EdgeInsets.all(14),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  children: [
+                    Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.blueAccent.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(
+                          Icons.location_history_outlined,
+                          size: 28,
+                          color: Colors.blueAccent,
+                        )),
+                    const SizedBox(
+                      width: 16,
+                    ),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "MOM",
+                            style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.black87,
+                                fontWeight: FontWeight.w600),
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            'Minutes of the Meeting Form',
+                            style:
+                            TextStyle(fontSize: 14, color: Colors.black54),
                           ),
                         ],
                       ),

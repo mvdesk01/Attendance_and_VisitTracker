@@ -2642,11 +2642,12 @@ class WebService {
     if (response.statusCode == 200) {
       return CancelGatepassResponse.fromJson(jsonDecode(response.body));
     } else if (response.statusCode == 400) {
-      Fluttertoast.showToast(
-        msg: " Record not updated",
-        toastLength: Toast.LENGTH_SHORT,
-        timeInSecForIosWeb: 1,
-      );
+      // Fluttertoast.showToast(
+      //   msg: " Record not updated",
+      //   toastLength: Toast.LENGTH_SHORT,
+      //   timeInSecForIosWeb: 1,
+      // );
+      print('Record not updated in MOM: ${response.body}');
     } else if (response.statusCode == 401) {
       scaffoldMessengerKey.currentState?.showSnackBar(
         SnackBar(
@@ -2670,8 +2671,7 @@ class WebService {
   }
 
   //UpdateMMData
-  Future<CancelGatepassResponse> UpdateMMDataa(
-      UpdateMMData updateMMData, String token) async {
+  Future<CancelGatepassResponse> UpdateMMDataa( UpdateMMData updateMMData, String token) async {
     final response = await http.post(
       Uri.parse(Constant.UpdateMMData),
       headers: <String, String>{
@@ -2744,11 +2744,11 @@ class WebService {
                 isloggedIn = true;
                 // Navigate using the global navigator key
                 MyApp.navigatorKey.currentState?.pushReplacement(
-                  MaterialPageRoute(builder: (context) => SplashScreen()),
+                  MaterialPageRoute(builder: (context) => const SplashScreen()),
                 );
               },
             ),
-            duration: Duration(minutes: 2), // Make it sticky
+            duration: const Duration(minutes: 2), // Make it sticky
           ),
         );
         return [];

@@ -21,8 +21,8 @@ import '../../../bloc/main_bloc.dart';
 import '../../../main.dart';
 import '../../../service/WebService.dart';
 import '../../../util/MyColor.dart';
-import '../../Visit History/VisitHistoryTrack_Screen.dart';
 import '../Start Stop Visit/start_stop_visit.dart';
+import '../Visit History/VisitHistoryTrack_Screen.dart';
 import 'location_picker_screen.dart';
 
 class VisitOutside extends StatefulWidget {
@@ -845,7 +845,7 @@ class _VisitOutsideState extends State<VisitOutside> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        visit.reason ?? "Unnamed Visit", 
+                        visit.reason ?? "Unnamed Visit",
                         style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black87)
                       ),
                       const SizedBox(height: 10),

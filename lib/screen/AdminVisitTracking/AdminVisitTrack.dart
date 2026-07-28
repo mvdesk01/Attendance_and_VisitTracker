@@ -1,9 +1,7 @@
 import 'package:attendance_system_ios/bloc/main_bloc.dart';
 import 'package:attendance_system_ios/bloc/main_event.dart';
 import 'package:attendance_system_ios/bloc/main_state.dart';
-import 'package:attendance_system_ios/screen/MinutesOfTheMeetingForm.dart';
 import 'package:attendance_system_ios/screen/MinutesOfTheMeetingFormAdminSide/AdminSideMInutesOfTheMeetingForm.dart';
-import 'package:attendance_system_ios/screen/Visit%20History/VisitHistoryTrack_Screen.dart';
 import 'package:attendance_system_ios/service/WebService.dart';
 import 'package:attendance_system_ios/util/MyColor.dart';
 import 'package:flutter/cupertino.dart';
@@ -19,8 +17,9 @@ import 'package:loading_overlay/loading_overlay.dart';
 import '../../model/UsersList/GetAllusersListResponse.dart';
 import '../../model/VisitHistory/VisitLatLongListResponse.dart';
 import '../../model/VisitReport/VisitRecordsResponse.dart';
-import '../Visit Report/VisitReportDetailedScreen.dart';
 import '../../model/VisitReport/VisitDetailedRecordsResponse.dart' as visitlisttt;
+import '../Visit/Visit History/VisitHistoryTrack_Screen.dart';
+import '../Visit/Visit Report/VisitReportDetailedScreen.dart';
 
 
 class AdminVisitTrackScreen extends StatefulWidget
