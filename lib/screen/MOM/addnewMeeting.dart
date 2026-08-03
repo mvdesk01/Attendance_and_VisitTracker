@@ -109,8 +109,12 @@ class _AddMeetingScreenState extends ConsumerState<AddMeetingScreen> {
       minute: parsedTime.minute,
     );
 
-    dynamicPresentMembers =
-        meeting.memberPresent.split(",").map((e) => e.trim()).toList();
+    dynamicPresentMembers = meeting.memberPresent
+        .split(",")
+        .map((e) => e.trim())
+        .where((e) =>
+            e.isNotEmpty && e.toLowerCase() != (_staffName ?? "").toLowerCase())
+        .toList();
 
     dynamicAbsentMembers =
         meeting.memberAbsent.split(",").map((e) => e.trim()).toList();
@@ -699,13 +703,10 @@ class _AddMeetingScreenState extends ConsumerState<AddMeetingScreen> {
                       );
 
                       /// Present Members
-                      final List<String> allPresent = [];
-
-                      if (_staffName != null) {
-                        allPresent.add(_staffName!);
-                      }
-
-                      allPresent.addAll(dynamicPresentMembers);
+                      final allPresent = <String>[
+                        if (_staffName != null) _staffName!,
+                        ...dynamicPresentMembers,
+                      ].toSet().toList();
 
                       /// Meeting Entity
                       final meeting = Meeting(

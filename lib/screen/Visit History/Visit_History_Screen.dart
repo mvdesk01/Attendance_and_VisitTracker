@@ -384,9 +384,6 @@ class _VisitHistoryScreenState extends State<VisitHistoryScreen> {
                       child: MinutesOfTheMeetingFormScreen(
                         visitSrNo: data.srNo?.toString() ?? "",
                         minuteforno: data.minutesofMeetFormNo?.toString() ?? "",
-                        visitDateMOM: visitDateMOM,
-                        toTimeMOM: toTimeMOM,
-                        visitNameMOM: vistNameMOM,
                       ),
                     ),
                   ),
