@@ -1140,7 +1140,7 @@ class _HomeScreenState extends State<HomeScreen> {
 */
 
                     SizedBox(
-                      height: isTablet ? 300 : 210,
+                      height: isTablet ? 300 : 200,
                       child: PageView.builder(
                         controller: _pageController,
                         itemCount: attendanceBanners.length,

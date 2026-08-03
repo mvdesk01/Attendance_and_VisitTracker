@@ -370,7 +370,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                         ),
-                        Row(
+
+                        Padding(padding: const EdgeInsets.all(12),
+                        child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             TextButton(
@@ -379,10 +381,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                   context,
                                   MaterialPageRoute(
                                       builder: (_) =>
-                                          const PasswordRetrieval()),
+                                      const PasswordRetrieval()),
                                 );
                               },
-                              child: const Text("Password Retrieval"),
+                              child: const Text("Password\nRetrieval"),
                             ),
                             TextButton(
                               onPressed: () {
@@ -393,9 +395,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                 );
                               },
                               child: const Text(
-                                  "Forgot Password?\n (only for operators) "),
+                                  " Forgot Password?\n(only for operators) "),
                             ),
-                            const SizedBox(width: 10),
+                            // const SizedBox(width: 10),
                             TextButton(
                               onPressed: () {
                                 Navigator.push(
@@ -408,6 +410,8 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ],
                         ),
+                        ),
+
                       ])),
             ],
           )),
