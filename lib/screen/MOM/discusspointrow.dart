@@ -112,11 +112,15 @@ class DiscussionPointRowState extends ConsumerState<DiscussionPointRow> {
     if (selectedMembers.isEmpty &&
         selectedMemberNames.isNotEmpty &&
         responsibilityState.responsibility.isNotEmpty) {
-      selectedMembers = responsibilityState.responsibility
-          .where(
-            (e) => selectedMemberNames.contains(e.userName),
-          )
-          .toList();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+
+        setState(() {
+          selectedMembers = responsibilityState.responsibility
+              .where((e) => selectedMemberNames.contains(e.userName))
+              .toList();
+        });
+      });
     }
     return Container(
       color: widget.serialNumber.isEven ? Colors.grey.shade50 : Colors.white,

@@ -81,16 +81,18 @@ class _AddMeetingScreenState extends ConsumerState<AddMeetingScreen> {
           .loadResponsibility();
     });
 
-    if (widget.isEditing && widget.meetingHistory != null) {
-      _initializeFromMeeting();
-    } else {
+    // if (widget.isEditing && widget.meetingHistory != null) {
+    //   _initializeFromMeeting();
+    // } else {
       // Default initialization
       selectedDate = DateTime.now();
       selectedTime = TimeOfDay.now();
       dateController.text = DateFormat('dd/MM/yyyy').format(selectedDate);
+    timeController.text =
+    "${selectedTime.hour.toString().padLeft(2, '0')}:${selectedTime.minute.toString().padLeft(2, '0')}";
 
       addDiscussionRow();
-    }
+    //}
   }
 
   void _initializeFromMeeting() {
@@ -151,22 +153,30 @@ class _AddMeetingScreenState extends ConsumerState<AddMeetingScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+
     if (!_timeInitialized) {
       if (widget.meetingHistory == null) {
-        timeController.text = selectedTime.format(context);
+        timeController.text =
+        "${selectedTime.hour.toString().padLeft(2, '0')}:${selectedTime.minute.toString().padLeft(2, '0')}";
       }
+
       _timeInitialized = true;
     }
   }
 
+
   /// Fetches staff name from FlutterSecureStorage
   Future<void> _loadStaffName() async {
-    final String? fetchedName = await storage.read(key: 'Staff_Name');
+    final fetchedName = await storage.read(key: 'Staff_Name');
 
     setState(() {
-      _staffName = fetchedName ?? "Staff Member";
+      _staffName = fetchedName ?? "";
       _isLoadingStaff = false;
     });
+
+    if (widget.isEditing && widget.meetingHistory != null) {
+      _initializeFromMeeting();
+    }
   }
 
   /// Parses comma-separated string into a list of cleaned member names
@@ -186,11 +196,24 @@ class _AddMeetingScreenState extends ConsumerState<AddMeetingScreen> {
     });
   }
 
-  void addDiscussionRow() {
+ /* void addDiscussionRow() {
     setState(() {
       rowKeys.add(
         GlobalKey<DiscussionPointRowState>(),
       );
+
+      _rebuildDiscussionRows();
+    });
+  }*/
+  void addDiscussionRow() {
+    setState(() {
+      rowKeys.insert(
+        0,
+        GlobalKey<DiscussionPointRowState>(),
+      );
+
+      // Keep the indices aligned
+      initialDiscussionPoints.insert(0, {});
 
       _rebuildDiscussionRows();
     });
@@ -219,6 +242,7 @@ class _AddMeetingScreenState extends ConsumerState<AddMeetingScreen> {
     );
   }
 
+/*
   void deleteDiscussionRow(int deleteIndex) {
     if (rowKeys.length <= 1) return;
 
@@ -227,7 +251,21 @@ class _AddMeetingScreenState extends ConsumerState<AddMeetingScreen> {
       _rebuildDiscussionRows();
     });
   }
+*/
 
+  void deleteDiscussionRow(int deleteIndex) {
+    if (rowKeys.length <= 1) return;
+
+    setState(() {
+      rowKeys.removeAt(deleteIndex);
+
+      if (deleteIndex < initialDiscussionPoints.length) {
+        initialDiscussionPoints.removeAt(deleteIndex);
+      }
+
+      _rebuildDiscussionRows();
+    });
+  }
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -247,11 +285,21 @@ class _AddMeetingScreenState extends ConsumerState<AddMeetingScreen> {
     final TimeOfDay? picked = await showTimePicker(
       context: context,
       initialTime: selectedTime,
+      builder: (context, child) {
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(
+            alwaysUse24HourFormat: true,
+          ),
+          child: child!,
+        );
+      },
     );
+
     if (picked != null) {
       setState(() {
         selectedTime = picked;
-        timeController.text = picked.format(context);
+        timeController.text =
+        "${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}";
       });
     }
   }
@@ -727,6 +775,8 @@ class _AddMeetingScreenState extends ConsumerState<AddMeetingScreen> {
                       final List<DiscussionPoint> points = [];
 
                       for (final key in rowKeys) {
+                        print("Rows = ${rowKeys.length}");
+                        print("Points = ${points.length}");
                         final row = key.currentState;
 
                         if (row != null) {

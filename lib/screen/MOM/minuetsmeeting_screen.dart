@@ -26,8 +26,7 @@ class MinutesOfTheMeetingFormScreen extends ConsumerStatefulWidget {
       _MinutesOfTheMeetingFormScreenState();
 }
 
-class _MinutesOfTheMeetingFormScreenState
-    extends ConsumerState<MinutesOfTheMeetingFormScreen> {
+class _MinutesOfTheMeetingFormScreenState extends ConsumerState<MinutesOfTheMeetingFormScreen> {
   final TextEditingController meetingDateController = TextEditingController();
 
   @override
@@ -37,8 +36,19 @@ class _MinutesOfTheMeetingFormScreenState
         DateFormat("dd/MM/yyyy").format(DateTime.now());
 
     Future.microtask(() async {
-      print("Calling Customer");
       await ref.read(customerNotifierProvider.notifier).loadCustomers();
+
+      final customer =
+          ref.read(customerNotifierProvider).selectedCustomer;
+
+      if (customer != null) {
+        await ref
+            .read(meetingHistoryNotifierProvider.notifier)
+            .loadMeetingHistory(
+          customerCode: customer.customerCode,
+          meetingDate: meetingDateController.text,
+        );
+      }
     });
   }
 
