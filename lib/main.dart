@@ -223,4 +223,5 @@ class VisitState {
   static final ValueNotifier<bool> isVisitRunning = ValueNotifier(false);
   static final ValueNotifier<bool> isVisitStarted = ValueNotifier(false);
   static final ValueNotifier<int> countRemainingLatLong = ValueNotifier(0);
+  static int? runningVisitSrNo;
 }
