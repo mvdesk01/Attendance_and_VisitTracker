@@ -203,7 +203,7 @@ class _MinutesOfTheMeetingFormScreenState
                             minimumSize: Size.zero,
                             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                           ),
-                          child: const Text(
+                          child:  Text(
                             "Create Anyway",
                             style: TextStyle(
                               fontSize: 13,

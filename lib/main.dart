@@ -81,6 +81,7 @@ void main() async {
   //     options: DefaultFirebaseOptions.currentPlatform,
   //   );
   // }
+
   tz.initializeTimeZones();
   runApp(
     ProviderScope(
