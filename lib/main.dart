@@ -14,6 +14,7 @@ import 'package:attendance_system_ios/simple_bloc_observer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz_data;
 import 'package:workmanager/workmanager.dart';
@@ -81,8 +82,15 @@ void main() async {
   //   );
   // }
   tz.initializeTimeZones();
+  runApp(
+    ProviderScope(
+      child: MyApp(
+        initialPayload: initialPayload,
+      ),
+    ),
+  );
 
-  runApp(MyApp(initialPayload: initialPayload));
+  //runApp(MyApp(initialPayload: initialPayload));
 }
 
 void handleNotificationResponse(String? payload) {

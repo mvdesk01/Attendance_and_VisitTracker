@@ -39,6 +39,7 @@ import '../../service/internet_service.dart';
 import '../AdminProfile/Databasepunchout.dart';
 import '../AdminProfile/Databsepunchin.dart';
 import '../Expense/ExpenseScreen.dart';
+import '../MOM/minuetsmeeting_screen.dart';
 import '../Settings/Timer.dart';
 import '../Tour/TourmainScreen.dart';
 import '../Visit/Start Stop Visit/start_stop_visit.dart';
@@ -764,6 +765,21 @@ class _HomeScreenState extends State<HomeScreen> {
                               return MainBloc(webService: WebService());
                             },
                             child: VisitHistoryScreen())));
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.tour_outlined),
+              title: const Text('Minutes of Meeting '),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => BlocProvider(
+                      create: (context) => MainBloc(webService: WebService()),
+                      child: MinutesOfTheMeetingFormScreen(),
+                    ),
+                  ),
+                );
               },
             ),
             ListTile(
