@@ -121,6 +121,30 @@ class DiscussionPointRowState extends ConsumerState<DiscussionPointRow> {
     );
   }
 
+  bool validate() {
+    if (pointController.text.trim().isEmpty) {
+      return false;
+    }
+
+    if (discussedController.text.trim().isEmpty) {
+      return false;
+    }
+
+    if (selectedDecisionCode == null || selectedDecisionCode!.isEmpty) {
+      return false;
+    }
+
+    if (selectedMembers.isEmpty) {
+      return false;
+    }
+
+    if (targetDateController.text.trim().isEmpty) {
+      return false;
+    }
+
+    return true;
+  }
+
   @override
   Widget build(BuildContext context) {
     final decisionState = ref.watch(decisionNotifierProvider);
