@@ -22,6 +22,7 @@ import '../AdminExpense/Adminexpenseview.dart';
 import '../AdminProfile/Admin_profile.dart';
 import '../AdminVisitTracking/AdminVisitTrack.dart';
 import '../Home/AdminPunchreport.dart';
+import '../MOM/AdminMOMScreen.dart';
 
 class UserListScreen extends StatefulWidget {
   const UserListScreen({super.key});
@@ -883,6 +884,66 @@ class _UserListScreenState extends State<UserListScreen> {
                                       top: 2.0, bottom: 10),
                                   child: Text(
                                     " Expense Details",
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.w400,
+                                        fontSize: 12),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            GestureDetector(
+                              onTap: () {
+                                print("MOM Clicked:");
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => AdminMomHistoryScreen(
+                                      datum: filteredUserList[index],
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: Card(
+                                margin: EdgeInsets.symmetric(
+                                    horizontal: 7, vertical: 5),
+                                shape: RoundedRectangleBorder(
+                                  side: BorderSide(
+                                      width: 1, color: MyColors.lightBlue),
+                                  borderRadius: BorderRadius.circular(6.0),
+                                ),
+                                child: Container(
+                                  padding: EdgeInsets.all(16),
+                                  height:
+                                      MediaQuery.of(context).size.width * 0.2,
+                                  width:
+                                      MediaQuery.of(context).size.width * 0.2,
+                                  child: Center(
+                                    child: Image.asset(
+                                      "assets/icons/MOM.jpg",
+                                      width: MediaQuery.of(context).size.width *
+                                          0.2,
+                                      height:
+                                          MediaQuery.of(context).size.width *
+                                              0.2,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Column(
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.only(
+                                      top: 2.0, bottom: 10),
+                                  child: Text(
+                                    " Meeting Details",
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
                                         fontWeight: FontWeight.w400,

@@ -75,6 +75,29 @@ class CustomerNotifier extends _$CustomerNotifier {
     );
   }
 
+  Future<void> loadCustomersForStaff(String staffCode) async {
+    state = state.copyWith(
+      isLoading: true,
+      error: null,
+    );
+
+    try {
+      final customers = await ref.read(getCustomersUseCaseProvider).call(
+            userName: staffCode,
+          );
+
+      state = state.copyWith(
+        isLoading: false,
+        customers: customers,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+      );
+    }
+  }
+
   Future<void> refreshCustomers() async {
     await loadCustomers(forceRefresh: true);
   }
