@@ -177,7 +177,7 @@ class _MinutesOfTheMeetingFormScreenState
                             color: Colors.grey[600], size: 18),
                         const SizedBox(width: 8),
                         Text(
-                          "Meeting history exists. Create new meeting?",
+                          "Meeting history exists.\nCreate new meeting?",
                           style: TextStyle(
                             color: Colors.grey[600],
                             fontSize: 13,
