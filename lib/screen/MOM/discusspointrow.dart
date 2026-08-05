@@ -122,25 +122,21 @@ class DiscussionPointRowState extends ConsumerState<DiscussionPointRow> {
   }
 
   bool validate() {
-    if (pointController.text.trim().isEmpty) {
-      return false;
-    }
+    print("------------");
+    print("Point: ${pointController.text}");
+    print("Discussed: ${discussedController.text}");
+    print("Decision Name: $decision");
+    print("Decision Code: $selectedDecisionCode");
+    print("Members: ${selectedMembers.length}");
+    print("Member Names: $selectedMemberNames");
+    print("Target: ${targetDateController.text}");
 
-    if (discussedController.text.trim().isEmpty) {
+    if (pointController.text.trim().isEmpty) return false;
+    if (discussedController.text.trim().isEmpty) return false;
+    if (selectedDecisionCode == null || selectedDecisionCode!.isEmpty)
       return false;
-    }
-
-    if (selectedDecisionCode == null || selectedDecisionCode!.isEmpty) {
-      return false;
-    }
-
-    if (selectedMembers.isEmpty) {
-      return false;
-    }
-
-    if (targetDateController.text.trim().isEmpty) {
-      return false;
-    }
+    if (selectedMembers.isEmpty) return false;
+    if (targetDateController.text.trim().isEmpty) return false;
 
     return true;
   }
@@ -149,19 +145,28 @@ class DiscussionPointRowState extends ConsumerState<DiscussionPointRow> {
   Widget build(BuildContext context) {
     final decisionState = ref.watch(decisionNotifierProvider);
     final responsibilityState = ref.watch(responsibilityNotifierProvider);
+    if ((selectedDecisionCode == null || selectedDecisionCode!.isEmpty) &&
+        decision != null &&
+        decisionState.decisions.isNotEmpty) {
+      final match = decisionState.decisions.where(
+        (e) =>
+            e.decisionName.trim().toLowerCase() ==
+            decision!.trim().toLowerCase(),
+      );
 
+      if (match.isNotEmpty) {
+        selectedDecisionCode = match.first.decisionCode;
+      }
+    }
     if (selectedMembers.isEmpty &&
         selectedMemberNames.isNotEmpty &&
         responsibilityState.responsibility.isNotEmpty) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-
-        setState(() {
-          selectedMembers = responsibilityState.responsibility
-              .where((e) => selectedMemberNames.contains(e.userName))
-              .toList();
-        });
-      });
+      selectedMembers = responsibilityState.responsibility.where((e) {
+        return selectedMemberNames.any(
+          (name) =>
+              name.trim().toLowerCase() == e.userName.trim().toLowerCase(),
+        );
+      }).toList();
     }
     return Container(
       color: widget.serialNumber.isEven ? Colors.grey.shade50 : Colors.white,
