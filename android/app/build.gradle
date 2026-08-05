@@ -64,8 +64,8 @@ android {
             shrinkResources false
 
             // Optional: keep debug signing for now, use release signing config in production
-            signingConfig signingConfigs.debug
-//            signingConfig = signingConfigs.getByName("release")
+//            signingConfig signingConfigs.debug
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 }
