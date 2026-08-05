@@ -217,6 +217,60 @@ class _AddMeetingScreenState extends ConsumerState<AddMeetingScreen> {
       _rebuildDiscussionRows();
     });
   }*/
+
+  bool validateForm() {
+    // Meeting Date
+    if (dateController.text.trim().isEmpty) {
+      showError("Please select meeting date.");
+      return false;
+    }
+
+    // Meeting Time
+    if (timeController.text.trim().isEmpty) {
+      showError("Please select meeting time.");
+      return false;
+    }
+
+    // Members Present
+    final presentMembers = <String>[
+      if (_staffName != null && _staffName!.trim().isNotEmpty) _staffName!,
+      ...dynamicPresentMembers,
+    ];
+
+    if (presentMembers.isEmpty) {
+      showError("Please enter at least one member present.");
+      return false;
+    }
+
+    // Discussion Point
+    if (rowKeys.isEmpty) {
+      showError("Please add at least one discussion point.");
+      return false;
+    }
+
+    for (int i = 0; i < rowKeys.length; i++) {
+      final row = rowKeys[i].currentState;
+
+      if (row == null) continue;
+
+      if (!row.validate()) {
+        showError("Please complete Discussion Point ${i + 1}.");
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  void showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+      ),
+    );
+  }
+
   void addDiscussionRow() {
     setState(() {
       rowKeys.insert(
@@ -263,17 +317,6 @@ class _AddMeetingScreenState extends ConsumerState<AddMeetingScreen> {
       },
     );
   }
-
-/*
-  void deleteDiscussionRow(int deleteIndex) {
-    if (rowKeys.length <= 1) return;
-
-    setState(() {
-      rowKeys.removeAt(deleteIndex);
-      _rebuildDiscussionRows();
-    });
-  }
-*/
 
   void deleteDiscussionRow(int deleteIndex) {
     if (rowKeys.length <= 1) return;
@@ -780,6 +823,10 @@ class _AddMeetingScreenState extends ConsumerState<AddMeetingScreen> {
               onPressed: submitState.isLoading
                   ? null
                   : () async {
+                      if (!validateForm()) {
+                        return;
+                      }
+
                       final staffCode = await storage.read(
                         key: "Staff_Code",
                       );
