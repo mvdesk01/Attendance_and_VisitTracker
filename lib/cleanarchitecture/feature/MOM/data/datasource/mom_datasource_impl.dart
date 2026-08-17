@@ -1,9 +1,13 @@
+import 'dart:convert';
+
 import 'package:attendance_system_ios/cleanarchitecture/feature/MOM/data/datasource/remote_datasource.dart';
 import 'package:attendance_system_ios/cleanarchitecture/feature/MOM/data/model/ResponsibiltyModel.dart';
 import 'package:attendance_system_ios/cleanarchitecture/feature/MOM/data/model/meetinghistory_model.dart';
 import 'package:dio/dio.dart';
+import 'package:http/http.dart' as client;
 
 import '../../../../core/network/dio_client.dart';
+import '../model/custom_decision_master.dart';
 import '../model/customer_model.dart';
 import '../model/decision_model.dart';
 import '../model/discussionpointrequest_model.dart';
@@ -140,4 +144,29 @@ class MomRemoteDatasourceImpl implements MomRemoteDatasource {
 
     return list;
   }
+
+
+
+  @override
+  Future<String> addCustomDecision(DecisionMasterRequest request,) async {
+
+    final Response response = await dio.post(
+      "DecisionMaster",
+      data: {
+        jsonEncode(request.toJson())
+      },
+    );
+
+  if (response.statusCode == 200 || response.statusCode == 201) {
+  final json = jsonDecode(response.data);
+  final result = DecisionMasterResponse.fromJson(json);
+  return result.outMsg;
+  }
+  throw Exception(
+  'Failed to add decision. '
+  'Status code: ${response.statusCode}',
+  );
+  }
+
+
 }

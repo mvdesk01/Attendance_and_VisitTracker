@@ -76,6 +76,59 @@ class DecisionNotifier extends _$DecisionNotifier {
     staffName = await storage.read(key: 'Staff_Name');
     print("staffcodemom: $staffCode");
   }
+
+  Future<bool> addCustomDecision({
+    required String decisionName,
+  }) async {
+    try {
+      staffCode = await storage.read(
+        key: 'Staff_Code',
+      );
+
+      if (staffCode == null || staffCode!.isEmpty) {
+        state = state.copyWith(
+          error: "Staff code not found",
+          isLoading: false,
+        );
+
+        return false;
+      }
+
+      state = state.copyWith(
+        isLoading: true,
+        error: null,
+      );
+
+      final result = await ref
+          .read(addcustomDecisionUseCaseProvider)
+          .call(
+        decisionName: decisionName,
+        entryBy: staffCode!,
+      );
+
+      print(
+        "Add Custom Decision Response: $result",
+      );
+
+      state = state.copyWith(
+        isLoading: false,
+        error: null,
+      );
+
+      return true;
+    } catch (e) {
+      print(
+        "Add Custom Decision Error: $e",
+      );
+
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+      );
+
+      return false;
+    }
+  }
 }
 
 ///test

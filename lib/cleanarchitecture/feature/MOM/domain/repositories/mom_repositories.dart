@@ -44,6 +44,14 @@ abstract class MomRepository {
 
   Future<List<MeetingHistoryGroup>> getMeetingHistory(
       {required String customerCode, required String meetingDate});
+
+  // Future<List<Decision>> getCustomDecisions();
+
+  Future<String> addCustomDecision({
+    required String decisionName,
+    required String entryBy,
+  });
+
 }
 
 ///test

@@ -8,4 +8,16 @@ class Decision {
   });
 }
 
+class CustomDecision {
+  final String decisionCode;
+  final String decisionName;
+  final String status;
+
+  const CustomDecision({
+    required this.decisionCode,
+    required this.decisionName,
+    required this.status,
+  });
+}
+
 ///test

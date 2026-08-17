@@ -10,6 +10,7 @@ import '../../domain/enteties/submitmeeting_result.dart';
 import '../../domain/repositories/mom_repositories.dart';
 import '../datasource/mom_local_datasource.dart';
 import '../datasource/remote_datasource.dart';
+import '../model/custom_decision_master.dart';
 import '../model/customer_model.dart';
 import '../model/decision_model.dart';
 import '../model/discussionpointrequest_model.dart';
@@ -226,6 +227,28 @@ class MomRepositoryImpl implements MomRepository {
     });
 
     return meetings;
+  }
+
+  @override
+  Future<String> addCustomDecision({
+    required String decisionName,
+    required String entryBy,
+  }) async {
+
+    final request = DecisionMasterRequest(
+
+      decisionCode: "0",
+
+      decisionName: decisionName,
+
+      status: "Y",
+
+      entryBy: entryBy,
+
+    );
+
+    return await remoteDatasource.addCustomDecision(request);
+
   }
 }
 

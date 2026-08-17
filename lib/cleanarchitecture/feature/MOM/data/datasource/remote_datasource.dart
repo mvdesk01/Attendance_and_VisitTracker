@@ -1,6 +1,7 @@
 import 'package:attendance_system_ios/cleanarchitecture/feature/MOM/data/model/ResponsibiltyModel.dart';
 import 'package:attendance_system_ios/cleanarchitecture/feature/MOM/data/model/meetinghistory_model.dart';
 
+import '../model/custom_decision_master.dart';
 import '../model/customer_model.dart';
 import '../model/decision_model.dart';
 import '../model/discussionpointrequest_model.dart';
@@ -32,4 +33,9 @@ abstract class MomRemoteDatasource {
     required String customerCode,
     required String meetingDate,
   });
+
+  Future<String> addCustomDecision(
+  DecisionMasterRequest request,
+  );
+
 }
