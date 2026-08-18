@@ -406,7 +406,7 @@ class DiscussionPointRowState extends ConsumerState<DiscussionPointRow> {
                 controller: pointController,
                 minLines: 4,
                 maxLines: null,
-                keyboardType: TextInputType.multiline,
+                // keyboardType: TextInputType.multiline,
                 decoration: InputDecoration(
                   isDense: true,
                   alignLabelWithHint: true,
