@@ -11,6 +11,7 @@ class DiscussionPointRequestModel extends DiscussionPoint {
     required super.targetDate,
     required super.entryBy,
     required super.flag,
+    required super.last,
   });
 
   factory DiscussionPointRequestModel.fromEntity(DiscussionPoint point) {
@@ -23,6 +24,7 @@ class DiscussionPointRequestModel extends DiscussionPoint {
       targetDate: point.targetDate,
       entryBy: point.entryBy,
       flag: point.flag,
+      last: point.last,
     );
   }
 
@@ -35,6 +37,7 @@ class DiscussionPointRequestModel extends DiscussionPoint {
       "TargetDate": targetDate,
       "EntryBy": entryBy,
       "Flag": flag,
+      "Last": last,
     };
   }
 }

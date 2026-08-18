@@ -99,16 +99,38 @@ class DecisionNotifier extends _$DecisionNotifier {
         error: null,
       );
 
-      final result = await ref
-          .read(addcustomDecisionUseCaseProvider)
-          .call(
-        decisionName: decisionName,
-        entryBy: staffCode!,
-      );
+      final result = await ref.read(addcustomDecisionUseCaseProvider).call(
+            decisionName: decisionName,
+            entryBy: staffCode!,
+          );
 
+      // print(
+      //   "Add Custom Decision Response: $result",
+      // );
+      //
+      // state = state.copyWith(
+      //   isLoading: false,
+      //   error: null,
+      // );
+      //
+      // return true;
       print(
         "Add Custom Decision Response: $result",
       );
+
+      if (result.trim().toLowerCase() != "details save successfully") {
+        state = state.copyWith(
+          isLoading: false,
+          error: result,
+        );
+
+        return false;
+      }
+
+// Refresh decision list.
+// This will fetch the newly-created decision
+// along with its generated DecisionCode.
+      await loadDecisions(forceRefresh: true);
 
       state = state.copyWith(
         isLoading: false,

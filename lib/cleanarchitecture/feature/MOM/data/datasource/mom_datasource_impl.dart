@@ -1,10 +1,7 @@
-import 'dart:convert';
-
 import 'package:attendance_system_ios/cleanarchitecture/feature/MOM/data/datasource/remote_datasource.dart';
 import 'package:attendance_system_ios/cleanarchitecture/feature/MOM/data/model/ResponsibiltyModel.dart';
 import 'package:attendance_system_ios/cleanarchitecture/feature/MOM/data/model/meetinghistory_model.dart';
 import 'package:dio/dio.dart';
-import 'package:http/http.dart' as client;
 
 import '../../../../core/network/dio_client.dart';
 import '../model/custom_decision_master.dart';
@@ -16,21 +13,6 @@ import '../model/meetingrequest_model.dart';
 class MomRemoteDatasourceImpl implements MomRemoteDatasource {
   final Dio dio = DioClient().dio;
 
-  // @override
-  // Future<List<CustomerModel>> getCustomers({
-  //   required String userName,
-  // }) async {
-  //   final Response response = await dio.post(
-  //     'Customer',
-  //     data: {
-  //       "UserName": userName,
-  //     },
-  //   );
-  //
-  //   return (response.data as List)
-  //       .map((e) => CustomerModel.fromJson(e))
-  //       .toList();
-  // }
   @override
   Future<List<CustomerModel>> getCustomers({
     required String userName,
@@ -145,28 +127,94 @@ class MomRemoteDatasourceImpl implements MomRemoteDatasource {
     return list;
   }
 
-
-
-  @override
-  Future<String> addCustomDecision(DecisionMasterRequest request,) async {
-
+  // @override
+  // Future<String> addCustomDecision(
+  //   DecisionMasterRequest request,
+  // ) async {
+  //   final Response response =
+  //       await dio.post("DecisionMaster", data: jsonEncode(request.toJson()));
+  //
+  //   if (response.statusCode == 200 || response.statusCode == 201) {
+  //     final json = jsonDecode(response.data);
+  //     final result = DecisionMasterResponse.fromJson(json);
+  //     return result.outMsg;
+  //   }
+  //   throw Exception(
+  //     'Failed to add decision. '
+  //     'Status code: ${response.statusCode}',
+  //   );
+  // }
+  /*@override
+  Future<String> addCustomDecision(
+    DecisionMasterRequest request,
+  ) async {
     final Response response = await dio.post(
       "DecisionMaster",
-      data: {
-        jsonEncode(request.toJson())
-      },
+      data: request.toJson(),
     );
 
-  if (response.statusCode == 200 || response.statusCode == 201) {
-  final json = jsonDecode(response.data);
-  final result = DecisionMasterResponse.fromJson(json);
-  return result.outMsg;
-  }
-  throw Exception(
-  'Failed to add decision. '
-  'Status code: ${response.statusCode}',
-  );
-  }
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final data =
+          response.data is String ? jsonDecode(response.data) : response.data;
 
+      final result = DecisionMasterResponse.fromJson(
+        Map<String, dynamic>.from(data),
+      );
 
+      return result.outMsg;
+    }
+
+    throw Exception(
+      'Failed to add decision. '
+      'Status code: ${response.statusCode}',
+    );
+  }*/
+  @override
+  Future<String> addCustomDecision(
+    DecisionMasterRequest request,
+  ) async {
+    final Response response = await dio.post(
+      "DecisionMaster",
+      data: request.toJson(),
+    );
+
+    print("DecisionMaster Response: ${response.data}");
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final data = response.data;
+
+      // API returns:
+      // [
+      //   {
+      //     "OutMsg": "Details save successfully"
+      //   }
+      // ]
+
+      if (data is List && data.isNotEmpty) {
+        final result = DecisionMasterResponse.fromJson(
+          Map<String, dynamic>.from(data.first),
+        );
+
+        return result.outMsg;
+      }
+
+      // Just in case API returns an object in future.
+      if (data is Map) {
+        final result = DecisionMasterResponse.fromJson(
+          Map<String, dynamic>.from(data),
+        );
+
+        return result.outMsg;
+      }
+
+      throw Exception(
+        "Unexpected DecisionMaster response format",
+      );
+    }
+
+    throw Exception(
+      'Failed to add decision. '
+      'Status code: ${response.statusCode}',
+    );
+  }
 }

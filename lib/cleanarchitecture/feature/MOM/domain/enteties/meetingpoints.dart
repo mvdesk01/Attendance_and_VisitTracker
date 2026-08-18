@@ -12,6 +12,7 @@ class DiscussionPoint {
   final String targetDate;
   final String entryBy;
   final String flag;
+  final String last;
 
   const DiscussionPoint({
     required this.point,
@@ -22,6 +23,7 @@ class DiscussionPoint {
     required this.targetDate,
     required this.entryBy,
     required this.flag,
+    required this.last,
   });
 }
 

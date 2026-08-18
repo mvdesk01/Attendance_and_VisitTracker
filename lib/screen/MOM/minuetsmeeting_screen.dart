@@ -193,6 +193,9 @@ class _MinutesOfTheMeetingFormScreenState
                               MaterialPageRoute(
                                 builder: (context) => AddMeetingScreen(
                                   customer: customerState.selectedCustomer!,
+                                  selectedMeetingDate: DateFormat(
+                                    "dd/MM/yyyy",
+                                  ).parse(meetingDateController.text),
                                 ),
                               ),
                             );
@@ -203,7 +206,7 @@ class _MinutesOfTheMeetingFormScreenState
                             minimumSize: Size.zero,
                             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                           ),
-                          child:  Text(
+                          child: Text(
                             "Create Anyway",
                             style: TextStyle(
                               fontSize: 13,
@@ -226,6 +229,9 @@ class _MinutesOfTheMeetingFormScreenState
                                 MaterialPageRoute(
                                   builder: (context) => AddMeetingScreen(
                                     customer: customerState.selectedCustomer!,
+                                    selectedMeetingDate: DateFormat(
+                                      "dd/MM/yyyy",
+                                    ).parse(meetingDateController.text),
                                   ),
                                 ),
                               );

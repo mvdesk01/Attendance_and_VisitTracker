@@ -13,7 +13,6 @@ import '../../cleanarchitecture/feature/MOM/domain/enteties/submitmeeting_reques
 import '../../cleanarchitecture/feature/MOM/presentation/provider/decision/decisionprovider.dart';
 import '../../cleanarchitecture/feature/MOM/presentation/provider/submeeting/submitmeetingprovider.dart';
 import '../../cleanarchitecture/feature/MOM/presentation/provider/submeeting/submitmeetingstate.dart';
-import 'MOMListScreen.dart';
 import 'discusspointrow.dart';
 import 'discusspointtable.dart';
 
@@ -23,11 +22,14 @@ class AddMeetingScreen extends ConsumerStatefulWidget {
   final bool isEditing;
   final String? meetingId;
 
+  final DateTime? selectedMeetingDate;
+
   const AddMeetingScreen(
       {Key? key,
       required this.customer,
       this.meetingHistory,
       this.meetingId,
+      this.selectedMeetingDate,
       this.isEditing = false})
       : super(key: key);
 
@@ -88,7 +90,8 @@ class _AddMeetingScreenState extends ConsumerState<AddMeetingScreen> {
     //   _initializeFromMeeting();
     // } else {
     // Default initialization
-    selectedDate = DateTime.now();
+    //selectedDate = DateTime.now();
+    selectedDate = widget.selectedMeetingDate ?? DateTime.now();
     selectedTime = TimeOfDay.now();
     dateController.text = DateFormat('dd/MM/yyyy').format(selectedDate);
     timeController.text =
@@ -205,20 +208,6 @@ class _AddMeetingScreenState extends ConsumerState<AddMeetingScreen> {
     });
   }
 
-  /*void addDiscussionRow() {
-    setState(() {
-      rowKeys.insert(
-        0,
-        GlobalKey<DiscussionPointRowState>(),
-      );
-
-      // Keep the indices aligned
-      initialDiscussionPoints.insert(0, {});
-
-      _rebuildDiscussionRows();
-    });
-  }*/
-
   bool validateForm() {
     // Meeting Date
     if (dateController.text.trim().isEmpty) {
@@ -298,17 +287,10 @@ class _AddMeetingScreenState extends ConsumerState<AddMeetingScreen> {
           data = initialDiscussionPoints[index];
         }
 
-        // return DiscussionPointRow(
-        //   key: rowKeys[index],
-        //   serialNumber: index + 1,
-        //   initialData: data,
-        //   onDelete: () {
-        //     deleteDiscussionRow(index);
-        //   },
-        // );
         return DiscussionPointRow(
           key: rowKeys[index],
           serialNumber: index + 1,
+          customerCode: widget.customer.customerCode,
           initialData: data,
           isExisting: rowIsExisting[index],
           onDelete: () {
@@ -322,15 +304,6 @@ class _AddMeetingScreenState extends ConsumerState<AddMeetingScreen> {
   void deleteDiscussionRow(int deleteIndex) {
     if (rowKeys.length <= 1) return;
 
-    // setState(() {
-    //   rowKeys.removeAt(deleteIndex);
-    //
-    //   if (deleteIndex < initialDiscussionPoints.length) {
-    //     initialDiscussionPoints.removeAt(deleteIndex);
-    //   }
-    //
-    //   _rebuildDiscussionRows();
-    // });
     setState(() {
       rowKeys.removeAt(deleteIndex);
 
@@ -856,15 +829,32 @@ class _AddMeetingScreenState extends ConsumerState<AddMeetingScreen> {
                       /// Discussion Points
                       final List<DiscussionPoint> points = [];
 
-                      for (final key in rowKeys) {
+                      // for (final key in rowKeys) {
+                      //   print("Rows = ${rowKeys.length}");
+                      //   print("Points = ${points.length}");
+                      //   final row = key.currentState;
+                      //
+                      //   if (row != null) {
+                      //     points.add(
+                      //       row.getDiscussionPoint(
+                      //         entryBy: staffCode,
+                      //       ),
+                      //     );
+                      //   }
+                      // }
+                      for (int i = 0; i < rowKeys.length; i++) {
                         print("Rows = ${rowKeys.length}");
                         print("Points = ${points.length}");
-                        final row = key.currentState;
+
+                        final row = rowKeys[i].currentState;
 
                         if (row != null) {
+                          final isLast = i == rowKeys.length - 1;
+
                           points.add(
                             row.getDiscussionPoint(
                               entryBy: staffCode,
+                              last: isLast ? "Y" : "N",
                             ),
                           );
                         }
@@ -975,6 +965,4 @@ class _AddMeetingScreenState extends ConsumerState<AddMeetingScreen> {
       ),
     );
   }
-
-
 }
