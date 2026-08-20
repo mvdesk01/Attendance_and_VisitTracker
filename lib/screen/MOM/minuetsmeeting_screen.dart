@@ -424,6 +424,18 @@ class _MinutesOfTheMeetingFormScreenState
 
                 print("History API Finished");
               }),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton(
+              onPressed: () => addNewcustomer(),
+              child: Text(
+                "Could not find customer. Add new Customer ",
+                style: TextStyle(
+                  color: Colors.blue,
+                ),
+              ),
+            ),
+          ),
           const SizedBox(height: 16),
           Row(
             children: const [
@@ -700,5 +712,64 @@ class _MinutesOfTheMeetingFormScreenState
         ],
       ),
     );
+  }
+
+  Future<void> addNewcustomer() async {
+    final controller = TextEditingController();
+
+    final customerName = await showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text("Add New Customer"),
+          content: TextField(
+            controller: controller,
+            autofocus: true,
+            textCapitalization: TextCapitalization.words,
+            decoration: const InputDecoration(
+              labelText: "Customer Name",
+              hintText: "Enter customer name",
+              border: OutlineInputBorder(),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+              },
+              child: const Text("Cancel"),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                final name = controller.text.trim();
+
+                if (name.isEmpty) {
+                  return;
+                }
+
+                Navigator.of(dialogContext).pop(name);
+              },
+              child: const Text("Add"),
+            ),
+          ],
+        );
+      },
+    );
+
+    // Wait for dialog closing animation/overlay cleanup.
+    await Future<void>.delayed(
+      const Duration(milliseconds: 300),
+    );
+
+    controller.dispose();
+
+    if (!mounted || customerName == null) {
+      return;
+    }
+
+    print("New Customer: $customerName");
+
+    // Add your API call here.
   }
 }
