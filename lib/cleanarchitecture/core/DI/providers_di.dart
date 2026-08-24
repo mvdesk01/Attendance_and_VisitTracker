@@ -13,6 +13,7 @@ import '../../feature/MOM/data/datasource/remote_datasource.dart';
 import '../../feature/MOM/data/repositories/mom_repository_impl.dart';
 import '../../feature/MOM/domain/repositories/mom_repositories.dart';
 import '../../feature/MOM/domain/usecases/add_custom_decision.dart';
+import '../../feature/MOM/domain/usecases/add_new _customerusercase.dart';
 import '../../feature/MOM/domain/usecases/get_customername.dart';
 import '../../feature/MOM/domain/usecases/get_selectedcustomer.dart';
 import '../../feature/MOM/domain/usecases/save_selectedcustomer.dart';
@@ -112,8 +113,14 @@ final getMeetinhHistoryCaseProvider = Provider<GetMeetinghistoryUseCase>((ref) {
 });
 
 final addcustomDecisionUseCaseProvider =
-Provider<AddCustomDecisionUseCase>((ref) {
+    Provider<AddCustomDecisionUseCase>((ref) {
   return AddCustomDecisionUseCase(
+    ref.read(repositoryProvider),
+  );
+});
+
+final addCustomerUseCaseProvider = Provider<AddCustomerUseCase>((ref) {
+  return AddCustomerUseCase(
     ref.read(repositoryProvider),
   );
 });

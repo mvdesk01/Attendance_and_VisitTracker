@@ -15,6 +15,7 @@ import '../model/customer_model.dart';
 import '../model/decision_model.dart';
 import '../model/discussionpointrequest_model.dart';
 import '../model/meetingrequest_model.dart';
+import '../model/new_customer_master.dart';
 
 class MomRepositoryImpl implements MomRepository {
   final MomRemoteDatasource remoteDatasource;
@@ -234,21 +235,36 @@ class MomRepositoryImpl implements MomRepository {
     required String decisionName,
     required String entryBy,
   }) async {
-
     final request = DecisionMasterRequest(
-
       decisionCode: "0",
-
       decisionName: decisionName,
-
       status: "Y",
-
       entryBy: entryBy,
-
     );
 
     return await remoteDatasource.addCustomDecision(request);
+  }
 
+  @override
+  Future<String> addCustomer({
+    required String customerName,
+    required String contactPerson,
+    required String address,
+    required String mobileNo,
+    required String emailId,
+    required String entryBy,
+  }) async {
+    final request = CustomerMasterRequest(
+      customername: customerName,
+      contactperson: contactPerson,
+      address: address,
+      mobileno: mobileNo,
+      emailid: emailId,
+      entryby: entryBy,
+      flag: "I",
+    );
+
+    return await remoteDatasource.addCustomer(request);
   }
 }
 

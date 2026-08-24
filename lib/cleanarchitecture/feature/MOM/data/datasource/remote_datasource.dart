@@ -6,6 +6,7 @@ import '../model/customer_model.dart';
 import '../model/decision_model.dart';
 import '../model/discussionpointrequest_model.dart';
 import '../model/meetingrequest_model.dart';
+import '../model/new_customer_master.dart';
 
 ///test
 abstract class MomRemoteDatasource {
@@ -35,7 +36,10 @@ abstract class MomRemoteDatasource {
   });
 
   Future<String> addCustomDecision(
-  DecisionMasterRequest request,
+    DecisionMasterRequest request,
   );
 
+  Future<String> addCustomer(
+    CustomerMasterRequest request,
+  );
 }
