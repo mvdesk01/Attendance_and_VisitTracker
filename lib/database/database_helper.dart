@@ -1,9 +1,10 @@
-import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+import 'package:sqflite/sqflite.dart';
 
 class DatabaseHelper {
   static Database? _database;
-  static const int databaseVersion = 3; //  Increment version when schema changes
+  static const int databaseVersion =
+      5; //  Increment version when schema changes
 
   Future<Database> get database async {
     if (_database != null) return _database!;
@@ -46,17 +47,20 @@ class DatabaseHelper {
       synced INTEGER DEFAULT 0
   )''',
     );
+
+    await db.execute('''
+  CREATE TABLE punch_state (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    staff_code TEXT NOT NULL,
+    transaction_date TEXT NOT NULL,
+    transaction_time TEXT NOT NULL,
+    flag_value TEXT NOT NULL,
+    shift_date TEXT,
+    shift_type TEXT
+  )
+''');
     print("✅ Table 'locations' created with all required columns.");
   }
-  // Future<void> markAsSynced(String timestamp, double lat, double lng) async {
-  //   final db = await database;
-  //   await db.update(
-  //     'locations',
-  //     {'synced': 1},
-  //     where: 'timestamp = ? AND latitude = ? AND longitude = ?',
-  //     whereArgs: [timestamp, lat, lng],
-  //   );
-  // }
 
   Future<void> markAsSynced(int id) async {
     final db = await database;
@@ -70,7 +74,8 @@ class DatabaseHelper {
   }
 
   ///  **Upgrade table when schema changes**
-  Future<void> _upgradeTable(Database db, int oldVersion, int newVersion) async {
+  Future<void> _upgradeTable(
+      Database db, int oldVersion, int newVersion) async {
     print("🔄 Upgrading database from version $oldVersion to $newVersion...");
 
     if (oldVersion < 4) {
@@ -84,20 +89,13 @@ class DatabaseHelper {
     await db.insert('batchStorage', position);
     print(" Data inserted into SQLite batch storage: $position");
   }
+
 //
   Future<void> insertLocation(Map<String, dynamic> location) async {
     final db = await database;
     await db.insert('locations', location);
     print(" Data inserted into SQLite: $location");
   }
-//   Future<int> insertLocation(Map<String, dynamic> location) async {
-//     final db = await database;
-//     return await db.insert('locations', {
-//       ...location,
-//       'epochMillis': DateTime.now().millisecondsSinceEpoch,
-//       'synced': 0,
-//     });
-//   }
 
   Future<List<Map<String, dynamic>>> getStoredLocations() async {
     final db = await database;
@@ -121,143 +119,77 @@ class DatabaseHelper {
     await _createTable(db);
     print(" Database reset! Table recreated.");
   }
-}
 
+  Future<void> insertPunchState({
+    required String staffCode,
+    required String transactionDate,
+    required String transactionTime,
+    required String flagValue,
+    String? shiftDate,
+    String? shiftType,
+  }) async {
+    final db = await database;
 
+    await db.insert('punch_state', {
+      'staff_code': staffCode,
+      'transaction_date': transactionDate,
+      'transaction_time': transactionTime,
+      'flag_value': flagValue,
+      'shift_date': shiftDate,
+      'shift_type': shiftType,
+    });
 
-
-/*class DatabaseHelper {
-  static Database? _database;
-
-  Future<Database> get database async {
-    if (_database != null) return _database!;
-    _database = await _initDatabase();
-    return _database!;
+    print(
+        "Punch state stored: $staffCode | $transactionDate | $transactionTime | $flagValue | $shiftType");
   }
 
-  Future<Database> _initDatabase() async {
-    String path = join(await getDatabasesPath(), 'location_data.db');
-    return await openDatabase(
-      path,
-      version: 3,
-      onCreate: (db, version) {
-        return db.execute(
-          '''CREATE TABLE locations (
-              latitude REAL,
-              longitude REAL,
-              address TEXT,
-              speed REAL,
-              distanceInMeters REAL,
-              distanceInKm REAL,
-              srNo_Vo TEXT,
-              timestamp TEXT
-          )''',
-        );
-      },
+  Future<Map<String, dynamic>?> getLatestPunchState(String staffCode) async {
+    final db = await database;
+
+    final result = await db.query(
+      'punch_state',
+      where: 'staff_code = ?',
+      whereArgs: [staffCode],
+      orderBy: 'id DESC',
+      limit: 1,
     );
+
+    if (result.isNotEmpty) {
+      return result.first;
+    }
+
+    return null;
   }
 
-  Future<void> insertLocation(Map<String, dynamic> location) async {
+  Future<Map<String, dynamic>?> getLatestPunchIn(String staffCode) async {
     final db = await database;
-    await db.insert('locations', location);
-  }
 
-  Future<List<Map<String, dynamic>>> getStoredLocations() async {
-    final db = await database;
-    return await db.query('locations');
-  }
-
-  Future<void> deleteLocation(int id) async {
-    final db = await database;
-    await db.delete('locations', where: 'id = ?', whereArgs: [id]);
-  }
-}*/
-
-
-/*
-class DatabaseHelper {
-  static Database? _database;
-  static const int databaseVersion = 4; //  Increment version when schema changes
-
-  Future<Database> get database async {
-    if (_database != null) return _database!;
-    _database = await _initDatabase();
-    return _database!;
-  }
-
-  Future<Database> _initDatabase() async {
-    String path = join(await getDatabasesPath(), 'location_data.db');
-    return await openDatabase(
-      path,
-      version: databaseVersion,
-      onCreate: (db, version) {
-        _createTable(db);
-      },
-      onUpgrade: (db, oldVersion, newVersion) {
-        _dropAndRecreateTable(db);
-      },
+    final result = await db.query(
+      'punch_state',
+      where: 'staff_code = ? AND flag_value = ?',
+      whereArgs: [staffCode, '001'],
+      orderBy: 'id DESC',
+      limit: 1,
     );
+
+    if (result.isNotEmpty) {
+      return result.first;
+    }
+
+    return null;
   }
 
-  ///  **Drop the old table and create a new one**
-  Future<void> _dropAndRecreateTable(Database db) async {
-    print("⚠️ Dropping old table and creating a new one...");
-    await db.execute("DROP TABLE IF EXISTS locations");
-    await _createTable(db);
-    print(" New table created successfully.");
-  }
+  Future<Map<String, dynamic>?> getLatestPunchOut(String staffCode) async {
+    final db = await database;
 
-  ///  **Create the new table with all required parameters**
-  Future<void> _createTable(Database db) async {
-    await db.execute(
-      '''CREATE TABLE locations (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          transactionId TEXT,
-          transactionDate TEXT,
-          transactionTime TEXT,
-          latitude REAL,
-          longitude REAL,
-          staffcode TEXT,
-          deviceId TEXT,
-          uuidid TEXT,
-          process TEXT,
-          actualDate TEXT,
-          actualTime TEXT,
-          address TEXT,
-          speed REAL,
-          distance REAL,
-          srNo_Vo TEXT,
-          status TEXT,
-          distanceInKm REAL,
-          gpsCheckFlag TEXT
-      )''',
+    final result = await db.query(
+      'punch_state',
+      where: 'staff_code = ? AND flag_value = ?',
+      whereArgs: [staffCode, '000'],
+      orderBy: 'id DESC',
+      limit: 1,
     );
-    print(" Table created successfully.");
-  }
 
-  Future<void> insertLocation(Map<String, dynamic> location) async {
-    final db = await database;
-    await db.insert('locations', location);
-    print("📌 Data inserted into SQLite: $location");
-  }
-
-  Future<List<Map<String, dynamic>>> getStoredLocations() async {
-    final db = await database;
-    return await db.query('locations');
-  }
-
-  Future<void> deleteLocation(int id) async {
-    final db = await database;
-    await db.delete('locations', where: 'id = ?', whereArgs: [id]);
-    print("🗑️ Data with ID $id deleted from SQLite.");
-  }
-
-  /// ✅ **Force database reset (Use only for debugging)**
-  Future<void> resetDatabase() async {
-    final db = await database;
-    await db.execute("DROP TABLE IF EXISTS locations");
-    await _createTable(db);
-    print("⚠️ Database reset! Table recreated.");
+    return result.isNotEmpty ? result.first : null;
   }
 }
-*/

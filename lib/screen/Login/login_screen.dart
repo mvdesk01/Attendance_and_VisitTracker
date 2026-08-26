@@ -274,7 +274,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         const SizedBox(height: 30),
                         const Text(
-                          "SING IN",
+                          "LOGIN",
                           style: TextStyle(
                             color: Colors.black,
                             fontWeight: FontWeight.bold,

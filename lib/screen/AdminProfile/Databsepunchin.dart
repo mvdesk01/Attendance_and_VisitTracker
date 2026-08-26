@@ -3,13 +3,15 @@ import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 
-class DatabaseHelper {
-  static final DatabaseHelper _instance = DatabaseHelper._internal();
-  factory DatabaseHelper() => _instance;
+class DatabaseHelperPunchIn {
+  static final DatabaseHelperPunchIn _instance =
+      DatabaseHelperPunchIn._internal();
+
+  factory DatabaseHelperPunchIn() => _instance;
 
   static Database? _database;
 
-  DatabaseHelper._internal();
+  DatabaseHelperPunchIn._internal();
 
   Future<Database> get database async {
     if (_database != null) return _database!;
@@ -55,7 +57,9 @@ class DatabaseHelper {
   )
 ''');
   }
-  Future<bool> checkDuplicateEntry(String staffCode, String date, String flagValue) async {
+
+  Future<bool> checkDuplicateEntry(
+      String staffCode, String date, String flagValue) async {
     final db = await database;
     final result = await db.query(
       'punch_entries',
@@ -80,8 +84,6 @@ class DatabaseHelper {
   //   return result.isNotEmpty;
   // }
 
-
-
   Future<List<Map<String, dynamic>>> getOfflinePunchEntries() async {
     final db = await database;
     return await db.query('punch_entries');
@@ -92,10 +94,12 @@ class DatabaseHelper {
     print("Inserting into DB: $data");
     return await db.insert('punch_entries', data);
   }
+
   Future<int> deletePunchEntry(int id) async {
     final db = await database;
     return await db.delete('punch_entries', where: 'id = ?', whereArgs: [id]);
   }
+
   Future<Map<String, dynamic>?> getLastPunchEntry(String staffCode) async {
     final db = await database;
     final List<Map<String, dynamic>> result = await db.query(
@@ -107,8 +111,6 @@ class DatabaseHelper {
     );
     return result.isNotEmpty ? result.first : null;
   }
-
-
 
   // Optional: Get all entries
   Future<List<Map<String, dynamic>>> getAllEntries() async {
