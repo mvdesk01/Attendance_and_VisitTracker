@@ -52,6 +52,14 @@ abstract class MomRepository {
     required String entryBy,
   });
 
+  Future<String> addCustomer({
+    required String customerName,
+    required String contactPerson,
+    required String address,
+    required String mobileNo,
+    required String emailId,
+    required String entryBy,
+  });
 }
 
 ///test

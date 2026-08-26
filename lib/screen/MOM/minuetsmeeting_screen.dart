@@ -8,9 +8,12 @@
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
+import '../../cleanarchitecture/core/DI/providers_di.dart';
 import '../../cleanarchitecture/feature/MOM/domain/enteties/customer.dart';
 import '../../cleanarchitecture/feature/MOM/domain/enteties/meetinghistory_group.dart';
 import '../../cleanarchitecture/feature/MOM/presentation/provider/customerprovider.dart';
@@ -29,6 +32,12 @@ class MinutesOfTheMeetingFormScreen extends ConsumerStatefulWidget {
 class _MinutesOfTheMeetingFormScreenState
     extends ConsumerState<MinutesOfTheMeetingFormScreen> {
   final TextEditingController meetingDateController = TextEditingController();
+  final nameController = TextEditingController();
+  final mobileController = TextEditingController();
+  final addressController = TextEditingController();
+  final emailController = TextEditingController();
+  final contactPersonController = TextEditingController();
+  final storage = const FlutterSecureStorage();
 
   ///test
   @override
@@ -424,6 +433,18 @@ class _MinutesOfTheMeetingFormScreenState
 
                 print("History API Finished");
               }),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton(
+              onPressed: () => addNewcustomer(),
+              child: Text(
+                "Could not find customer. Add new Customer ",
+                style: TextStyle(
+                  color: Colors.blue,
+                ),
+              ),
+            ),
+          ),
           const SizedBox(height: 16),
           Row(
             children: const [
@@ -700,5 +721,533 @@ class _MinutesOfTheMeetingFormScreenState
         ],
       ),
     );
+  }
+
+  // Future<void> addNewcustomer() async {
+  //   final customerData = await _showAddCustomerDialog();
+  //
+  //   if (!mounted || customerData == null) {
+  //     return;
+  //   }
+  //
+  //   print(
+  //     "Customer Name: ${customerData["name"]}",
+  //   );
+  //
+  //   print(
+  //     "Customer Mobile: ${customerData["mobile"]}",
+  //   );
+  //
+  //   print(
+  //     "Customer Address: ${customerData["address"]}",
+  //   );
+  //
+  //   print(
+  //     "Customer Email: ${customerData["email"]}",
+  //   );
+  //
+  //   print(
+  //     "Contact Person: ${customerData["contactPerson"]}",
+  //   );
+  //
+  //   // TODO:
+  //   // Call Add Customer API here.
+  // }
+  Future<void> addNewcustomer() async {
+    final customerData = await _showAddCustomerDialog();
+
+    if (!mounted || customerData == null) {
+      return;
+    }
+    nameController.clear();
+    mobileController.clear();
+    addressController.clear();
+    emailController.clear();
+    contactPersonController.clear();
+
+    final staffCode = await storage.read(
+      key: 'Staff_Code',
+    );
+
+    if (staffCode == null || staffCode.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Staff code not found"),
+        ),
+      );
+      return;
+    }
+
+    try {
+      final result = await ref.read(addCustomerUseCaseProvider).call(
+            customerName: customerData["name"] ?? "",
+            contactPerson: customerData["contactPerson"] ?? "",
+            address: customerData["address"] ?? "",
+            mobileNo: customerData["mobile"] ?? "",
+            emailId: customerData["email"] ?? "",
+            entryBy: staffCode,
+          );
+
+      print("Add Customer Response: $result");
+
+      if (!mounted) return;
+
+      if (result.trim().toLowerCase() == "details save successfully") {
+        // Refresh existing customer list API
+        await ref.read(customerNotifierProvider.notifier).refreshCustomers();
+
+        if (!mounted) return;
+
+        // Get refreshed customer list
+        final customerState = ref.read(customerNotifierProvider);
+
+        // Find newly added customer by name
+        final newCustomer = customerState.customers
+            .where(
+              (customer) =>
+                  customer.customerName.trim().toLowerCase() ==
+                  (customerData["name"] ?? "").trim().toLowerCase(),
+            )
+            .firstOrNull;
+
+        if (newCustomer != null) {
+          // Select the newly added customer
+          await ref
+              .read(customerNotifierProvider.notifier)
+              .selectCustomer(newCustomer);
+
+          print(
+            "New Customer Selected: "
+            "${newCustomer.customerName}",
+          );
+
+          print(
+            "New Customer Code: "
+            "${newCustomer.customerCode}",
+          );
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              "Customer added successfully",
+            ),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result),
+          ),
+        );
+      }
+    } catch (e) {
+      print("Add Customer Error: $e");
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "Failed to add customer: $e",
+          ),
+        ),
+      );
+    }
+  }
+
+  Future<Map<String, String>?> _showAddCustomerDialog() async {
+    return await showDialog<Map<String, String>>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 24,
+          ),
+          child: Container(
+            constraints: const BoxConstraints(
+              maxWidth: 500,
+              maxHeight: 700,
+            ),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // ---------------- HEADER ----------------
+
+                  Row(
+                    children: [
+                      Container(
+                        height: 48,
+                        width: 48,
+                        decoration: BoxDecoration(
+                          color: Colors.blue.withOpacity(0.10),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: const Icon(
+                          Icons.business_rounded,
+                          color: Colors.blue,
+                          size: 26,
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Add New Customer",
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF1F2937),
+                              ),
+                            ),
+                            SizedBox(height: 3),
+                            Text(
+                              "Enter customer details below",
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () {
+                          Navigator.of(dialogContext).pop();
+                        },
+                        icon: const Icon(
+                          Icons.close_rounded,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  const Text(
+                    "Customer Information",
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF374151),
+                    ),
+                  ),
+
+                  const SizedBox(height: 14),
+
+                  // ---------------- NAME ----------------
+
+                  TextField(
+                    controller: nameController,
+                    textCapitalization: TextCapitalization.words,
+                    decoration: InputDecoration(
+                      labelText: "Customer Name",
+                      hintText: "Enter customer name",
+                      prefixIcon: const Icon(
+                        Icons.business_outlined,
+                      ),
+                      filled: true,
+                      fillColor: const Color(0xFFF8FAFC),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(
+                          color: Colors.blue,
+                          width: 1.3,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 14),
+
+                  // ---------------- MOBILE ----------------
+
+                  TextField(
+                    controller: mobileController,
+                    keyboardType: TextInputType.phone,
+                    maxLength: 10,
+                    decoration: InputDecoration(
+                      labelText: "Customer Mobile",
+                      hintText: "Enter mobile number",
+                      counterText: "",
+                      prefixIcon: const Icon(
+                        Icons.phone_outlined,
+                      ),
+                      filled: true,
+                      fillColor: const Color(0xFFF8FAFC),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(
+                          color: Colors.blue,
+                          width: 1.3,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 14),
+
+                  // ---------------- ADDRESS ----------------
+
+                  TextField(
+                    controller: addressController,
+                    maxLines: 3,
+                    textCapitalization: TextCapitalization.sentences,
+                    decoration: InputDecoration(
+                      labelText: "Customer Address",
+                      hintText: "Enter customer address",
+                      prefixIcon: const Padding(
+                        padding: EdgeInsets.only(
+                          bottom: 42,
+                        ),
+                        child: Icon(
+                          Icons.location_on_outlined,
+                        ),
+                      ),
+                      filled: true,
+                      fillColor: const Color(0xFFF8FAFC),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(
+                          color: Colors.blue,
+                          width: 1.3,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 14),
+
+                  // ---------------- EMAIL ----------------
+
+                  TextField(
+                    controller: emailController,
+                    keyboardType: TextInputType.emailAddress,
+                    decoration: InputDecoration(
+                      labelText: "Customer Email",
+                      hintText: "Enter email address",
+                      prefixIcon: const Icon(
+                        Icons.email_outlined,
+                      ),
+                      filled: true,
+                      fillColor: const Color(0xFFF8FAFC),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(
+                          color: Colors.blue,
+                          width: 1.3,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 14),
+
+                  // ---------------- CONTACT PERSON ----------------
+
+                  TextField(
+                    controller: contactPersonController,
+                    textCapitalization: TextCapitalization.words,
+                    decoration: InputDecoration(
+                      labelText: "Contact Person",
+                      hintText: "Enter contact person",
+                      prefixIcon: const Icon(
+                        Icons.person_outline,
+                      ),
+                      filled: true,
+                      fillColor: const Color(0xFFF8FAFC),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(
+                          color: Colors.blue,
+                          width: 1.3,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 28),
+
+                  // ---------------- BUTTONS ----------------
+
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () {
+                            Navigator.of(
+                              dialogContext,
+                            ).pop();
+                          },
+                          style: OutlinedButton.styleFrom(
+                            minimumSize: const Size(
+                              double.infinity,
+                              48,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(
+                                12,
+                              ),
+                            ),
+                          ),
+                          child: const Text(
+                            "Cancel",
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () {
+                            print(
+                                "========== ADD CUSTOMER BUTTON CLICKED ==========");
+
+                            print("Name: ${nameController.text}");
+                            print("Mobile: ${mobileController.text}");
+                            print("Address: ${addressController.text}");
+                            print("Email: ${emailController.text}");
+                            print(
+                                "Contact Person: ${contactPersonController.text}");
+
+                            final isValid = newcustomernamevalidation();
+
+                            print("Validation result: $isValid");
+
+                            if (!isValid) {
+                              print("Customer validation failed");
+                              return;
+                            }
+
+                            print("Customer validation successful");
+
+                            Navigator.of(dialogContext).pop({
+                              "name": nameController.text.trim(),
+                              "mobile": mobileController.text.trim(),
+                              "address": addressController.text.trim(),
+                              "email": emailController.text.trim(),
+                              "contactPerson":
+                                  contactPersonController.text.trim(),
+                            });
+
+                            print("Dialog closed with customer data");
+                          },
+                          style: ElevatedButton.styleFrom(
+                            minimumSize: const Size(
+                              double.infinity,
+                              48,
+                            ),
+                            backgroundColor: Colors.blue,
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Text(
+                            "Add Customer",
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    meetingDateController.dispose();
+    nameController.dispose();
+    mobileController.dispose();
+    addressController.dispose();
+    emailController.dispose();
+    contactPersonController.dispose();
+
+    super.dispose();
+  }
+
+  bool newcustomernamevalidation() {
+    if (nameController.text.trim().isEmpty) {
+      Fluttertoast.showToast(
+        msg: "Enter customer name",
+      );
+      return false;
+    }
+
+    if (mobileController.text.trim().isEmpty) {
+      Fluttertoast.showToast(
+        msg: "Enter customer mobile number",
+      );
+      return false;
+    }
+
+    if (mobileController.text.trim().length != 10) {
+      Fluttertoast.showToast(
+        msg: "Enter correct mobile number",
+      );
+      return false;
+    }
+
+    if (addressController.text.trim().isEmpty) {
+      Fluttertoast.showToast(
+        msg: "Enter customer address",
+      );
+      return false;
+    }
+
+    if (emailController.text.trim().isEmpty) {
+      Fluttertoast.showToast(
+        msg: "Enter customer email ID",
+      );
+      return false;
+    }
+
+    if (contactPersonController.text.trim().isEmpty) {
+      Fluttertoast.showToast(
+        msg: "Enter Contact Person",
+      );
+      return false;
+    }
+
+    return true;
   }
 }

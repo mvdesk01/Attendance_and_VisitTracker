@@ -2,6 +2,7 @@ import 'package:attendance_system_ios/cleanarchitecture/feature/MOM/data/datasou
 import 'package:attendance_system_ios/cleanarchitecture/feature/MOM/data/model/ResponsibiltyModel.dart';
 import 'package:attendance_system_ios/cleanarchitecture/feature/MOM/data/model/meetinghistory_model.dart';
 import 'package:dio/dio.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 import '../../../../core/network/dio_client.dart';
 import '../model/custom_decision_master.dart';
@@ -9,6 +10,7 @@ import '../model/customer_model.dart';
 import '../model/decision_model.dart';
 import '../model/discussionpointrequest_model.dart';
 import '../model/meetingrequest_model.dart';
+import '../model/new_customer_master.dart';
 
 class MomRemoteDatasourceImpl implements MomRemoteDatasource {
   final Dio dio = DioClient().dio;
@@ -215,6 +217,58 @@ class MomRemoteDatasourceImpl implements MomRemoteDatasource {
     throw Exception(
       'Failed to add decision. '
       'Status code: ${response.statusCode}',
+    );
+  }
+
+  @override
+  Future<String> addCustomer(
+    CustomerMasterRequest request,
+  ) async {
+    final Response response = await dio.post(
+      "CustomerMaster",
+      data: request.toJson(),
+    );
+
+    print("========== CUSTOMER MASTER API ==========");
+    print("Request: ${request.toJson()}");
+    print("Response: ${response.data}");
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final data = response.data;
+
+      // API response:
+      // [
+      //   {
+      //     "OutMsg": "Details save successfully"
+      //   }
+      // ]
+
+      if (data is List && data.isNotEmpty) {
+        final result = CustomerMasterResponse.fromJson(
+          Map<String, dynamic>.from(data.first),
+        );
+
+        return result.outMsg;
+      }
+
+      if (data is Map) {
+        final result = CustomerMasterResponse.fromJson(
+          Map<String, dynamic>.from(data),
+        );
+
+        return result.outMsg;
+      }
+
+      throw Exception(
+        "Unexpected CustomerMaster response format",
+      );
+    } else if (response.statusCode == 500) {
+      Fluttertoast.showToast(msg: "Server error");
+    }
+
+    throw Exception(
+      "Failed to add customer. "
+      "Status code: ${response.statusCode}",
     );
   }
 }
