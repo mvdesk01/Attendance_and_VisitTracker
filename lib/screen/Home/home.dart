@@ -185,7 +185,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     final dbHelper = DatabaseHelper();
 
-    // First check local SQLite
+    // First priority: existing local SQLite state
     final localPunch = await dbHelper.getLatestPunchState(staffCode!);
 
     if (localPunch != null) {
@@ -193,8 +193,7 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
 
-    // SQLite is empty - happens after fresh install
-    // Recover latest punch from server
+    // SQLite empty = fresh install / database cleared
     try {
       final latestServerPunch = await getLatestPunchFromServer();
 
@@ -212,21 +211,94 @@ class _HomeScreenState extends State<HomeScreen> {
       print("Error restoring punch state: $e");
     }
 
-    // Finally update UI from SQLite
     await _updateButtonInitialsqliteState();
   }
 
   Future<Map<String, dynamic>?> getLatestPunchFromServer() async {
-    // Call backend's latest punch API here
+    try {
+      final now = DateTime.now();
 
-    // Return:
-    return {
-      'transactionDate': '21-08-2026',
-      'transactionTime': '05:00:00',
-      'flagValue': '000',
-      'shiftDate': '20/08/2026',
-      'shiftType': 'N',
-    };
+      final fromDate = DateFormat('dd/MM/yyyy').format(
+        now.subtract(const Duration(days: 1)),
+      );
+
+      final toDate = DateFormat('dd/MM/yyyy').format(now);
+
+      final response = await http
+          .post(
+            Uri.parse(
+              'http://114.143.140.28:8091/api/InOut/InOutDetails',
+            ),
+            headers: {
+              "Content-Type": "application/json",
+              'Authorization': 'Bearer $Auth_Token',
+            },
+            body: jsonEncode({
+              "staffCode": staffCode,
+              "fromDate": fromDate,
+              "toDate": toDate,
+            }),
+          )
+          .timeout(const Duration(seconds: 15));
+
+      print("========== RESTORE PUNCH ==========");
+      print("Staff Code: $staffCode");
+      print("From Date: $fromDate");
+      print("To Date: $toDate");
+      print("Response Status: ${response.statusCode}");
+      print("Response Body: ${response.body}");
+      print("==================================");
+
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        return null;
+      }
+
+      final decoded = jsonDecode(response.body);
+      final List<dynamic> data = decoded['data'] ?? [];
+
+      if (data.isEmpty) {
+        return null;
+      }
+
+      final dateFormat = DateFormat('dd/MM/yyyy HH:mm:ss');
+
+      // Find actual latest transaction
+      data.sort((a, b) {
+        final dateA = dateFormat.parse(
+          a['transactionTime'].toString(),
+        );
+
+        final dateB = dateFormat.parse(
+          b['transactionTime'].toString(),
+        );
+
+        return dateB.compareTo(dateA);
+      });
+
+      final latest = data.first;
+
+      final transactionDateTime = dateFormat.parse(
+        latest['transactionTime'].toString(),
+      );
+
+      final String flagValue =
+          latest['inOut'].toString().toUpperCase() == 'IN' ? '001' : '000';
+
+      print("RESTORE latest transaction: ${latest['transactionTime']}");
+      print("RESTORE latest flag: $flagValue");
+
+      return {
+        'transactionDate':
+            DateFormat('dd-MM-yyyy HH:mm:ss').format(transactionDateTime),
+        'transactionTime': DateFormat('HH:mm:ss').format(transactionDateTime),
+        'flagValue': flagValue,
+        'shiftDate': DateFormat('dd/MM/yyyy').format(transactionDateTime),
+        'shiftType': null,
+      };
+    } catch (e) {
+      print("Error restoring latest punch from server: $e");
+      return null;
+    }
   }
 
   Future<void> _checkauthorisation() async {
