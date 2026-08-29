@@ -32,6 +32,7 @@ import 'package:loading_overlay/loading_overlay.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
+import '../../database/database_helper.dart';
 import '../../model/in_out_details.dart';
 // import '../CancellationRequest/CancellationRequestScreen.dart';
 import '../../service/background_service.dart';
@@ -174,7 +175,132 @@ class _HomeScreenState extends State<HomeScreen> {
     await _checkauthorisation();
     await getData();
     await _checkAndRequestLocationPermission();
-    await _updateButtonInitialState();
+
+    await _restorePunchState();
+    //await _updateButtonInitialState();
+  }
+
+  Future<void> _restorePunchState() async {
+    if (staffCode == null || staffCode!.isEmpty) return;
+
+    final dbHelper = DatabaseHelper();
+
+    // First check local SQLite
+    final localPunch = await dbHelper.getLatestPunchState(staffCode!);
+
+    if (localPunch != null) {
+      await _updateButtonInitialsqliteState();
+      return;
+    }
+
+    // SQLite is empty - happens after fresh install
+    // Recover latest punch from server
+    try {
+      final latestServerPunch = await getLatestPunchFromServer();
+
+      if (latestServerPunch != null) {
+        await dbHelper.insertPunchState(
+          staffCode: staffCode!,
+          transactionDate: latestServerPunch['transactionDate'],
+          transactionTime: latestServerPunch['transactionTime'],
+          flagValue: latestServerPunch['flagValue'],
+          shiftDate: latestServerPunch['shiftDate'],
+          shiftType: latestServerPunch['shiftType'],
+        );
+      }
+    } catch (e) {
+      print("Error restoring punch state: $e");
+    }
+
+    // Finally update UI from SQLite
+    await _updateButtonInitialsqliteState();
+  }
+
+  Future<Map<String, dynamic>?> getLatestPunchFromServer() async {
+    try {
+      final now = DateTime.now();
+
+      final fromDate = DateFormat('dd/MM/yyyy').format(
+        now.subtract(const Duration(days: 1)),
+      );
+
+      final toDate = DateFormat('dd/MM/yyyy').format(now);
+
+      final response = await http
+          .post(
+            Uri.parse(
+              'http://114.143.140.28:8091/api/InOut/InOutDetails',
+            ),
+            headers: {
+              "Content-Type": "application/json",
+              'Authorization': 'Bearer $Auth_Token',
+            },
+            body: jsonEncode({
+              "staffCode": staffCode,
+              "fromDate": fromDate,
+              "toDate": toDate,
+            }),
+          )
+          .timeout(const Duration(seconds: 15));
+
+      print("========== RESTORE PUNCH ==========");
+      print("Staff Code: $staffCode");
+      print("From Date: $fromDate");
+      print("To Date: $toDate");
+      print("Response Status: ${response.statusCode}");
+      print("Response Body: ${response.body}");
+      print("==================================");
+
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        return null;
+      }
+
+      final decoded = jsonDecode(response.body);
+      final List<dynamic> data = decoded['data'] ?? [];
+
+      if (data.isEmpty) {
+        return null;
+      }
+
+      final dateFormat = DateFormat('dd/MM/yyyy HH:mm:ss');
+
+      // Find actual latest transaction
+      data.sort((a, b) {
+        final dateA = dateFormat.parse(
+          a['transactionTime'].toString(),
+        );
+
+        final dateB = dateFormat.parse(
+          b['transactionTime'].toString(),
+        );
+
+        return dateB.compareTo(dateA);
+      });
+
+      final latest = data.first;
+
+      final transactionDateTime = dateFormat.parse(
+        latest['transactionTime'].toString(),
+      );
+
+      final String flagValue =
+          latest['inOut'].toString().toUpperCase() == 'IN' ? '001' : '000';
+
+      print("RESTORE latest transaction: ${latest['transactionTime']}");
+      print("RESTORE latest flag: $flagValue");
+
+      return {
+        'transactionDate':
+            DateFormat('dd-MM-yyyy HH:mm:ss').format(transactionDateTime),
+        'transactionTime': DateFormat('HH:mm:ss').format(transactionDateTime),
+        'flagValue': flagValue,
+        'shiftDate': DateFormat('dd/MM/yyyy').format(transactionDateTime),
+        'shiftType': null,
+      };
+    } catch (e) {
+      print("Error restoring latest punch from server: $e");
+      return null;
+    }
   }
 
   Future<void> _checkauthorisation() async {
@@ -493,6 +619,73 @@ class _HomeScreenState extends State<HomeScreen> {
           backgroundColor: Colors.red.shade700,
         ),
       );
+  }
+
+  Future<void> _updateButtonInitialsqliteState() async {
+    if (staffCode == null || staffCode!.isEmpty) return;
+
+    final dbHelper = DatabaseHelper();
+
+    final latestPunch = await dbHelper.getLatestPunchState(staffCode!);
+
+    final latestIn = await dbHelper.getLatestPunchIn(staffCode!);
+
+    final latestOut = await dbHelper.getLatestPunchOut(staffCode!);
+
+    if (!mounted) return;
+
+    setState(() {
+      // Display latest IN and OUT independently
+      lastInTime = latestIn?['transaction_time'] ?? "-";
+      lastOutTime = latestOut?['transaction_time'] ?? "-";
+
+      // Button state is based ONLY on latest transaction
+      if (latestPunch == null) {
+        isButtonDisabledIn = false;
+        isButtonDisabledOut = true;
+        return;
+      }
+
+      final flagValue = latestPunch['flag_value'];
+
+      if (flagValue == "001") {
+        // Currently punched IN
+        isButtonDisabledIn = true;
+        isButtonDisabledOut = false;
+      } else if (flagValue == "000") {
+        // Currently punched OUT
+        isButtonDisabledIn = false;
+        isButtonDisabledOut = true;
+      }
+    });
+
+    // setState(() {
+    //   if (latestPunch == null) {
+    //     // No punch history
+    //     isButtonDisabledIn = false;
+    //     isButtonDisabledOut = true;
+    //
+    //     lastInTime = "-";
+    //     lastOutTime = "-";
+    //     return;
+    //   }
+    //
+    //   final flagValue = latestPunch['flag_value'];
+    //
+    //   if (flagValue == "001") {
+    //     // Last punch was IN
+    //     isButtonDisabledIn = true;
+    //     isButtonDisabledOut = false;
+    //
+    //     lastInTime = latestPunch['transaction_time'];
+    //   } else if (flagValue == "000") {
+    //     // Last punch was OUT
+    //     isButtonDisabledIn = false;
+    //     isButtonDisabledOut = true;
+    //
+    //     lastOutTime = latestPunch['transaction_time'];
+    //   }
+    // });
   }
 
   final ButtonStyle raisedButtonStyle = ElevatedButton.styleFrom(
@@ -2807,55 +3000,6 @@ class _HomeScreenState extends State<HomeScreen> {
     await storage.deleteAll(); // Clear all stored data
   }
 
-  Future<void> retorepunchdata() async {
-    final dbHelper = DatabaseHelper();
-    List<Map<String, dynamic>> offlineEntries =
-        await dbHelper.getOfflinePunchEntries();
-
-    for (var entry in offlineEntries) {
-      try {
-        final response = await http.post(
-          Uri.parse(
-              "https://m-techinnovations.co.in/PersonTrackingAPI/API/SaveDetails"),
-          headers: <String, String>{
-            'Content-Type': 'application/json; charset=UTF-8',
-          },
-          body: jsonEncode({
-            'TransactionDate': entry['transaction_date'],
-            'TransactionTime': entry['transaction_time'],
-            'StaffCode': entry['staff_code'],
-            'FlagValue': entry['flag_value'],
-            'Address': entry['address'],
-            'Latitude': entry['latitude'],
-            'Longitude': entry['longitude'],
-          }),
-        );
-
-        if (response.statusCode == 201) {
-          await dbHelper.deletePunchEntry(entry['id']);
-          print("Restored and deleted offline punch entry");
-
-          // Only update UI if this was the most recent operation
-          final lastEntry =
-              await dbHelper.getLastPunchEntry(entry['staff_code']);
-          if (lastEntry != null && lastEntry['id'] == entry['id']) {
-            setState(() {
-              if (entry['flag_value'] == "001") {
-                isButtonDisabledIn = true;
-                isButtonDisabledOut = false;
-              } else {
-                isButtonDisabledIn = false;
-                isButtonDisabledOut = true;
-              }
-            });
-          }
-        }
-      } catch (e) {
-        print("Error restoring punch data:$e");
-      }
-    }
-  }
-
   Future<void> retorepunchoutdata() async {
     final dbHelper = DatabaseHelperPunchout();
     List<Map<String, dynamic>> offlineEntries =
@@ -2914,7 +3058,7 @@ class _HomeScreenState extends State<HomeScreen> {
     String latitude,
     String longitude,
   ) async {
-    final dbHelper = DatabaseHelper();
+    final dbHelper = DatabaseHelperPunchIn();
 
     // Check if entry already exists
     bool exists = await dbHelper.checkDuplicateEntry(

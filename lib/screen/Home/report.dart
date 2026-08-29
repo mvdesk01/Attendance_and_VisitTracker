@@ -755,9 +755,18 @@ class _AttendanceReportState extends State<AttendanceReport> {
                     'From: ',
                     style: TextStyle(fontSize: 16),
                   ),
+                  // Text(
+                  //   '${DateFormat('dd/MM/yyyy').format(fromDate!)}',
+                  //   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  // ),
                   Text(
-                    '${DateFormat('dd/MM/yyyy').format(fromDate!)}',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    DateFormat('dd/MM/yyyy').format(
+                      DateTime.now().subtract(const Duration(days: 1)),
+                    ),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   Text(
                     '  To: ',

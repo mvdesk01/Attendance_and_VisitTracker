@@ -1,2574 +1,33 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
-import 'package:attendance_system_ios/screen/AdminHomeScreen/AdminHome.dart';
-import 'package:attendance_system_ios/screen/Home/home.dart';
 import 'package:attendance_system_ios/util/MyColor.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
-import '../../bloc/main_bloc.dart';
-import '../../model/in_out_details.dart';
-import '../../service/WebService.dart';
+
 import '../../model/UsersList/GetAllusersListResponse.dart';
+import '../../model/in_out_details.dart';
 import '../../service/log_file_manager.dart';
 
 class AdminAttendanceReport extends StatefulWidget {
-
   Message datum;
-  AdminAttendanceReport(
-      {
-        Key? key,
-        required this.datum,
-      })
-      : super(key: key);
+
+  AdminAttendanceReport({
+    Key? key,
+    required this.datum,
+  }) : super(key: key);
+
 //const AdminAttendanceReport({super.key});
   @override
   State<AdminAttendanceReport> createState() => _AttendanceReportState();
 }
 
-// class _AttendanceReportState extends State<AdminAttendanceReport> {
-//
-//   FlutterSecureStorage storage = FlutterSecureStorage();
-//   String? staffCode;
-//   DateTime? fromDate;
-//   DateTime? toDate;
-//   bool isLoading = false;
-//   bool isGridView = false; // State variable for toggle
-//   bool isMonthlyReport = false;
-//   // late List<InOutDetail> inOutDetails;
-//   Map<String, List<InOutDetail>> groupedInOutDetails = {};
-//
-//   DateTime today = DateTime.now();
-//   Map<DateTime, String> attendanceStatus = {}; // Maps date to "PUNCH_IN", "PUNCH_OUT", or "ABSENT"
-//
-//   DateTime focusedDay = DateTime.now();
-//   DateTime? selectedDay;
-//   Map<DateTime, List<InOutDetail>> attendanceData = {};
-//   Set<DateTime> presentDays = {};
-//   Set<DateTime> absentDays = {};
-//
-//   @override
-//   void initState() {
-//     super.initState();
-//     initialize();
-//   }
-//
-//   void _loadAttendanceData() {
-//     setState(() {
-//       attendanceStatus[DateTime.utc(2024, 2, 10)] = "PUNCH_IN";
-//       attendanceStatus[DateTime.utc(2024, 2, 11)] = "PUNCH_OUT";
-//       attendanceStatus[DateTime.utc(2024, 2, 12)] = "ABSENT";
-//     });
-//   }
-//
-//   Future<void> initialize() async {
-//     await fetchData(); // Wait for fetchData to complete
-//     await _fetchTodayData(); // Then call _fetchTodayData
-//     await fetchAttendanceDataMonthlyReport();
-//   }
-//
-//   /*Future<void> fetchAttendanceDataMonthlyReport() async {
-//     try{
-//       setState(() => isLoading = true);
-//
-//       String formattedFromDate = DateFormat('dd/MM/yyyy').format(DateTime(focusedDay.year, focusedDay.month, 1));
-//       String formattedToDate = DateFormat('dd/MM/yyyy').format(DateTime(focusedDay.year, focusedDay.month + 1, 0));
-//
-//       final response = await http.post(
-//         Uri.parse('https://m-techinnovations.co.in/PersonTrackingAPI/API/InOutDetails'),
-//         headers: {"Content-Type": "application/json"},
-//         body: jsonEncode({
-//           "FromDate": formattedFromDate,
-//           "ToDate": formattedToDate,
-//           "StaffCode": staffCode
-//         }),
-//       );
-//
-//       if (response.statusCode == 201) {
-//         List<dynamic> data = jsonDecode(response.body);
-//         List<InOutDetail> details = data.map((item) => InOutDetail.fromJson(item)).toList();
-//
-//         print('response body of fetchAttendanceDataMonthlyReport: $details');
-//
-//         attendanceData.clear();
-//         presentDays.clear();
-//         absentDays.clear();
-//
-//         for (var detail in details) {
-//           DateTime date = DateFormat('dd/MM/yyyy').parse(detail.transactionTime!).toLocal();
-//           presentDays.add(date);
-//           if (!attendanceData.containsKey(date)) {
-//             attendanceData[date] = [];
-//           }
-//           attendanceData[date]!.add(detail);
-//         }
-//
-//         // Calculate absent days
-//         for (int i = 1; i <= DateTime(focusedDay.year, focusedDay.month + 1, 0).day; i++) {
-//           DateTime day = DateTime(focusedDay.year, focusedDay.month, i);
-//           if (!presentDays.contains(day)) {
-//             absentDays.add(day);
-//           }
-//         }
-//       }
-//       setState(() => isLoading = false);
-//     } catch(e){
-//       print('fetchAttendanceDataMonthlyReport: Error:  $e');
-//     }
-//
-//   }*/
-//
-//   Future<void> fetchAttendanceDataMonthlyReport() async {
-//     try {
-//       setState(() => isLoading = true);
-//
-//       DateTime now = DateTime.now();
-//       DateTime sixMonthsAgo = DateTime(now.year, now.month - 5, 1);
-//
-//       String formattedFromDate = DateFormat('dd/MM/yyyy').format(sixMonthsAgo);
-//       String formattedToDate = DateFormat('dd/MM/yyyy').format(now);
-//
-//       final response = await http.post(
-//         Uri.parse('https://m-techinnovations.co.in/PersonTrackingAPI/API/InOutDetails'),
-//         headers: {"Content-Type": "application/json"},
-//         body: jsonEncode({
-//           "FromDate": formattedFromDate,
-//           "ToDate": formattedToDate,
-//           "StaffCode": widget.datum.staffCode
-//         }),
-//       );
-//
-//       if (response.statusCode == 201) {
-//         List<dynamic> data = jsonDecode(response.body);
-//         List<InOutDetail> details = data.map((item) => InOutDetail.fromJson(item)).toList();
-//
-//         attendanceData.clear();
-//         presentDays.clear();
-//         absentDays.clear();
-//
-//         for (var detail in details) {
-//           DateTime date = DateFormat('dd/MM/yyyy HH:mm:ss').parse(detail.transactionTime!).toLocal();
-//           presentDays.add(date);
-//
-//           if (!attendanceData.containsKey(date)) {
-//             attendanceData[date] = [];
-//           }
-//           attendanceData[date]!.add(detail);
-//         }
-//
-//         // Identify absent days for the last 6 months
-//         for (int i = 0; i < 180; i++) { // 6 months = ~180 days
-//           DateTime day = sixMonthsAgo.add(Duration(days: i));
-//           if (!presentDays.contains(day) && day.isBefore(now)) {
-//             absentDays.add(day);
-//           }
-//         }
-//       }
-//
-//       setState(() => isLoading = false);
-//     } catch (e) {
-//       print('Error fetching attendance data: $e');
-//       setState(() => isLoading = false);
-//     }
-//   }
-//
-//
-//
-//
-//
-//   Future<void> fetchData() async {
-//     staffCode = await storage.read(key: 'Staff_Code');
-//     print('staffcode --> $staffCode');
-//   }
-//
-//   // Fetch data for today by default
-//   Future<void> _fetchTodayData() async {
-//     print('first');
-//     DateTime today = DateTime.now();
-//     setState(() {
-//       fromDate = today;
-//       toDate = today;
-//     });
-//     await fetchInOutDetails();
-//   }
-//
-//   // Future<void> _selectDateRange(BuildContext context) async {
-//   //   final DateTime? pickedFromDate = await showDatePicker(
-//   //     context: context,
-//   //     initialDate: DateTime.now(),
-//   //     firstDate: DateTime(2000),
-//   //     lastDate: DateTime.now(),
-//   //   );
-//   //   if (pickedFromDate != null) {
-//   //     final DateTime? pickedToDate = await showDatePicker(
-//   //       context: context,
-//   //       initialDate: pickedFromDate,
-//   //       firstDate: pickedFromDate,
-//   //       lastDate: DateTime.now(),
-//   //     );
-//   //
-//   //     if (pickedToDate != null) {
-//   //       setState(() {
-//   //         fromDate = pickedFromDate;
-//   //         toDate = pickedToDate;
-//   //       });
-//   //
-//   //       // Fetch data after dates are selected
-//   //       await fetchInOutDetails();
-//   //     }
-//   //   }
-//   // }
-//
-//   Future<void> _selectDateRange(BuildContext context) async {
-//     final DateTimeRange? pickedRange = await showDateRangePicker(
-//       context: context,
-//       firstDate: DateTime(2000),
-//       lastDate: DateTime.now(),
-//       initialDateRange: fromDate != null && toDate != null
-//           ? DateTimeRange(start: fromDate!, end: toDate!)
-//           : null,
-//     );
-//
-//     if (pickedRange != null) {
-//       setState(() {
-//         fromDate = pickedRange.start;
-//         toDate = pickedRange.end;
-//       });
-//
-//       await fetchInOutDetails();
-//     }
-//   }
-//
-//   Future<void> fetchInOutDetails() async {
-//     if (fromDate == null || toDate == null) return;
-//
-//     setState(() {
-//       isLoading = true;
-//     });
-//
-//     // Format the date to 'dd/MM/yyyy' format as required by the API
-//     String formattedFromDate = DateFormat('dd/MM/yyyy').format(fromDate!);
-//     String formattedToDate = DateFormat('dd/MM/yyyy').format(toDate!);
-//
-//     final response = await http.post(
-//       Uri.parse('https://m-techinnovations.co.in/PersonTrackingAPI/API/InOutDetails'),
-//       headers: {"Content-Type": "application/json"},
-//       body: jsonEncode({
-//         "FromDate": formattedFromDate,
-//         "ToDate": formattedToDate,
-//         "StaffCode": widget.datum.staffCode
-//       }),
-//     );
-//
-//     if (response.statusCode == 201)
-//     {
-//       List<dynamic> data = jsonDecode(response.body);
-//       List<InOutDetail> details = data.map((item) => InOutDetail.fromJson(item)).toList();
-//       // inOutDetails = details;
-//
-//       // Group data by date
-//       groupedInOutDetails = _groupByDate(details);
-//
-//       setState(() {
-//         isLoading = false;
-//       });
-//     } else
-//     {
-//       // Handle error
-//       setState(() {
-//         isLoading = false;
-//       });
-//       ScaffoldMessenger.of(context).showSnackBar(
-//           const SnackBar(content: Text("Failed to fetch data"))
-//       );
-//     }
-//   }
-//
-//   Map<String, List<InOutDetail>> _groupByDate(List<InOutDetail> details) {
-//     Map<String, List<InOutDetail>> groupedData = {};
-//     for (var detail in details) {
-//       String date = detail.transactionTime!.substring(0, 10); // Extract the date part
-//       if (!groupedData.containsKey(date)) {
-//         groupedData[date] = [];
-//       }
-//       groupedData[date]!.add(detail);
-//     }
-//     return groupedData;
-//   }
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         // leading: IconButton(),
-//         //   icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
-//         // //   onPressed: () => Navigator.push(
-//         // //   context,
-//         // //   MaterialPageRoute(
-//         // //     builder: (_) => BlocProvider(
-//         // //       create: (context) => MainBloc(webService: WebService()),
-//         // //       child: const HomeScreen(),
-//         // //     ),
-//         // //   ),
-//         // // )
-//         // ),)
-//         title: const Text("In/Out Details",
-//             style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
-//         backgroundColor: MyColors.lightBlue,
-//         actions: [
-//           IconButton(
-//             icon: Icon(
-//               isGridView ? Icons.list : Icons.grid_view,
-//               color: Colors.white,
-//             ),
-//             onPressed: () {
-//               setState(() {
-//                 isGridView = !isGridView; // Toggle between views
-//               });
-//             },
-//           ),
-//         ],
-//       ),
-//       body: isMonthlyReport ? _buildMonthlyReportNew() : _buildDailyReport(),
-//     );
-//   }
-//
-//   // Widget _buildMonthlyReport(){
-//   //   _loadAttendanceData();
-//   //   return Column(
-//   //     children: [
-//   //       Padding(
-//   //         padding: const EdgeInsets.all(6.0),
-//   //         child: Row(
-//   //           children: [
-//   //             IconButton(
-//   //               onPressed: () {
-//   //                 setState(() {
-//   //                   isMonthlyReport = false;
-//   //                 });
-//   //               },
-//   //               icon: const Icon(Icons.arrow_back_rounded, color: MyColors.darkBlue),
-//   //             ),
-//   //             const Expanded(
-//   //               child: Center(
-//   //                 child: Text(
-//   //                   'Monthly Attendance Report',
-//   //                   style: TextStyle(
-//   //                     color: MyColors.darkBlue,
-//   //                     fontSize: 18,
-//   //                     fontWeight: FontWeight.bold,
-//   //                   ),
-//   //                 ),
-//   //               ),
-//   //             ),
-//   //             const SizedBox(width: 20,)
-//   //           ],
-//   //         ),
-//   //       ),
-//   //
-//   //       _buildCalendar(),
-//   //       const SizedBox(height: 12,),
-//   //       _buildLegend(),
-//   //       /*TableCalendar(
-//   //         firstDay: DateTime.utc(2024, 1, 1),
-//   //         lastDay: DateTime.now(),
-//   //         focusedDay: DateTime.now(),
-//   //         calendarFormat: CalendarFormat.month,
-//   //         headerStyle: HeaderStyle(formatButtonVisible: false, titleCentered: true),
-//   //         calendarStyle: CalendarStyle(
-//   //           todayDecoration: BoxDecoration(
-//   //               color: Colors.blue.shade200, shape: BoxShape.circle),
-//   //         ),
-//   //         availableGestures: AvailableGestures.all,
-//   //         calendarBuilders: CalendarBuilders(
-//   //           defaultBuilder: (context, date, _) {
-//   //             bool isPresent = groupedInOutDetails.keys.contains(DateFormat('yyyy-MM-dd').format(date));
-//   //             return Center(
-//   //               child: Container(
-//   //                 width: 35,
-//   //                 height: 35,
-//   //                 decoration: BoxDecoration(
-//   //                   color: isPresent ? Colors.green.shade400 : Colors.red.shade400,
-//   //                   shape: BoxShape.circle,
-//   //                 ),
-//   //                 alignment: Alignment.center,
-//   //                 child: Text(
-//   //                   date.day.toString(),
-//   //                   style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-//   //                 ),
-//   //               ),
-//   //             );
-//   //           },
-//   //         ),
-//   //       )*/
-//   //     ],
-//   //   );
-//   // }
-//
-//   Widget _buildMonthlyReportNew() {
-//     return isLoading
-//         ? Center(child: CircularProgressIndicator())
-//         : Column(
-//       children: [
-//         Padding(
-//           padding: const EdgeInsets.all(6.0),
-//           child: Row(
-//             children: [
-//               IconButton(
-//                 onPressed: () {
-//                   setState(() {
-//                     isMonthlyReport = false;
-//                   });
-//                 },
-//                 icon: const Icon(Icons.arrow_back_rounded, color: MyColors.darkBlue),
-//               ),
-//               const Expanded(
-//                 child: Center(
-//                   child: Text(
-//                     'Monthly Attendance Report',
-//                     style: TextStyle(
-//                       color: MyColors.darkBlue,
-//                       fontSize: 18,
-//                       fontWeight: FontWeight.bold,
-//                     ),
-//                   ),
-//                 ),
-//               ),
-//               const SizedBox(width: 20,)
-//             ],
-//           ),
-//         ),
-//         TableCalendar(
-//           focusedDay: focusedDay,
-//           firstDay: DateTime(2000),
-//           lastDay: DateTime(2100),
-//           selectedDayPredicate: (day) => isSameDay(selectedDay, day),
-//           calendarFormat: CalendarFormat.month,
-//           eventLoader: (day) => attendanceData[day] ?? [],
-//           calendarStyle: CalendarStyle(
-//             todayDecoration: BoxDecoration(
-//               color: Colors.blue.withOpacity(0.5),
-//               shape: BoxShape.circle,
-//             ),
-//             markerDecoration: BoxDecoration(
-//               color: Colors.white,
-//               shape: BoxShape.circle,
-//             ),
-//             defaultDecoration: BoxDecoration(
-//               shape: BoxShape.circle,
-//             ),
-//             holidayDecoration: BoxDecoration(
-//               color: Colors.red.withOpacity(0.5),
-//               shape: BoxShape.circle,
-//             ),
-//             outsideDaysVisible: false,
-//           ),
-//           headerStyle: HeaderStyle(formatButtonVisible: false, titleCentered: true),
-//           calendarBuilders: CalendarBuilders(
-//             defaultBuilder: (context, day, focusedDay) {
-//               DateTime normalizedDay = DateTime(day.year, day.month, day.day); // Normalize the date
-//
-//               if (presentDays.any((d) => isSameDay(d, normalizedDay))) {
-//                 return _buildCalendarCell(day, Colors.green);
-//               } else if (absentDays.any((d) => isSameDay(d, normalizedDay))) {
-//                 return _buildCalendarCell(day, Colors.red);
-//               }
-//               return null;
-//             },
-//           ),
-//           onDaySelected: (selectedDay, focusedDay) {
-//             setState(() {
-//               this.selectedDay = selectedDay;
-//             });
-//
-//             if (attendanceData.containsKey(selectedDay)) {
-//               _showAttendanceDetails(selectedDay);
-//             }
-//           },
-//         ),
-//         SizedBox(height: 20),
-//         _buildLegend(),
-//         if (selectedDay != null && attendanceData.containsKey(selectedDay))
-//           _buildAttendanceDetails(selectedDay!), // Show details below the calendar
-//       ],
-//     );
-//   }
-//
-//   Widget _buildCalendarCell(DateTime day, Color color) {
-//     return Center(
-//       child: Container(
-//         decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-//         width: 40,
-//         height: 40,
-//         child: Center(
-//           child: Text(
-//             '${day.day}',
-//             style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-//           ),
-//         ),
-//       ),
-//     );
-//   }
-//
-//   Widget _buildAttendanceDetails(DateTime day) {
-//     List<InOutDetail> details = attendanceData[day] ?? [];
-//
-//     if (details.isEmpty) return SizedBox();
-//
-//     DateTime? firstPunch = details.isNotEmpty
-//         ? DateFormat('dd/MM/yyyy HH:mm:ss').parse(details.first.transactionTime!).toLocal()
-//         : null;
-//
-//     DateTime? lastPunch = details.isNotEmpty
-//         ? DateFormat('dd/MM/yyyy HH:mm:ss').parse(details.last.transactionTime!).toLocal()
-//         : null;
-//
-//
-//     Duration totalDuration = Duration();
-//     if (firstPunch != null && lastPunch != null) {
-//       totalDuration = lastPunch.difference(firstPunch);
-//     }
-//
-//     return Column(
-//       crossAxisAlignment: CrossAxisAlignment.start,
-//       children: [
-//         Text(
-//           "Attendance Details - ${DateFormat('dd MMM yyyy').format(day)}",
-//           style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-//         ),
-//         SizedBox(height: 10),
-//         ...details.map((detail) => ListTile(
-//           title: Text("${detail.inOut} at ${detail.transactionTime}"),
-//           subtitle: Text("Address: ${detail.address}"),
-//         )),
-//         Divider(),
-//         Text(
-//           "Total Hours: ${totalDuration.inHours}h ${totalDuration.inMinutes.remainder(60)}m",
-//           style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue),
-//         ),
-//       ],
-//     );
-//   }
-//
-//   // Widget _buildLegend() {
-//   //   return Padding(
-//   //     padding: EdgeInsets.all(10),
-//   //     child: Row(
-//   //       mainAxisAlignment: MainAxisAlignment.spaceAround,
-//   //       children: [
-//   //         Row(
-//   //           children: [
-//   //             CircleAvatar(backgroundColor: Colors.green, radius: 8),
-//   //             SizedBox(width: 5),
-//   //             Text("Present")
-//   //           ],
-//   //         ),
-//   //         Row(
-//   //           children: [
-//   //             CircleAvatar(backgroundColor: Colors.red, radius: 8),
-//   //             SizedBox(width: 5),
-//   //             Text("Absent")
-//   //           ],
-//   //         ),
-//   //       ],
-//   //     ),
-//   //   );
-//   // }
-//
-//   Widget _buildLegend() {
-//     return Padding(
-//       padding: EdgeInsets.all(10),
-//       child: Container(
-//         padding: EdgeInsets.all(10),
-//         decoration: BoxDecoration(
-//           color: Colors.white, // Background color
-//           borderRadius: BorderRadius.circular(10), // Rounded corners
-//           border: Border.all(color: Colors.grey.shade400), // Border color
-//           boxShadow: [
-//             BoxShadow(
-//               color: Colors.grey.withOpacity(0.3), // Shadow color
-//               blurRadius: 5,
-//               spreadRadius: 2,
-//               offset: Offset(2, 3),
-//             ),
-//           ],
-//         ),
-//         child: Column(
-//           mainAxisSize: MainAxisSize.min,
-//           children: [
-//             Row(
-//               children: [
-//                 CircleAvatar(backgroundColor: Colors.green, radius: 8),
-//                 SizedBox(width: 8),
-//                 Text("Present"),
-//               ],
-//             ),
-//             SizedBox(height: 8), // Space between rows
-//             Row(
-//               children: [
-//                 CircleAvatar(backgroundColor: Colors.red, radius: 8),
-//                 SizedBox(width: 8),
-//                 Text("Absent"),
-//               ],
-//             ),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-//
-//   // Widget _buildCalendarCell(DateTime day, Color color) {
-//   //   return Center(
-//   //     child: Container(
-//   //       decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-//   //       width: 40,
-//   //       height: 40,
-//   //       child: Center(
-//   //         child: Text(
-//   //           '${day.day}',
-//   //           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-//   //         ),
-//   //       ),
-//   //     ),
-//   //   );
-//   // }
-//
-//   Widget _buildDailyReport(){
-//     return Column(
-//       children: [
-//         Padding(
-//           padding: const EdgeInsets.all(8.0),
-//           child: Row(
-//             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//             children: [
-//               TextButton.icon(
-//                 onPressed: () => _selectDateRange(context),
-//                 label: const Row(
-//                   children: [
-//                     Text("Select Date Range", style: TextStyle(color: MyColors.darkBlue, fontSize: 16, fontWeight: FontWeight.bold),),
-//                     Icon(Icons.edit)
-//                   ],
-//                 ),
-//               ),
-//               TextButton.icon(
-//                 onPressed: () => setState(() {
-//                   isMonthlyReport = true; // Switch to calendar view
-//                 }),
-//                 label: const Row(
-//                   children: [
-//                     Text("Monthly Report", style: TextStyle(color: MyColors.darkBlue, fontSize: 16, fontWeight: FontWeight.bold)),
-//                     Icon(Icons.calendar_month)
-//                   ],
-//                 ),
-//               ),
-//               // ElevatedButton(
-//               //   style: ElevatedButton.styleFrom(
-//               //     backgroundColor: MyColors.fontBlue
-//               //   ),
-//               //   onPressed: () => _selectDateRange(context),
-//               //   child: const Text("Select Date Range", style: TextStyle(color: Colors.white),),
-//               // ),
-//               // ElevatedButton(
-//               //   style: ElevatedButton.styleFrom(
-//               //       backgroundColor: MyColors.fontBlue
-//               //   ),
-//               //   onPressed: () => setState(() {
-//               //     isMonthlyReport = true; // Switch to calendar view
-//               //   }),
-//               //   child: const Text("Monthly Report", style: TextStyle(color: Colors.white)),
-//               // ),
-//             ],
-//           ),
-//         ),
-//         if (fromDate != null && toDate != null)
-//           Padding(
-//               padding: const EdgeInsets.all(8.0),
-//               child:  Row(
-//                 mainAxisAlignment: MainAxisAlignment.center ,
-//                 children: [
-//                   Text(
-//                     'From: ',
-//                     style: TextStyle(fontSize: 16),
-//                   ),
-//                   Text(
-//                     '${DateFormat('dd/MM/yyyy').format(fromDate!)}',
-//                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-//                   ),
-//                   Text(
-//                     '  To: ',
-//                     style: TextStyle(fontSize: 16),
-//                   ),
-//                   Text(
-//                     '${DateFormat('dd/MM/yyyy').format(toDate!)}',
-//                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-//                   ),
-//                 ],)
-//           ),
-//         Expanded(
-//           child: isLoading
-//               ? Center(child: CircularProgressIndicator())
-//               : groupedInOutDetails.isEmpty
-//               ? Center(child: Text("No Data Available"))
-//               : isGridView
-//               ? GridView.builder(
-//             padding: const EdgeInsets.all(8),
-//             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-//               crossAxisCount: 2,
-//               crossAxisSpacing: 8,
-//               mainAxisSpacing: 8,
-//             ),
-//             itemCount: groupedInOutDetails.keys.length,
-//             itemBuilder: (context, index) {
-//               String date = groupedInOutDetails.keys.elementAt(index);
-//               List<InOutDetail> details = groupedInOutDetails[date]!;
-//
-//               return Card(
-//                 elevation: 2,
-//                 shape: RoundedRectangleBorder(
-//                   borderRadius: BorderRadius.circular(10),
-//                 ),
-//                 color: Colors.white,
-//                 child: SingleChildScrollView( // Add scrolling capability
-//                   padding: const EdgeInsets.all(12.0),
-//                   child: Column(
-//                     crossAxisAlignment: CrossAxisAlignment.start,
-//                     children: [
-//                       Text(
-//                         "Date: $date",
-//                         style: TextStyle(
-//                           fontSize: 18,
-//                           fontWeight: FontWeight.bold,
-//                           color: MyColors.fontBlue,
-//                         ),
-//                       ),
-//                       ...details.map((detail) {
-//                         return Container(
-//                           margin: EdgeInsets.only(top: 10),
-//                           padding: EdgeInsets.all(8),
-//                           decoration: BoxDecoration(
-//                             color: detail.inOut == "IN"
-//                                 ? Colors.green.shade100
-//                                 : Colors.red.shade100,
-//                             borderRadius: BorderRadius.circular(10),
-//                           ),
-//                           child: Column(
-//                             crossAxisAlignment: CrossAxisAlignment.start,
-//                             children: [
-//                               Text(
-//                                 "Staff Code: ${detail.staffCode}",
-//                                 style: const TextStyle(
-//                                   fontWeight: FontWeight.bold,
-//                                   fontSize: 16,
-//                                 ),
-//                               ),
-//                               SizedBox(height: 6),
-//                               Text("Transaction Time: ${detail.transactionTime}"),
-//                               Row(
-//                                 children: [
-//                                   const Text("In/Out: "),
-//                                   Text(
-//                                     "${detail.inOut}",
-//                                     style: TextStyle(fontWeight: FontWeight.bold),
-//                                   ),
-//                                 ],
-//                               ),
-//                               Text(
-//                                 "Address: ${detail.address}",
-//                                 overflow: TextOverflow.ellipsis, // Truncate if too long
-//                                 maxLines: 1, // Limit to 1 line
-//                               ),
-//                             ],
-//                           ),
-//                         );
-//                       }).toList(),
-//                     ],
-//                   ),
-//                 ),
-//               );
-//             },
-//           )
-//               : ListView.builder(
-//             padding: const EdgeInsets.all(8),
-//             itemCount: groupedInOutDetails.keys.length,
-//             itemBuilder: (context, index) {
-//               String date = groupedInOutDetails.keys.elementAt(index);
-//               List<InOutDetail> details = groupedInOutDetails[date]!;
-//
-//               return Column(
-//                 crossAxisAlignment: CrossAxisAlignment.start,
-//                 children: [
-//                   Padding(
-//                     padding: const EdgeInsets.symmetric(vertical: 10.0),
-//                     child: Text(
-//                       "Date: $date",
-//                       style: const TextStyle(
-//                         fontSize: 18,
-//                         fontWeight: FontWeight.bold,
-//                         color: MyColors.fontBlue,
-//                       ),
-//                     ),
-//                   ),
-//                   ...details.map((detail) {
-//                     return Card(
-//                       elevation: 3,
-//                       shape: RoundedRectangleBorder(
-//                         borderRadius: BorderRadius.circular(12),
-//                       ),
-//                       color: detail.inOut == "IN"
-//                           ? Colors.green.shade100 // Highlight for Punch In
-//                           : Colors.red.shade100, // Highlight for Punch Out
-//                       child: Padding(
-//                         padding: const EdgeInsets.all(14.0),
-//                         child: Column(
-//                           crossAxisAlignment: CrossAxisAlignment.start,
-//                           children: [
-//                             Row(
-//                               children: [
-//                                 Icon(
-//                                   detail.inOut == "IN" ? Icons.login : Icons.logout,
-//                                   color: detail.inOut == "IN" ? Colors.green : Colors.red,
-//                                   size: 20,
-//                                 ),
-//                                 const SizedBox(width: 8),
-//                                 Text(
-//                                   detail.inOut == "IN" ? "Punch In" : "Punch Out",
-//                                   style: TextStyle(
-//                                     fontWeight: FontWeight.bold,
-//                                     fontSize: 18,
-//                                     color: detail.inOut == "IN" ? Colors.green[700] : Colors.red[700],
-//                                   ),
-//                                 ),
-//                               ],
-//                             ),
-//                             const SizedBox(height: 10),
-//                             Divider(height: 1, color: Colors.grey.shade400),
-//                             const SizedBox(height: 10),
-//                             Row(
-//                               children: [
-//                                 const Text(
-//                                   "Staff Code: ",
-//                                   style: TextStyle(fontWeight: FontWeight.w600),
-//                                 ),
-//                                 Expanded(
-//                                   child: Text(
-//                                     "${detail.staffCode}",
-//                                     style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black87),
-//                                   ),
-//                                 ),
-//                               ],
-//                             ),
-//                             SizedBox(height: 6),
-//                             Row(
-//                               children: [
-//                                 Icon(Icons.access_time, size: 18, color: Colors.grey.shade600),
-//                                 SizedBox(width: 5),
-//                                 Text(
-//                                   "Transaction Time: ${detail.transactionTime}",
-//                                   style: TextStyle(color: Colors.black87),
-//                                 ),
-//                               ],
-//                             ),
-//                             const SizedBox(height: 6),
-//                             Row(
-//                               crossAxisAlignment: CrossAxisAlignment.start,
-//                               children: [
-//                                 Icon(Icons.location_on, size: 18, color: Colors.grey.shade600),
-//                                 const SizedBox(width: 5),
-//                                 Expanded(
-//                                   child: Text(
-//                                     "Address: ${detail.address}",
-//                                     maxLines: 2,
-//                                     overflow: TextOverflow.ellipsis,
-//                                     style: TextStyle(color: Colors.black87),
-//                                   ),
-//                                 ),
-//                               ],
-//                             ),
-//                           ],
-//                         ),
-//                       ),
-//                     );
-//                   }),
-//                 ],
-//               );
-//             },
-//           ),
-//         ),
-//       ],
-//     );
-//   }
-//
-//   // Widget _buildCalendar() {
-//   //   attendanceStatus = ;
-//   //   return TableCalendar(
-//   //     focusedDay: today,
-//   //     firstDay: DateTime.utc(2024, 1, 1),
-//   //     lastDay: DateTime.utc(2025, 12, 31),
-//   //     calendarFormat: CalendarFormat.month,
-//   //     headerStyle: HeaderStyle(formatButtonVisible: false, titleCentered: true),
-//   //     calendarBuilders: CalendarBuilders(
-//   //       defaultBuilder: (context, date, _) {
-//   //         String? status = attendanceStatus[DateTime.utc(date.year, date.month, date.day)];
-//   //         Color bgColor = Colors.white;
-//   //
-//   //         if (status == "PUNCH_IN") {
-//   //           bgColor = Colors.green.shade300;
-//   //         } else if (status == "PUNCH_OUT") {
-//   //           bgColor = Colors.red.shade300;
-//   //         } else if (status == "ABSENT") {
-//   //           bgColor = Colors.grey.shade300;
-//   //         }
-//   //
-//   //         return Container(
-//   //           margin: const EdgeInsets.all(4),
-//   //           decoration: BoxDecoration(
-//   //             color: bgColor,
-//   //             shape: BoxShape.circle,
-//   //           ),
-//   //           child: Center(child: Text('${date.day}')),
-//   //         );
-//   //       },
-//   //     ),
-//   //   );
-//   // }
-//
-//   // Widget _buildLegend() {
-//   //   return Padding(
-//   //     padding: const EdgeInsets.all(8.0),
-//   //     child: Row(
-//   //       mainAxisAlignment: MainAxisAlignment.center,
-//   //       children: [
-//   //         _buildLegendItem(Colors.green.shade300, "Present"),
-//   //         const SizedBox(width: 10),
-//   //         _buildLegendItem(Colors.red.shade300, "Absent"),
-//   //         // const SizedBox(width: 10),
-//   //         // _buildLegendItem(Colors.grey.shade300, "WeekOff"),
-//   //         // const SizedBox(width: 10),
-//   //         // _buildLegendItem(Colors.brown, "Holiday"),
-//   //       ],
-//   //     ),
-//   //   );
-//   // }
-//
-//   Widget _buildLegendItem(Color color, String label) {
-//     return Row(
-//       children: [
-//         Container(
-//           width: 15,
-//           height: 15,
-//           decoration: BoxDecoration(
-//             color: color,
-//             shape: BoxShape.circle,
-//           ),
-//         ),
-//         const SizedBox(width: 5),
-//         Text(label),
-//       ],
-//     );
-//   }
-//
-//
-//   void _showAttendanceDetails(DateTime day) {
-//     List<InOutDetail> details = attendanceData[day] ?? [];
-//
-//     if (details.isEmpty) return;
-//
-//     DateTime? firstPunch = details.isNotEmpty
-//         ? DateFormat('dd/MM/yyyy HH:mm:ss').parse(details.first.transactionTime!).toLocal()
-//         : null;
-//
-//     DateTime? lastPunch = details.isNotEmpty
-//         ? DateFormat('dd/MM/yyyy HH:mm:ss').parse(details.last.transactionTime!).toLocal()
-//         : null;
-//
-//
-//     Duration totalDuration = Duration();
-//     if (firstPunch != null && lastPunch != null) {
-//       totalDuration = lastPunch.difference(firstPunch);
-//     }
-//
-//     showDialog(
-//       context: context,
-//       builder: (context) => AlertDialog(
-//         title: Text("Attendance Details - ${DateFormat('dd MMM yyyy').format(day)}"),
-//         content: Column(
-//           mainAxisSize: MainAxisSize.min,
-//           children: [
-//             ...details.map((detail) => ListTile(
-//               title: Text("${detail.inOut} at ${detail.transactionTime}"),
-//               subtitle: Text("Address: ${detail.address}"),
-//             )),
-//             Divider(),
-//             Text(
-//               "Total Hours: ${totalDuration.inHours}h ${totalDuration.inMinutes.remainder(60)}m",
-//               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue),
-//             ),
-//           ],
-//         ),
-//         actions: [
-//           TextButton(
-//             onPressed: () => Navigator.pop(context),
-//             child: Text("Close"),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-//
-// }
-///
-// class _AttendanceReportState extends State<AdminAttendanceReport> {
-//
-//   FlutterSecureStorage storage = FlutterSecureStorage();
-//   String? staffCode;
-//   DateTime? fromDate;
-//   DateTime? toDate;
-//   bool isLoading = false;
-//   bool isGridView = false; // State variable for toggle
-//   bool isMonthlyReport = false;
-//   // late List<InOutDetail> inOutDetails;
-//   Map<String, List<InOutDetail>> groupedInOutDetails = {};
-//   List<InOutDetail> selectedDayDetails = [];
-//
-//   DateTime today = DateTime.now();
-//   Map<DateTime, String> attendanceStatus = {}; // Maps date to "PUNCH_IN", "PUNCH_OUT", or "ABSENT"
-//
-//   DateTime? focusedDay;
-//   DateTime? selectedDay;
-//   Map<DateTime, List<InOutDetail>> attendanceData = {};
-//   Set<DateTime> presentDays = {};
-//   Set<DateTime> absentDays = {};
-//
-//   // int countOfPresentDayinMonth = countOfPresent();
-//
-//   @override
-//   void initState() {
-//     super.initState();
-//     focusedDay = DateTime.now();  // Set initial focused day
-//     selectedDay = focusedDay;
-//     initialize();
-//   }
-//
-//   @override
-//   void dispose() {
-//     // TODO: implement dispose
-//     super.dispose();
-//   }
-//
-//   // void _loadAttendanceData() {
-//   //   setState(() {
-//   //     attendanceStatus[DateTime.utc(2024, 2, 10)] = "PUNCH_IN";
-//   //     attendanceStatus[DateTime.utc(2024, 2, 11)] = "PUNCH_OUT";
-//   //     attendanceStatus[DateTime.utc(2024, 2, 12)] = "ABSENT";
-//   //   });
-//   // }
-//
-//   Future<void> initialize() async {
-//     await fetchData(); // Wait for fetchData to complete
-//     await _fetchTodayData(); // Then call _fetchTodayData
-//     await fetchAttendanceDataMonthlyReport();
-//     final normalizedToday = DateTime(today.year, today.month, today.day);
-//     if (attendanceData.containsKey(normalizedToday)) {
-//       setState(() {
-//         selectedDayDetails = attendanceData[normalizedToday]!;
-//       });
-//     }
-//   }
-//
-//   /*Future<void> fetchAttendanceDataMonthlyReport() async {
-//     try{
-//       setState(() => isLoading = true);
-//
-//       String formattedFromDate = DateFormat('dd/MM/yyyy').format(DateTime(focusedDay.year, focusedDay.month, 1));
-//       String formattedToDate = DateFormat('dd/MM/yyyy').format(DateTime(focusedDay.year, focusedDay.month + 1, 0));
-//
-//       final response = await http.post(
-//         Uri.parse('https://m-techinnovations.co.in/PersonTrackingAPI/API/InOutDetails'),
-//         headers: {"Content-Type": "application/json"},
-//         body: jsonEncode({
-//           "FromDate": formattedFromDate,
-//           "ToDate": formattedToDate,
-//           "StaffCode": staffCode
-//         }),
-//       );
-//
-//       if (response.statusCode == 201) {
-//         List<dynamic> data = jsonDecode(response.body);
-//         List<InOutDetail> details = data.map((item) => InOutDetail.fromJson(item)).toList();
-//
-//         print('response body of fetchAttendanceDataMonthlyReport: $details');
-//
-//         attendanceData.clear();
-//         presentDays.clear();
-//         absentDays.clear();
-//
-//         for (var detail in details) {
-//           DateTime date = DateFormat('dd/MM/yyyy').parse(detail.transactionTime!).toLocal();
-//           presentDays.add(date);
-//           if (!attendanceData.containsKey(date)) {
-//             attendanceData[date] = [];
-//           }
-//           attendanceData[date]!.add(detail);
-//         }
-//
-//         // Calculate absent days
-//         for (int i = 1; i <= DateTime(focusedDay.year, focusedDay.month + 1, 0).day; i++) {
-//           DateTime day = DateTime(focusedDay.year, focusedDay.month, i);
-//           if (!presentDays.contains(day)) {
-//             absentDays.add(day);
-//           }
-//         }
-//       }
-//       setState(() => isLoading = false);
-//     } catch(e){
-//       print('fetchAttendanceDataMonthlyReport: Error:  $e');
-//     }
-//
-//   }*/
-//
-//   Future<void> fetchAttendanceDataMonthlyReport() async {
-//     try {
-//       setState(() => isLoading = true);
-//
-//       DateTime now = DateTime.now();
-//       DateTime sixMonthsAgo = DateTime(now.year, now.month - 5, 1);
-//
-//       String formattedFromDate = DateFormat('dd/MM/yyyy').format(sixMonthsAgo);
-//       String formattedToDate = DateFormat('dd/MM/yyyy').format(now);
-//
-//       final response = await http.post(
-//         Uri.parse('https://m-techinnovations.co.in/PersonTrackingAPI/API/InOutDetails'),
-//         headers: {"Content-Type": "application/json"},
-//         body: jsonEncode({
-//           "FromDate": formattedFromDate,
-//           "ToDate": formattedToDate,
-//           "StaffCode": widget.datum.staffCode
-//         }),
-//       );
-//
-//       if (response.statusCode == 201) {
-//         List<dynamic> data = jsonDecode(response.body);
-//         List<InOutDetail> details = data.map((item) => InOutDetail.fromJson(item)).toList();
-//
-//         attendanceData.clear();
-//         presentDays.clear();
-//         absentDays.clear();
-//
-//         for (var detail in details) {
-//           DateTime date = DateFormat('dd/MM/yyyy HH:mm:ss').parse(detail.transactionTime!).toLocal();
-//           DateTime normalizedDate = DateTime(date.year, date.month, date.day); // Remove time
-//
-//           presentDays.add(normalizedDate);
-//
-//           if (!attendanceData.containsKey(normalizedDate)) {
-//             attendanceData[normalizedDate] = [];
-//           }
-//           attendanceData[normalizedDate]!.add(detail);
-//         }
-//
-//         // Identify absent days for the last 6 months
-//         for (int i = 0; i < 180; i++) { // 6 months = ~180 days
-//           DateTime day = sixMonthsAgo.add(Duration(days: i));
-//           if (!presentDays.contains(day) && day.isBefore(now)) {
-//             absentDays.add(day);
-//           }
-//         }
-//       }
-//
-//       setState(() {
-//         isLoading = false;
-//       });
-//     } catch (e) {
-//       print('Error fetching attendance data: $e');
-//       setState(() => isLoading = false);
-//     }
-//   }
-//
-//   Future<void> fetchData() async {
-//     staffCode = await storage.read(key: 'Staff_Code');
-//     print('staffcode --> $staffCode');
-//   }
-//
-//   // Fetch data for today by default
-//   Future<void> _fetchTodayData() async {
-//     print('first');
-//     DateTime today = DateTime.now();
-//     setState(() {
-//       fromDate = today;
-//       toDate = today;
-//     });
-//     await fetchInOutDetails();
-//   }
-//
-//   // Future<void> _selectDateRange(BuildContext context) async {
-//   //   final DateTime? pickedFromDate = await showDatePicker(
-//   //     context: context,
-//   //     initialDate: DateTime.now(),
-//   //     firstDate: DateTime(2000),
-//   //     lastDate: DateTime.now(),
-//   //   );
-//   //   if (pickedFromDate != null) {
-//   //     final DateTime? pickedToDate = await showDatePicker(
-//   //       context: context,
-//   //       initialDate: pickedFromDate,
-//   //       firstDate: pickedFromDate,
-//   //       lastDate: DateTime.now(),
-//   //     );
-//   //
-//   //     if (pickedToDate != null) {
-//   //       setState(() {
-//   //         fromDate = pickedFromDate;
-//   //         toDate = pickedToDate;
-//   //       });
-//   //
-//   //       // Fetch data after dates are selected
-//   //       await fetchInOutDetails();
-//   //     }
-//   //   }
-//   // }
-//
-//   Future<void> _selectDateRange(BuildContext context) async {
-//     final DateTimeRange? pickedRange = await showDateRangePicker(
-//       context: context,
-//       firstDate: DateTime(2000),
-//       lastDate: DateTime.now(),
-//       initialDateRange: fromDate != null && toDate != null
-//           ? DateTimeRange(start: fromDate!, end: toDate!)
-//           : null,
-//     );
-//
-//     if (pickedRange != null) {
-//       setState(() {
-//         fromDate = pickedRange.start;
-//         toDate = pickedRange.end;
-//       });
-//
-//       await fetchInOutDetails();
-//     }
-//   }
-//
-//   Future<void> fetchInOutDetails() async {
-//     if (fromDate == null || toDate == null) return;
-//
-//     setState(() {
-//       isLoading = true;
-//     });
-//
-//     // Format the date to 'dd/MM/yyyy' format as required by the API
-//     String formattedFromDate = DateFormat('dd/MM/yyyy').format(fromDate!);
-//     String formattedToDate = DateFormat('dd/MM/yyyy').format(toDate!);
-//
-//     final response = await http.post(
-//       Uri.parse('https://m-techinnovations.co.in/PersonTrackingAPI/API/InOutDetails'),
-//       headers: {"Content-Type": "application/json"},
-//       body: jsonEncode({
-//         "FromDate": formattedFromDate,
-//         "ToDate": formattedToDate,
-//         "StaffCode": widget.datum.staffCode
-//       }),
-//     );
-//
-//     if (response.statusCode == 201)
-//     {
-//       List<dynamic> data = jsonDecode(response.body);
-//       List<InOutDetail> details = data.map((item) => InOutDetail.fromJson(item)).toList();
-//       // inOutDetails = details;
-//
-//       // Group data by date
-//       groupedInOutDetails = _groupByDate(details);
-//
-//       setState(() {
-//         isLoading = false;
-//       });
-//     } else
-//     {
-//       // Handle error
-//       setState(() {
-//         isLoading = false;
-//       });
-//       ScaffoldMessenger.of(context).showSnackBar(
-//           const SnackBar(content: Text("Failed to fetch data"))
-//       );
-//     }
-//   }
-//
-//   Map<String, List<InOutDetail>> _groupByDate(List<InOutDetail> details) {
-//     Map<String, List<InOutDetail>> groupedData = {};
-//     for (var detail in details) {
-//       String date = detail.transactionTime!.substring(0, 10); // Extract the date part
-//       if (!groupedData.containsKey(date)) {
-//         groupedData[date] = [];
-//       }
-//       groupedData[date]!.add(detail);
-//     }
-//     return groupedData;
-//   }
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       // appBar: AppBar(
-//       //   leading: IconButton(
-//       //     icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
-//       //     onPressed: () => Navigator.push(
-//       //     context,
-//       //     MaterialPageRoute(
-//       //       builder: (_) => BlocProvider(
-//       //         create: (context) => MainBloc(webService: WebService()),
-//       //         child: const HomeScreen(),
-//       //       ),
-//       //     ),
-//       //   )
-//       //   ),
-//       //   // title: const Text("In/Out Details",
-//       //   //     style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
-//       //   // backgroundColor: MyColors.lightBlue,
-//       //   // actions: [
-//       //   //   IconButton(
-//       //   //     icon: Icon(
-//       //   //       isGridView ? Icons.list : Icons.grid_view,
-//       //   //       color: Colors.white,
-//       //   //     ),
-//       //   //     onPressed: () {
-//       //   //       setState(() {
-//       //   //         isGridView = !isGridView; // Toggle between views
-//       //   //       });
-//       //   //     },
-//       //   //   ),
-//       //   // ],
-//       //   appBar: AppBar(
-//       //     title: const Text(
-//       //       "In/Out Details",
-//       //       style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-//       //     ),
-//       //     backgroundColor: MyColors.lightBlue,
-//       //     actions: [
-//       //       if (!isMonthlyReport)
-//       //         IconButton(
-//       //           icon: Icon(
-//       //             isGridView ? Icons.list : Icons.grid_view,
-//       //             color: Colors.white,
-//       //           ),
-//       //           onPressed: () {
-//       //             setState(() {
-//       //               isGridView = !isGridView; // Toggle between views
-//       //             });
-//       //           },
-//       //         ),
-//       //     ],
-//       //   ),
-//       //
-//       //   backgroundColor: MyColors.lightBlue,
-//       //
-//       // ),
-//       appBar: AppBar(
-//         leading: IconButton(
-//           icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
-//           onPressed: () => Navigator.push(
-//             context,
-//             MaterialPageRoute(
-//               builder: (_) => BlocProvider(
-//                 create: (context) => MainBloc(webService: WebService()),
-//                 child: const AdminHomeScreen(),
-//               ),
-//             ),
-//           ),
-//         ),
-//         title: const Text(
-//           "In/Out Details",
-//           style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-//         ),
-//         backgroundColor: MyColors.lightBlue,
-//         actions: [
-//           if (!isMonthlyReport)
-//             IconButton(
-//               icon: Icon(
-//                 isGridView ? Icons.list : Icons.grid_view,
-//                 color: Colors.white,
-//               ),
-//               onPressed: () {
-//                 setState(() {
-//                   isGridView = !isGridView; // Toggle between views
-//                 });
-//               },
-//             ),
-//         ],
-//       ),
-//
-//       body: isMonthlyReport ? _buildMonthlyReportNew() : _buildDailyReport(),
-//     );
-//   }
-//
-//   // Widget _buildMonthlyReport(){
-//   //   _loadAttendanceData();
-//   //   return Column(
-//   //     children: [
-//   //       Padding(
-//   //         padding: const EdgeInsets.all(6.0),
-//   //         child: Row(
-//   //           children: [
-//   //             IconButton(
-//   //               onPressed: () {
-//   //                 setState(() {
-//   //                   isMonthlyReport = false;
-//   //                 });
-//   //               },
-//   //               icon: const Icon(Icons.arrow_back_rounded, color: MyColors.darkBlue),
-//   //             ),
-//   //             const Expanded(
-//   //               child: Center(
-//   //                 child: Text(
-//   //                   'Monthly Attendance Report',
-//   //                   style: TextStyle(
-//   //                     color: MyColors.darkBlue,
-//   //                     fontSize: 18,
-//   //                     fontWeight: FontWeight.bold,
-//   //                   ),
-//   //                 ),
-//   //               ),
-//   //             ),
-//   //             const SizedBox(width: 20,)
-//   //           ],
-//   //         ),
-//   //       ),
-//   //
-//   //       _buildCalendar(),
-//   //       const SizedBox(height: 12,),
-//   //       _buildLegend(),
-//   //       /*TableCalendar(
-//   //         firstDay: DateTime.utc(2024, 1, 1),
-//   //         lastDay: DateTime.now(),
-//   //         focusedDay: DateTime.now(),
-//   //         calendarFormat: CalendarFormat.month,
-//   //         headerStyle: HeaderStyle(formatButtonVisible: false, titleCentered: true),
-//   //         calendarStyle: CalendarStyle(
-//   //           todayDecoration: BoxDecoration(
-//   //               color: Colors.blue.shade200, shape: BoxShape.circle),
-//   //         ),
-//   //         availableGestures: AvailableGestures.all,
-//   //         calendarBuilders: CalendarBuilders(
-//   //           defaultBuilder: (context, date, _) {
-//   //             bool isPresent = groupedInOutDetails.keys.contains(DateFormat('yyyy-MM-dd').format(date));
-//   //             return Center(
-//   //               child: Container(
-//   //                 width: 35,
-//   //                 height: 35,
-//   //                 decoration: BoxDecoration(
-//   //                   color: isPresent ? Colors.green.shade400 : Colors.red.shade400,
-//   //                   shape: BoxShape.circle,
-//   //                 ),
-//   //                 alignment: Alignment.center,
-//   //                 child: Text(
-//   //                   date.day.toString(),
-//   //                   style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-//   //                 ),
-//   //               ),
-//   //             );
-//   //           },
-//   //         ),
-//   //       )*/
-//   //     ],
-//   //   );
-//   // }
-//   ///
-// //   Widget _buildMonthlyReportNew() {
-// //     return isLoading
-// //         ? Center(child: CircularProgressIndicator())
-// //         : Column(
-// //       children: [
-// //       Padding(
-// //               padding: const EdgeInsets.all(6.0),
-// //               child: Row(
-// //                 children: [
-// //                   IconButton(
-// //                     onPressed: () {
-// //                       setState(() {
-// //                         isMonthlyReport = false;
-// //                       });
-// //                     },
-// //                     icon: const Icon(Icons.arrow_back_rounded, color: MyColors.darkBlue),
-// //                   ),
-// //                   const Expanded(
-// //                     child: Center(
-// //                       child: Text(
-// //                         'Monthly Attendance Report',
-// //                         style: TextStyle(
-// //                           color: MyColors.darkBlue,
-// //                           fontSize: 18,
-// //                           fontWeight: FontWeight.bold,
-// //                         ),
-// //                       ),
-// //                     ),
-// //                   ),
-// //                   const SizedBox(width: 20,)
-// //                 ],
-// //               ),
-// //             ),
-// //         TableCalendar(
-// //           firstDay: DateTime.utc(2024, 1, 1),
-// //                   lastDay: DateTime.now(),
-// //                   focusedDay: DateTime.now(),
-// //           selectedDayPredicate: (day) => isSameDay(selectedDay, day),
-// //           calendarFormat: CalendarFormat.month,
-// //           eventLoader: (day) => attendanceData[day] ?? [],
-// //           calendarStyle: CalendarStyle(
-// //             todayDecoration: BoxDecoration(
-// //               color: Colors.blue.withOpacity(0.5),
-// //               shape: BoxShape.circle,
-// //             ),
-// //             markerDecoration: BoxDecoration(
-// //               color: Colors.white,
-// //               shape: BoxShape.circle,
-// //             ),
-// //             defaultDecoration: BoxDecoration(
-// //               shape: BoxShape.circle,
-// //             ),
-// //             holidayDecoration: BoxDecoration(
-// //               color: Colors.red.withOpacity(0.5),
-// //               shape: BoxShape.circle,
-// //             ),
-// //             outsideDaysVisible: false,
-// //           ),
-// //           headerStyle: const HeaderStyle(formatButtonVisible: false, titleCentered: true),
-// //           calendarBuilders: CalendarBuilders(
-// //             defaultBuilder: (context, day, focusedDay) {
-// //               DateTime normalizedDay = DateTime(day.year, day.month, day.day); // Normalize the date
-// //
-// //               if (presentDays.any((d) => isSameDay(d, normalizedDay))) {
-// //                 return _buildCalendarCell(day, Colors.green);
-// //               } else if (absentDays.any((d) => isSameDay(d, normalizedDay))) {
-// //                 return _buildCalendarCell(day, Colors.red);
-// //               }
-// //               return null;
-// //             },
-// //           ),
-// //             onDaySelected: (selectedDay, focusedDay) {
-// //              try{
-// //                 setState(() {
-// //                   this.selectedDay = DateTime(selectedDay.year, selectedDay.month, selectedDay.day);
-// //                   // this.selectedDay = DateTime(selectedDay.year, selectedDay.month, selectedDay.day);
-// //                   // this.focusedDay = DateTime(selectedDay.year, selectedDay.month, selectedDay.day);
-// //                 });
-// //
-// //               if (attendanceData.containsKey(selectedDay)) {
-// //                 _showAttendanceDetails(selectedDay);
-// //               } /*else {
-// //                 Fluttertoast.showToast(msg: 'No attendance records for this day');
-// //               }*/
-// //             } catch(e){
-// //               print('onDaySelected: Error : $e');
-// //             }
-// //
-// //             },
-// //         ),
-// //         SizedBox(height: 20),
-// //         _buildLegend(),
-// //         // if (selectedDay != null && attendanceData.containsKey(selectedDay))
-// //           // _buildAttendanceDetails(selectedDay!), // Show details below the calendar
-// //           //  _showAttendanceDetails(selectedDay!),
-// //       ],
-// //     );
-// //   }
-//   ///
-//   // Widget _buildMonthlyReportNew() {
-//   //   return isLoading
-//   //       ? Center(child: CircularProgressIndicator())
-//   //       : Column(
-//   //     children: [
-//   //       Padding(
-//   //         padding: const EdgeInsets.all(6.0),
-//   //         child: Row(
-//   //           children: [
-//   //             IconButton(
-//   //               onPressed: () {
-//   //                 setState(() {
-//   //                   isMonthlyReport = false;
-//   //                 });
-//   //               },
-//   //               icon: const Icon(Icons.arrow_back_rounded, color: MyColors.darkBlue),
-//   //             ),
-//   //             const Expanded(
-//   //               child: Center(
-//   //                 child: Text(
-//   //                   'Monthly Attendance Report',
-//   //                   style: TextStyle(
-//   //                     color: MyColors.darkBlue,
-//   //                     fontSize: 18,
-//   //                     fontWeight: FontWeight.bold,
-//   //                   ),
-//   //                 ),
-//   //               ),
-//   //             ),
-//   //             const SizedBox(width: 20,)
-//   //           ],
-//   //         ),
-//   //       ),
-//   //   /*    TableCalendar(
-//   //         firstDay: DateTime.utc(2024, 1, 1),
-//   //         lastDay: DateTime.now(),
-//   //         focusedDay: focusedDay!, // Use the state variable
-//   //         selectedDayPredicate: (day) => isSameDay(selectedDay, day),
-//   //         calendarFormat: CalendarFormat.month,
-//   //         eventLoader: (day) => attendanceData[day] ?? [],
-//   //         calendarStyle: CalendarStyle(
-//   //           todayDecoration: BoxDecoration(
-//   //             color: Colors.blue.withOpacity(0.5),
-//   //             shape: BoxShape.circle,
-//   //           ),
-//   //           markerDecoration: BoxDecoration(
-//   //             color: Colors.white,
-//   //             shape: BoxShape.circle,
-//   //           ),
-//   //           defaultDecoration: BoxDecoration(
-//   //             shape: BoxShape.circle,
-//   //           ),
-//   //           holidayDecoration: BoxDecoration(
-//   //             color: Colors.red.withOpacity(0.5),
-//   //             shape: BoxShape.circle,
-//   //           ),
-//   //           outsideDaysVisible: false,
-//   //         ),
-//   //         headerStyle: const HeaderStyle(formatButtonVisible: false, titleCentered: true),
-//   //         calendarBuilders: CalendarBuilders(
-//   //           defaultBuilder: (context, day, focusedDay) {
-//   //             DateTime normalizedDay = DateTime(day.year, day.month, day.day);
-//   //
-//   //             if (presentDays.any((d) => isSameDay(d, normalizedDay))) {
-//   //               return _buildCalendarCell(day, Colors.green);
-//   //             } else if (absentDays.any((d) => isSameDay(d, normalizedDay))) {
-//   //               return _buildCalendarCell(day, Colors.red);
-//   //             }
-//   //             return null;
-//   //           },
-//   //         ),
-//   //         onDaySelected: (selectedDay, focusedDay) {
-//   //           setState(() {
-//   //             this.selectedDay = DateTime(selectedDay.year, selectedDay.month, selectedDay.day);
-//   //             //this.focusedDay = focusedDay;  //  Keep the focusedDay managed by TableCalendar
-//   //           });
-//   //           _buildAttendanceDetails(selectedDay );
-//   //           _showAttendanceDetails(selectedDay); // Call the details function
-//   //         },
-//   //         onPageChanged: (focusedDay) {
-//   //           setState(() {
-//   //             this.focusedDay = focusedDay; // Update focusedDay when the page changes
-//   //           });
-//   //         },
-//   //       ),*/
-//   //       TableCalendar(
-//   //         firstDay: DateTime.utc(2024, 1, 1),
-//   //         lastDay: DateTime.now(),
-//   //         focusedDay: focusedDay ?? DateTime.now(), // ✅ Use state-managed focusedDay
-//   //         selectedDayPredicate: (day) => isSameDay(selectedDay, day),
-//   //         calendarFormat: CalendarFormat.month,
-//   //         eventLoader: (day) => attendanceData[day] ?? [],
-//   //         calendarStyle: CalendarStyle(
-//   //           todayDecoration: BoxDecoration(
-//   //             color: Colors.blue.withOpacity(0.5),
-//   //             shape: BoxShape.circle,
-//   //           ),
-//   //           markerDecoration: BoxDecoration(
-//   //             color: Colors.white,
-//   //             shape: BoxShape.circle,
-//   //           ),
-//   //           defaultDecoration: BoxDecoration(
-//   //             shape: BoxShape.circle,
-//   //           ),
-//   //           holidayDecoration: BoxDecoration(
-//   //             color: Colors.red.withOpacity(0.5),
-//   //             shape: BoxShape.circle,
-//   //           ),
-//   //           outsideDaysVisible: false,
-//   //         ),
-//   //         headerStyle: const HeaderStyle(formatButtonVisible: false, titleCentered: true),
-//   //         calendarBuilders: CalendarBuilders(
-//   //           defaultBuilder: (context, day, _) {
-//   //             DateTime normalizedDay = DateTime(day.year, day.month, day.day);
-//   //
-//   //             if (presentDays.any((d) => isSameDay(d, normalizedDay))) {
-//   //               return _buildCalendarCell(day, Colors.green);
-//   //             } else if (absentDays.any((d) => isSameDay(d, normalizedDay))) {
-//   //               return _buildCalendarCell(day, Colors.red);
-//   //             }
-//   //             return null;
-//   //           },
-//   //         ),
-//   //         onDaySelected: (selectedDay, newFocusedDay) async {
-//   //           final normalizedSelected = DateTime(
-//   //             selectedDay.year,
-//   //             selectedDay.month,
-//   //             selectedDay.day,
-//   //           );
-//   //
-//   //           setState(() {
-//   //             this.selectedDay = normalizedSelected;
-//   //             if (focusedDay?.month != newFocusedDay.month || focusedDay?.year != newFocusedDay.year) {
-//   //               focusedDay = newFocusedDay;
-//   //             }
-//   //             fromDate = normalizedSelected;
-//   //             toDate = normalizedSelected;
-//   //           });
-//   //
-//   //           await fetchInOutDetails();
-//   //
-//   //           setState(() {
-//   //             selectedDayDetails = attendanceData[normalizedSelected] ?? [];
-//   //           });
-//   //         },
-//   //
-//   //       ),
-//   //
-//   //       SizedBox(height: 20),
-//   //       _buildLegend(),
-//   //       // SizedBox(height: 10),
-//   //       // if (selectedDayDetails.isNotEmpty)
-//   //       //   _buildSelectedAttendanceList(),
-//   //       // if (selectedDayDetails.isEmpty && selectedDay != null)
-//   //       //   Padding(
-//   //       //     padding: EdgeInsets.all(10),
-//   //       //     child: Text(
-//   //       //       "No attendance records for ${DateFormat('dd MMM yyyy').format(selectedDay!)}",
-//   //       //       style: TextStyle(color: Colors.grey),
-//   //       //     ),
-//   //       //   ),
-//   //
-//   //       // if (selectedDay != null && attendanceData.containsKey(selectedDay))
-//   //       //   _buildAttendanceDetails(selectedDay!), // Show details below the calendar
-//   //       //  _showAttendanceDetails(selectedDay!),
-//   //     ],
-//   //   );
-//   // }
-//   ///in use with details
-//   Widget _buildMonthlyReportNew() {
-//     return isLoading
-//         ? Center(child: CircularProgressIndicator())
-//         : SingleChildScrollView( // ✅ Enable vertical scrolling
-//       child: Column(
-//         crossAxisAlignment: CrossAxisAlignment.start,
-//         children: [
-//           Padding(
-//             padding: const EdgeInsets.all(6.0),
-//             child: Row(
-//               // children: [
-//               //   IconButton(
-//               //     onPressed: () {
-//               //       setState(() {
-//               //         isMonthlyReport = false;
-//               //       });
-//               //     },
-//               //     icon: const Icon(Icons.arrow_back_rounded, color: MyColors.darkBlue),
-//               //
-//               //   ),
-//               //   const Expanded(
-//               //     child: Center(
-//               //       child: Text(
-//               //         'Monthly Attendance Report',
-//               //         style: TextStyle(
-//               //           color: MyColors.darkBlue,
-//               //           fontSize: 18,
-//               //           fontWeight: FontWeight.bold,
-//               //         ),
-//               //
-//               //       ),
-//               //     ),
-//               //
-//               //   ),
-//               //
-//               //   const SizedBox(width: 20),
-//               // ],
-//               children: [
-//                 IconButton(
-//                   onPressed: () {
-//                     setState(() {
-//                       isMonthlyReport = false;
-//                     });
-//                   },
-//                   icon: const Icon(Icons.arrow_back_rounded, color: MyColors.darkBlue),
-//                 ),
-//
-//                 const Expanded(
-//                   child: Center(
-//                     child: Text(
-//                       'Monthly Attendance Report',
-//                       style: TextStyle(
-//                         color: MyColors.darkBlue,
-//                         fontSize: 18,
-//                         fontWeight: FontWeight.bold,
-//                       ),
-//                     ),
-//                   ),
-//                 ),
-//
-//                 const SizedBox(width: 20),
-//
-//                 // Conditionally show grid/list toggle button
-//                 if (!isMonthlyReport)
-//                   IconButton(
-//                     icon: Icon(
-//                       isGridView ? Icons.list : Icons.grid_view,
-//                       color: Colors.white,
-//                     ),
-//                     onPressed: () {
-//                       setState(() {
-//                         isGridView = !isGridView;
-//                       });
-//                     },
-//                   ),
-//               ],
-//
-//             ),
-//           ),
-//           TableCalendar(
-//             firstDay: DateTime.utc(2024, 1, 1),
-//             lastDay: DateTime.now(),
-//             focusedDay: focusedDay ?? DateTime.now(),
-//             selectedDayPredicate: (day) => isSameDay(selectedDay, day),
-//             calendarFormat: CalendarFormat.month,
-//             eventLoader: (day) => attendanceData[day] ?? [],
-//             calendarStyle: CalendarStyle(
-//               todayDecoration: BoxDecoration(
-//                 color: Colors.blue.withOpacity(0.5),
-//                 shape: BoxShape.circle,
-//               ),
-//               markerDecoration: BoxDecoration(
-//                 color: Colors.white,
-//                 shape: BoxShape.circle,
-//               ),
-//               defaultDecoration: BoxDecoration(
-//                 shape: BoxShape.circle,
-//               ),
-//               holidayDecoration: BoxDecoration(
-//                 color: Colors.red.withOpacity(0.5),
-//                 shape: BoxShape.circle,
-//               ),
-//               outsideDaysVisible: false,
-//             ),
-//             headerStyle: const HeaderStyle(formatButtonVisible: false, titleCentered: true),
-//             calendarBuilders: CalendarBuilders(
-//               defaultBuilder: (context, day, _) {
-//                 DateTime normalizedDay = DateTime(day.year, day.month, day.day);
-//                 if (presentDays.any((d) => isSameDay(d, normalizedDay))) {
-//                   return _buildCalendarCell(day, Colors.green);
-//                 } else if (absentDays.any((d) => isSameDay(d, normalizedDay))) {
-//                   return _buildCalendarCell(day, Colors.red);
-//                 }
-//                 return null;
-//               },
-//             ),
-//             onDaySelected: (selectedDay, newFocusedDay) async {
-//               final normalizedSelected = DateTime(
-//                 selectedDay.year,
-//                 selectedDay.month,
-//                 selectedDay.day,
-//               );
-//
-//               setState(() {
-//                 this.selectedDay = normalizedSelected;
-//                 if (focusedDay?.month != newFocusedDay.month || focusedDay?.year != newFocusedDay.year) {
-//                   focusedDay = newFocusedDay;
-//                 }
-//                 fromDate = normalizedSelected;
-//                 toDate = normalizedSelected;
-//               });
-//
-//               await fetchInOutDetails();
-//
-//               setState(() {
-//                 selectedDayDetails = attendanceData[normalizedSelected] ?? [];
-//               });
-//             },
-//           ),
-//           const SizedBox(height: 20),
-//           _buildLegend(),
-//           const SizedBox(height: 10),
-//           if (selectedDayDetails.isNotEmpty)
-//             _buildSelectedAttendanceList(),
-//           if (selectedDayDetails.isEmpty && selectedDay != null)
-//             Padding(
-//               padding: EdgeInsets.all(10),
-//               child: Text(
-//                 "No attendance records for ${DateFormat('dd MMM yyyy').format(selectedDay!)}",
-//                 style: TextStyle(color: Colors.grey),
-//               ),
-//             ),
-//         ],
-//       ),
-//     );
-//   }
-//   ///without details
-//   /* Widget _buildMonthlyReportNew() {
-//     return isLoading
-//         ? Center(child: CircularProgressIndicator())
-//         : Column(
-//       children: [
-//         Padding(
-//           padding: const EdgeInsets.all(6.0),
-//           child: Row(
-//             children: [
-//               IconButton(
-//                 onPressed: () {
-//                   setState(() {
-//                     isMonthlyReport = false;
-//                   });
-//                 },
-//                 icon: const Icon(Icons.arrow_back_rounded, color: MyColors.darkBlue),
-//               ),
-//               const Expanded(
-//                 child: Center(
-//                   child: Text(
-//                     'Monthly Attendance Report',
-//                     style: TextStyle(
-//                       color: MyColors.darkBlue,
-//                       fontSize: 18,
-//                       fontWeight: FontWeight.bold,
-//                     ),
-//                   ),
-//                 ),
-//               ),
-//               const SizedBox(width: 20,)
-//             ],
-//           ),
-//         ),
-//         TableCalendar(
-//           firstDay: DateTime.utc(2024, 1, 1),
-//           lastDay: DateTime.now(),
-//           focusedDay: focusedDay!, // Use the state variable
-//           selectedDayPredicate: (day) => isSameDay(selectedDay, day),
-//           calendarFormat: CalendarFormat.month,
-//           eventLoader: (day) => attendanceData[day] ?? [],
-//           calendarStyle: CalendarStyle(
-//             todayDecoration: BoxDecoration(
-//               color: Colors.blue.withOpacity(0.5),
-//               shape: BoxShape.circle,
-//             ),
-//             markerDecoration: BoxDecoration(
-//               color: Colors.white,
-//               shape: BoxShape.circle,
-//             ),
-//             defaultDecoration: BoxDecoration(
-//               shape: BoxShape.circle,
-//             ),
-//             holidayDecoration: BoxDecoration(
-//               color: Colors.red.withOpacity(0.5),
-//               shape: BoxShape.circle,
-//             ),
-//             outsideDaysVisible: false,
-//           ),
-//           headerStyle: const HeaderStyle(formatButtonVisible: false, titleCentered: true),
-//           calendarBuilders: CalendarBuilders(
-//             defaultBuilder: (context, day, focusedDay) {
-//               DateTime normalizedDay = DateTime(day.year, day.month, day.day);
-//
-//               if (presentDays.any((d) => isSameDay(d, normalizedDay))) {
-//                 return _buildCalendarCell(day, Colors.green);
-//               } else if (absentDays.any((d) => isSameDay(d, normalizedDay))) {
-//                 return _buildCalendarCell(day, Colors.red);
-//               }
-//               return null;
-//             },
-//           ),
-//           onDaySelected: (selectedDay, focusedDay) {
-//             setState(() {
-//               this.selectedDay = DateTime(selectedDay.year, selectedDay.month, selectedDay.day);
-//               //this.focusedDay = focusedDay;  //  Keep the focusedDay managed by TableCalendar
-//             });
-//             _showAttendanceDetails(selectedDay); // Call the details function
-//           },
-//           onPageChanged: (focusedDay) {
-//             setState(() {
-//               this.focusedDay = focusedDay; // Update focusedDay when the page changes
-//             });
-//           },
-//         ),
-//         SizedBox(height: 20),
-//         _buildLegend(),
-//         // if (selectedDay != null && attendanceData.containsKey(selectedDay))
-//         //   _buildAttendanceDetails(selectedDay!), // Show details below the calendar
-//         //  _showAttendanceDetails(selectedDay!),
-//       ],
-//     );
-//   }*/
-//
-//   Widget _buildSelectedAttendanceList() {
-//     DateTime day = selectedDay!;
-//     DateTime? firstPunch = selectedDayDetails.isNotEmpty
-//         ? DateFormat('dd/MM/yyyy HH:mm:ss').parse(selectedDayDetails.first.transactionTime!).toLocal()
-//         : null;
-//     DateTime? lastPunch = selectedDayDetails.isNotEmpty
-//         ? DateFormat('dd/MM/yyyy HH:mm:ss').parse(selectedDayDetails.last.transactionTime!).toLocal()
-//         : null;
-//
-//     Duration totalDuration = Duration();
-//     if (firstPunch != null && lastPunch != null) {
-//       totalDuration = lastPunch.difference(firstPunch);
-//     }
-//
-//     return Container(
-//       padding: EdgeInsets.all(12),
-//       margin: EdgeInsets.symmetric(horizontal: 12),
-//       decoration: BoxDecoration(
-//         color: Colors.grey.shade100,
-//         borderRadius: BorderRadius.circular(10),
-//         boxShadow: [
-//           BoxShadow(color: Colors.grey.withOpacity(0.2), blurRadius: 4, offset: Offset(2, 2)),
-//         ],
-//       ),
-//       child: Column(
-//         crossAxisAlignment: CrossAxisAlignment.start,
-//         children: [
-//           Text(
-//             "Attendance Details - ${DateFormat('dd MMM yyyy').format(day)}",
-//             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-//           ),
-//           Divider(),
-//           ListView.builder(
-//             shrinkWrap: true,
-//             physics: NeverScrollableScrollPhysics(),
-//             itemCount: selectedDayDetails.length,
-//             itemBuilder: (context, index) {
-//               final detail = selectedDayDetails[index];
-//               return ListTile(
-//                 title: Text("${detail.inOut} at ${detail.transactionTime}"),
-//                 subtitle: Text("Address: ${detail.address}"),
-//                 leading: Icon(
-//                   detail.inOut == "IN" ? Icons.login : Icons.logout,
-//                   color: detail.inOut == "IN" ? Colors.green : Colors.red,
-//                 ),
-//               );
-//             },
-//           ),
-//           Divider(),
-//           Text(
-//             "Total Hours: ${totalDuration.inHours}h ${totalDuration.inMinutes.remainder(60)}m",
-//             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-//
-//
-//   Widget _buildCalendarCell(DateTime day, Color color) {
-//     return Center(
-//       child: Container(
-//         decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-//         width: 40,
-//         height: 40,
-//         child: Center(
-//           child: Text(
-//             '${day.day}',
-//             style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-//           ),
-//         ),
-//       ),
-//     );
-//   }
-//
-//   Widget _buildAttendanceDetails(DateTime day) {
-//     List<InOutDetail> details = attendanceData[day] ?? [];
-//
-//     if (details.isEmpty) return SizedBox();
-//
-//     DateTime? firstPunch = details.isNotEmpty
-//         ? DateFormat('dd/MM/yyyy HH:mm:ss').parse(details.first.transactionTime!).toLocal()
-//         : null;
-//
-//     DateTime? lastPunch = details.isNotEmpty
-//         ? DateFormat('dd/MM/yyyy HH:mm:ss').parse(details.last.transactionTime!).toLocal()
-//         : null;
-//
-//     Duration totalDuration = Duration();
-//     if (firstPunch != null && lastPunch != null) {
-//       totalDuration = lastPunch.difference(firstPunch);
-//     }
-//
-//     return Flexible(
-//       child: Container(
-//         padding: EdgeInsets.all(15),
-//         child: Column(
-//           crossAxisAlignment: CrossAxisAlignment.start,
-//           children: [
-//             Text(
-//               "Attendance Details - ${DateFormat('dd MMM yyyy').format(day)}",
-//               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-//             ),
-//             SizedBox(height: 10),
-//             Expanded(
-//               child: ListView.builder(
-//                 shrinkWrap: true,
-//                 physics: BouncingScrollPhysics(),
-//                 itemCount: details.length,
-//                 itemBuilder: (context, index) {
-//                   final detail = details[index];
-//                   return ListTile(
-//                     title: Text("${detail.inOut} at ${detail.transactionTime}"),
-//                     subtitle: Text("Address: ${detail.address}"),
-//                   );
-//                 },
-//               ),
-//             ),
-//             Divider(),
-//             Text(
-//               "Total Hours: ${totalDuration.inHours}h ${totalDuration.inMinutes.remainder(60)}m",
-//               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue),
-//             ),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-//
-//   // Function to count present days in the selected month
-// /*  int _getPresentDaysCount(DateTime day) {
-//     return presentDays
-//         .where((date) => date.year == day.year && date.month == day.month)
-//         .toSet()
-//         .length;
-//   }
-//
-//   Widget _buildLegend() {
-//     int presentCount = _getPresentDaysCount(selectedDay ?? DateTime.now());
-//
-//     return Container(
-//       padding: EdgeInsets.all(10),
-//       decoration: BoxDecoration(
-//         color: Colors.white,
-//         borderRadius: BorderRadius.circular(10),
-//         border: Border.all(color: Colors.grey.shade400),
-//         boxShadow: [
-//           BoxShadow(
-//             color: Colors.grey.withOpacity(0.3),
-//             blurRadius: 5,
-//             spreadRadius: 2,
-//             offset: Offset(2, 3),
-//           ),
-//         ],
-//       ),
-//       child: Row(
-//         mainAxisSize: MainAxisSize.min,
-//         mainAxisAlignment: MainAxisAlignment.center,
-//         children: [
-//           Row(
-//             children: [
-//               CircleAvatar(backgroundColor: Colors.green, radius: 8),
-//               SizedBox(width: 8),
-//               Text(
-//                 "Present ($presentCount)",
-//                 style: TextStyle(fontWeight: FontWeight.bold),
-//               ),
-//             ],
-//           ),
-//           SizedBox(width: 8), // Space between rows
-//           Row(
-//             children: [
-//               CircleAvatar(backgroundColor: Colors.red, radius: 8),
-//               SizedBox(width: 8),
-//               Text("Absent"),
-//             ],
-//           ),
-//         ],
-//       ),
-//     );
-//   }*/
-//
-//   // Function to count present days in the selected month
-//   int _getPresentDaysCount(DateTime focusedDay) {
-//     return presentDays
-//         .where((date) => date.year == focusedDay.year && date.month == focusedDay.month)
-//         .toSet()
-//         .length;
-//   }
-//
-//   Widget _buildLegend() {
-//     int presentCount = _getPresentDaysCount(focusedDay ?? DateTime.now()); // Use focusedDay
-//
-//     return Container(
-//       padding: EdgeInsets.all(10),
-//       decoration: BoxDecoration(
-//         color: Colors.white,
-//         borderRadius: BorderRadius.circular(10),
-//         border: Border.all(color: Colors.grey.shade400),
-//         boxShadow: [
-//           BoxShadow(
-//             color: Colors.grey.withOpacity(0.3),
-//             blurRadius: 5,
-//             spreadRadius: 2,
-//             offset: Offset(2, 3),
-//           ),
-//         ],
-//       ),
-//       child: Row(
-//         mainAxisSize: MainAxisSize.min,
-//         mainAxisAlignment: MainAxisAlignment.center,
-//         children: [
-//           Row(
-//             children: [
-//               CircleAvatar(backgroundColor: Colors.green, radius: 8),
-//               SizedBox(width: 8),
-//               Text(
-//                 "Present ($presentCount)",
-//                 style: TextStyle(fontWeight: FontWeight.bold),
-//               ),
-//             ],
-//           ),
-//           SizedBox(width: 8), // Space between rows
-//           Row(
-//             children: [
-//               CircleAvatar(backgroundColor: Colors.red, radius: 8),
-//               SizedBox(width: 8),
-//               Text("Absent"),
-//             ],
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-//
-//   Widget _buildDailyReport(){
-//     return Column(
-//       children: [
-//         Padding(
-//           padding: const EdgeInsets.all(8.0),
-//           child: Row(
-//             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//             children: [
-//               TextButton.icon(
-//                 onPressed: () => _selectDateRange(context),
-//                 label: const Row(
-//                   children: [
-//                     Text("Select Date Range", style: TextStyle(color: MyColors.darkBlue, fontSize: 16, fontWeight: FontWeight.bold),),
-//                     Icon(Icons.edit)
-//                   ],
-//                 ),
-//               ),
-//               TextButton.icon(
-//                 onPressed: () => setState(() {
-//                   isMonthlyReport = true; // Switch to calendar view
-//                 }),
-//                 label: const Row(
-//                   children: [
-//                     Text("Monthly Report", style: TextStyle(color: MyColors.darkBlue, fontSize: 16, fontWeight: FontWeight.bold)),
-//                     Icon(Icons.calendar_month)
-//                   ],
-//                 ),
-//               ),
-//               // ElevatedButton(
-//               //   style: ElevatedButton.styleFrom(
-//               //     backgroundColor: MyColors.fontBlue
-//               //   ),
-//               //   onPressed: () => _selectDateRange(context),
-//               //   child: const Text("Select Date Range", style: TextStyle(color: Colors.white),),
-//               // ),
-//               // ElevatedButton(
-//               //   style: ElevatedButton.styleFrom(
-//               //       backgroundColor: MyColors.fontBlue
-//               //   ),
-//               //   onPressed: () => setState(() {
-//               //     isMonthlyReport = true; // Switch to calendar view
-//               //   }),
-//               //   child: const Text("Monthly Report", style: TextStyle(color: Colors.white)),
-//               // ),
-//             ],
-//           ),
-//         ),
-//         if (fromDate != null && toDate != null)
-//           Padding(
-//               padding: const EdgeInsets.all(8.0),
-//               child:  Row(
-//                 mainAxisAlignment: MainAxisAlignment.center ,
-//                 children: [
-//                   Text(
-//                     'From: ',
-//                     style: TextStyle(fontSize: 16),
-//                   ),
-//                   Text(
-//                     '${DateFormat('dd/MM/yyyy').format(fromDate!)}',
-//                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-//                   ),
-//                   Text(
-//                     '  To: ',
-//                     style: TextStyle(fontSize: 16),
-//                   ),
-//                   Text(
-//                     '${DateFormat('dd/MM/yyyy').format(toDate!)}',
-//                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-//                   ),
-//                 ],)
-//           ),
-//         Expanded(
-//           child: isLoading
-//               ? Center(child: CircularProgressIndicator())
-//               : groupedInOutDetails.isEmpty
-//               ? Center(child: Text("No Data Available"))
-//               : isGridView
-//               ? GridView.builder(
-//             padding: const EdgeInsets.all(8),
-//             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-//               crossAxisCount: 2,
-//               crossAxisSpacing: 8,
-//               mainAxisSpacing: 8,
-//             ),
-//             itemCount: groupedInOutDetails.keys.length,
-//             itemBuilder: (context, index) {
-//               String date = groupedInOutDetails.keys.elementAt(index);
-//               List<InOutDetail> details = groupedInOutDetails[date]!;
-//
-//               return Card(
-//                 elevation: 2,
-//                 shape: RoundedRectangleBorder(
-//                   borderRadius: BorderRadius.circular(10),
-//                 ),
-//                 color: Colors.white,
-//                 child: SingleChildScrollView( // Add scrolling capability
-//                   padding: const EdgeInsets.all(12.0),
-//                   child: Column(
-//                     crossAxisAlignment: CrossAxisAlignment.start,
-//                     children: [
-//                       Text(
-//                         "Date: $date",
-//                         style: TextStyle(
-//                           fontSize: 18,
-//                           fontWeight: FontWeight.bold,
-//                           color: MyColors.fontBlue,
-//                         ),
-//                       ),
-//                       ...details.map((detail) {
-//                         return Container(
-//                           margin: EdgeInsets.only(top: 10),
-//                           padding: EdgeInsets.all(8),
-//                           decoration: BoxDecoration(
-//                             color: detail.inOut == "IN"
-//                                 ? Colors.green.shade100
-//                                 : Colors.red.shade100,
-//                             borderRadius: BorderRadius.circular(10),
-//                           ),
-//                           child: Column(
-//                             crossAxisAlignment: CrossAxisAlignment.start,
-//                             children: [
-//                               Text(
-//                                 "Staff Code: ${detail.staffCode}",
-//                                 style: const TextStyle(
-//                                   fontWeight: FontWeight.bold,
-//                                   fontSize: 16,
-//                                 ),
-//                               ),
-//                               SizedBox(height: 6),
-//                               Text("Transaction Time: ${detail.transactionTime}"),
-//                               Row(
-//                                 children: [
-//                                   const Text("In/Out: "),
-//                                   Text(
-//                                     "${detail.inOut}",
-//                                     style: TextStyle(fontWeight: FontWeight.bold),
-//                                   ),
-//                                 ],
-//                               ),
-//                               Text(
-//                                 "Address: ${detail.address}",
-//                                 overflow: TextOverflow.ellipsis, // Truncate if too long
-//                                 maxLines: 1, // Limit to 1 line
-//                               ),
-//                             ],
-//                           ),
-//                         );
-//                       }).toList(),
-//                     ],
-//                   ),
-//                 ),
-//               );
-//             },
-//           )
-//               : ListView.builder(
-//             padding: const EdgeInsets.all(8),
-//             itemCount: groupedInOutDetails.keys.length,
-//             itemBuilder: (context, index) {
-//               String date = groupedInOutDetails.keys.elementAt(index);
-//               List<InOutDetail> details = groupedInOutDetails[date]!;
-//
-//               return Column(
-//                 crossAxisAlignment: CrossAxisAlignment.start,
-//                 children: [
-//                   Padding(
-//                     padding: const EdgeInsets.symmetric(vertical: 10.0),
-//                     child: Text(
-//                       "Date: $date",
-//                       style: const TextStyle(
-//                         fontSize: 18,
-//                         fontWeight: FontWeight.bold,
-//                         color: MyColors.fontBlue,
-//                       ),
-//                     ),
-//                   ),
-//                   ...details.map((detail) {
-//                     return Card(
-//                       elevation: 3,
-//                       shape: RoundedRectangleBorder(
-//                         borderRadius: BorderRadius.circular(12),
-//                       ),
-//                       color: detail.inOut == "IN"
-//                           ? Colors.green.shade100 // Highlight for Punch In
-//                           : Colors.red.shade100, // Highlight for Punch Out
-//                       child: Padding(
-//                         padding: const EdgeInsets.all(14.0),
-//                         child: Column(
-//                           crossAxisAlignment: CrossAxisAlignment.start,
-//                           children: [
-//                             Row(
-//                               children: [
-//                                 Icon(
-//                                   detail.inOut == "IN" ? Icons.login : Icons.logout,
-//                                   color: detail.inOut == "IN" ? Colors.green : Colors.red,
-//                                   size: 20,
-//                                 ),
-//                                 const SizedBox(width: 8),
-//                                 Text(
-//                                   detail.inOut == "IN" ? "Punch In" : "Punch Out",
-//                                   style: TextStyle(
-//                                     fontWeight: FontWeight.bold,
-//                                     fontSize: 18,
-//                                     color: detail.inOut == "IN" ? Colors.green[700] : Colors.red[700],
-//                                   ),
-//                                 ),
-//                               ],
-//                             ),
-//                             const SizedBox(height: 10),
-//                             Divider(height: 1, color: Colors.grey.shade400),
-//                             const SizedBox(height: 10),
-//                             Row(
-//                               children: [
-//                                 const Text(
-//                                   "Staff Code: ",
-//                                   style: TextStyle(fontWeight: FontWeight.w600),
-//                                 ),
-//                                 Expanded(
-//                                   child: Text(
-//                                     "${detail.staffCode}",
-//                                     style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black87),
-//                                   ),
-//                                 ),
-//                               ],
-//                             ),
-//                             SizedBox(height: 6),
-//                             Row(
-//                               children: [
-//                                 Icon(Icons.access_time, size: 18, color: Colors.grey.shade600),
-//                                 SizedBox(width: 5),
-//                                 Text(
-//                                   "Transaction Time: ${detail.transactionTime}",
-//                                   style: TextStyle(color: Colors.black87),
-//                                 ),
-//                               ],
-//                             ),
-//                             const SizedBox(height: 6),
-//                             Row(
-//                               crossAxisAlignment: CrossAxisAlignment.start,
-//                               children: [
-//                                 Icon(Icons.location_on, size: 18, color: Colors.grey.shade600),
-//                                 const SizedBox(width: 5),
-//                                 Expanded(
-//                                   child: Text(
-//                                     "Address: ${detail.address}",
-//                                     maxLines: 2,
-//                                     overflow: TextOverflow.ellipsis,
-//                                     style: TextStyle(color: Colors.black87),
-//                                   ),
-//                                 ),
-//                               ],
-//                             ),
-//                           ],
-//                         ),
-//                       ),
-//                     );
-//                   }),
-//                 ],
-//               );
-//             },
-//           ),
-//         ),
-//       ],
-//     );
-//   }
-//
-//   Widget _buildLegendItem(Color color, String label) {
-//     return Row(
-//       children: [
-//         Container(
-//           width: 15,
-//           height: 15,
-//           decoration: BoxDecoration(
-//             color: color,
-//             shape: BoxShape.circle,
-//           ),
-//         ),
-//         const SizedBox(width: 5),
-//         Text(label),
-//       ],
-//     );
-//   }
-//
-//
-//   _showAttendanceDetails(DateTime day) {
-//     List<InOutDetail> details = attendanceData[day] ?? [];
-//
-//     if (details.isEmpty) return;
-//
-//     DateTime? firstPunch = details.isNotEmpty
-//         ? DateFormat('dd/MM/yyyy HH:mm:ss').parse(details.first.transactionTime!).toLocal()
-//         : null;
-//
-//     DateTime? lastPunch = details.isNotEmpty
-//         ? DateFormat('dd/MM/yyyy HH:mm:ss').parse(details.last.transactionTime!).toLocal()
-//         : null;
-//
-//
-//     Duration totalDuration = Duration();
-//     if (firstPunch != null && lastPunch != null) {
-//       totalDuration = lastPunch.difference(firstPunch);
-//     }
-//
-//     showDialog(
-//       context: context,
-//       builder: (context) => AlertDialog(
-//         title: Padding(padding: EdgeInsets.all(15),
-//           child: Text("Attendance Details - ${DateFormat('dd MMM yyyy').format(day)}"),),
-//         content: Padding(padding: EdgeInsets.all(10),
-//             child: Expanded(
-//               flex: 2,
-//               child: Column(
-//                 mainAxisSize: MainAxisSize.min,
-//                 children: [
-//                   ...details.map((detail) => ListTile(
-//                     title: Text("${detail.inOut} at ${detail.transactionTime}"),
-//                     subtitle: Text("Address: ${detail.address}"),
-//                   )),
-//                   Divider(),
-//                   Text(
-//                     "Total Hours: ${totalDuration.inHours}h ${totalDuration.inMinutes.remainder(60)}m",
-//                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue),
-//                   ),
-//                 ],
-//               ),)),
-//
-//         actions: [
-//           TextButton(
-//             onPressed: () => Navigator.pop(context),
-//             child: Text("Close"),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-//
-// }
 ///in use
 class _AttendanceReportState extends State<AdminAttendanceReport> {
-
   FlutterSecureStorage storage = FlutterSecureStorage();
   String? staffCode;
   String? token;
@@ -2577,12 +36,14 @@ class _AttendanceReportState extends State<AdminAttendanceReport> {
   bool isLoading = false;
   bool isGridView = false; // State variable for toggle
   bool isMonthlyReport = false;
+
   // late List<InOutDetail> inOutDetails;
   Map<String, List<InOutDetail>> groupedInOutDetails = {};
   List<InOutDetail> selectedDayDetails = [];
 
   DateTime today = DateTime.now();
-  Map<DateTime, String> attendanceStatus = {}; // Maps date to "PUNCH_IN", "PUNCH_OUT", or "ABSENT"
+  Map<DateTime, String> attendanceStatus =
+      {}; // Maps date to "PUNCH_IN", "PUNCH_OUT", or "ABSENT"
 
   DateTime? focusedDay;
   DateTime? selectedDay;
@@ -2595,7 +56,7 @@ class _AttendanceReportState extends State<AdminAttendanceReport> {
   @override
   void initState() {
     super.initState();
-    focusedDay = DateTime.now();  // Set initial focused day
+    focusedDay = DateTime.now(); // Set initial focused day
     selectedDay = focusedDay;
     initialize();
   }
@@ -2626,57 +87,6 @@ class _AttendanceReportState extends State<AdminAttendanceReport> {
     }
   }
 
-  /*Future<void> fetchAttendanceDataMonthlyReport() async {
-    try{
-      setState(() => isLoading = true);
-
-      String formattedFromDate = DateFormat('dd/MM/yyyy').format(DateTime(focusedDay.year, focusedDay.month, 1));
-      String formattedToDate = DateFormat('dd/MM/yyyy').format(DateTime(focusedDay.year, focusedDay.month + 1, 0));
-
-      final response = await http.post(
-        Uri.parse('https://m-techinnovations.co.in/PersonTrackingAPI/API/InOutDetails'),
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode({
-          "FromDate": formattedFromDate,
-          "ToDate": formattedToDate,
-          "StaffCode": staffCode
-        }),
-      );
-
-      if (response.statusCode == 201) {
-        List<dynamic> data = jsonDecode(response.body);
-        List<InOutDetail> details = data.map((item) => InOutDetail.fromJson(item)).toList();
-
-        print('response body of fetchAttendanceDataMonthlyReport: $details');
-
-        attendanceData.clear();
-        presentDays.clear();
-        absentDays.clear();
-
-        for (var detail in details) {
-          DateTime date = DateFormat('dd/MM/yyyy').parse(detail.transactionTime!).toLocal();
-          presentDays.add(date);
-          if (!attendanceData.containsKey(date)) {
-            attendanceData[date] = [];
-          }
-          attendanceData[date]!.add(detail);
-        }
-
-        // Calculate absent days
-        for (int i = 1; i <= DateTime(focusedDay.year, focusedDay.month + 1, 0).day; i++) {
-          DateTime day = DateTime(focusedDay.year, focusedDay.month, i);
-          if (!presentDays.contains(day)) {
-            absentDays.add(day);
-          }
-        }
-      }
-      setState(() => isLoading = false);
-    } catch(e){
-      print('fetchAttendanceDataMonthlyReport: Error:  $e');
-    }
-
-  }*/
-
   Future<void> fetchAttendanceDataMonthlyReport() async {
     try {
       setState(() => isLoading = true);
@@ -2687,17 +97,20 @@ class _AttendanceReportState extends State<AdminAttendanceReport> {
       String formattedFromDate = DateFormat('dd/MM/yyyy').format(sixMonthsAgo);
       String formattedToDate = DateFormat('dd/MM/yyyy').format(now);
 
-      final response = await http.post(
-        Uri.parse('http://114.143.140.28:8020/api/InOut/InOutDetails'),
-        headers: {"Content-Type": "application/json",
-          'Authorization': 'Bearer $token'},
-        body: jsonEncode({
-          "staffCode": staffCode,
-          "fromDate": formattedFromDate,
-          "toDate": formattedToDate,
-
-        }),
-      ).timeout(const Duration(seconds: 15));
+      final response = await http
+          .post(
+            Uri.parse('http://114.143.140.28:8020/api/InOut/InOutDetails'),
+            headers: {
+              "Content-Type": "application/json",
+              'Authorization': 'Bearer $token'
+            },
+            body: jsonEncode({
+              "staffCode": staffCode,
+              "fromDate": formattedFromDate,
+              "toDate": formattedToDate,
+            }),
+          )
+          .timeout(const Duration(seconds: 15));
 
       print("inout details statuscode: ${response.statusCode}");
       print("inout details body: ${response.body}");
@@ -2707,15 +120,18 @@ class _AttendanceReportState extends State<AdminAttendanceReport> {
         List<dynamic> data = decoded['data'] ?? [];
 
         List<InOutDetail> details =
-        data.map((item) => InOutDetail.fromJson(item)).toList();
+            data.map((item) => InOutDetail.fromJson(item)).toList();
 
         attendanceData.clear();
         presentDays.clear();
         absentDays.clear();
 
         for (var detail in details) {
-          DateTime date = DateFormat('dd/MM/yyyy HH:mm:ss').parse(detail.transactionTime!).toLocal();
-          DateTime normalizedDate = DateTime(date.year, date.month, date.day); // Remove time
+          DateTime date = DateFormat('dd/MM/yyyy HH:mm:ss')
+              .parse(detail.transactionTime!)
+              .toLocal();
+          DateTime normalizedDate =
+              DateTime(date.year, date.month, date.day); // Remove time
 
           presentDays.add(normalizedDate);
 
@@ -2726,7 +142,8 @@ class _AttendanceReportState extends State<AdminAttendanceReport> {
         }
 
         // Identify absent days for the last 6 months
-        for (int i = 0; i < 180; i++) { // 6 months = ~180 days
+        for (int i = 0; i < 180; i++) {
+          // 6 months = ~180 days
           DateTime day = sixMonthsAgo.add(Duration(days: i));
           if (!presentDays.contains(day) && day.isBefore(now)) {
             absentDays.add(day);
@@ -2737,15 +154,14 @@ class _AttendanceReportState extends State<AdminAttendanceReport> {
       setState(() {
         isLoading = false;
       });
-    } on TimeoutException{
+    } on TimeoutException {
       const SnackBar(
         content: Text(
           "Request timed out. Please try again later.",
         ),
         behavior: SnackBarBehavior.floating,
       );
-    }
-    catch (e) {
+    } catch (e) {
       const SnackBar(
         content: Text(
           "Something went wrong. Please try again later.",
@@ -2775,33 +191,6 @@ class _AttendanceReportState extends State<AdminAttendanceReport> {
     await fetchInOutDetails();
   }
 
-  // Future<void> _selectDateRange(BuildContext context) async {
-  //   final DateTime? pickedFromDate = await showDatePicker(
-  //     context: context,
-  //     initialDate: DateTime.now(),
-  //     firstDate: DateTime(2000),
-  //     lastDate: DateTime.now(),
-  //   );
-  //   if (pickedFromDate != null) {
-  //     final DateTime? pickedToDate = await showDatePicker(
-  //       context: context,
-  //       initialDate: pickedFromDate,
-  //       firstDate: pickedFromDate,
-  //       lastDate: DateTime.now(),
-  //     );
-  //
-  //     if (pickedToDate != null) {
-  //       setState(() {
-  //         fromDate = pickedFromDate;
-  //         toDate = pickedToDate;
-  //       });
-  //
-  //       // Fetch data after dates are selected
-  //       await fetchInOutDetails();
-  //     }
-  //   }
-  // }
-
   Future<void> _selectDateRange(BuildContext context) async {
     final DateTimeRange? pickedRange = await showDateRangePicker(
       context: context,
@@ -2829,34 +218,35 @@ class _AttendanceReportState extends State<AdminAttendanceReport> {
       isLoading = true;
     });
 
-    try{
-
+    try {
       // Format the date to 'dd/MM/yyyy' format as required by the API
       String formattedFromDate = DateFormat('dd/MM/yyyy').format(fromDate!);
       String formattedToDate = DateFormat('dd/MM/yyyy').format(toDate!);
 
-      final response = await http.post(
-        Uri.parse('http://114.143.140.28:8020/api/InOut/InOutDetails'),
-        headers: {"Content-Type": "application/json",
-          'Authorization': 'Bearer $token'},
-        body: jsonEncode({
-          "staffCode": staffCode,
-          "fromDate": formattedFromDate,
-          "toDate": formattedToDate,
-
-        }),
-      ).timeout(const Duration(seconds: 15));
+      final response = await http
+          .post(
+            Uri.parse('http://114.143.140.28:8020/api/InOut/InOutDetails'),
+            headers: {
+              "Content-Type": "application/json",
+              'Authorization': 'Bearer $token'
+            },
+            body: jsonEncode({
+              "staffCode": staffCode,
+              "fromDate": formattedFromDate,
+              "toDate": formattedToDate,
+            }),
+          )
+          .timeout(const Duration(seconds: 15));
 
       print("inout details statuscode: ${response.statusCode}");
       print("inout details body: ${response.body}");
       final Map<String, dynamic> decoded = jsonDecode(response.body);
 
       if (response.statusCode == 201 || response.statusCode == 200) {
-
         List<dynamic> data = decoded['data'] ?? [];
 
         List<InOutDetail> details =
-        data.map((item) => InOutDetail.fromJson(item)).toList();
+            data.map((item) => InOutDetail.fromJson(item)).toList();
 
         // Group data by date
         groupedInOutDetails = _groupByDate(details);
@@ -2864,53 +254,51 @@ class _AttendanceReportState extends State<AdminAttendanceReport> {
         setState(() {
           isLoading = false;
         });
-      } else if (response.statusCode == 400){
-        if(decoded['message'] == "No Records Found."){
+      } else if (response.statusCode == 400) {
+        if (decoded['message'] == "No Records Found.") {
           setState(() {
             isLoading = false;
           });
-        } else{
+        } else {
           // Handle error
           setState(() {
             isLoading = false;
           });
           ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("Failed to fetch data"))
-          ); }
+              const SnackBar(content: Text("Failed to fetch data")));
+        }
       } else {
         // Handle error
         setState(() {
           isLoading = false;
         });
         ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Failed to fetch data"))
-        );
+            const SnackBar(content: Text("Failed to fetch data")));
       }
-    } on TimeoutException{
+    } on TimeoutException {
       const SnackBar(
         content: Text(
           "Request timed out. Please try again later.",
         ),
         behavior: SnackBarBehavior.floating,
       );
-    } catch(e){
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-              "Something went wrong. Please try again later."),
+          content: Text("Something went wrong. Please try again later."),
           behavior: SnackBarBehavior.floating,
         ),
       );
       LogFileManager.writeLog("Error in InOutDetails: $e");
       print("Error in InOutDetails: $e");
     }
-
   }
 
   Map<String, List<InOutDetail>> _groupByDate(List<InOutDetail> details) {
     Map<String, List<InOutDetail>> groupedData = {};
     for (var detail in details) {
-      String date = detail.transactionTime!.substring(0, 10); // Extract the date part
+      String date =
+          detail.transactionTime!.substring(0, 10); // Extract the date part
       if (!groupedData.containsKey(date)) {
         groupedData[date] = [];
       }
@@ -3006,1032 +394,145 @@ class _AttendanceReportState extends State<AdminAttendanceReport> {
     );
   }
 
-  // Widget _buildMonthlyReport(){
-  //   _loadAttendanceData();
-  //   return Column(
-  //     children: [
-  //       Padding(
-  //         padding: const EdgeInsets.all(6.0),
-  //         child: Row(
-  //           children: [
-  //             IconButton(
-  //               onPressed: () {
-  //                 setState(() {
-  //                   isMonthlyReport = false;
-  //                 });
-  //               },
-  //               icon: const Icon(Icons.arrow_back_rounded, color: MyColors.darkBlue),
-  //             ),
-  //             const Expanded(
-  //               child: Center(
-  //                 child: Text(
-  //                   'Monthly Attendance Report',
-  //                   style: TextStyle(
-  //                     color: MyColors.darkBlue,
-  //                     fontSize: 18,
-  //                     fontWeight: FontWeight.bold,
-  //                   ),
-  //                 ),
-  //               ),
-  //             ),
-  //             const SizedBox(width: 20,)
-  //           ],
-  //         ),
-  //       ),
-  //
-  //       _buildCalendar(),
-  //       const SizedBox(height: 12,),
-  //       _buildLegend(),
-  //       /*TableCalendar(
-  //         firstDay: DateTime.utc(2024, 1, 1),
-  //         lastDay: DateTime.now(),
-  //         focusedDay: DateTime.now(),
-  //         calendarFormat: CalendarFormat.month,
-  //         headerStyle: HeaderStyle(formatButtonVisible: false, titleCentered: true),
-  //         calendarStyle: CalendarStyle(
-  //           todayDecoration: BoxDecoration(
-  //               color: Colors.blue.shade200, shape: BoxShape.circle),
-  //         ),
-  //         availableGestures: AvailableGestures.all,
-  //         calendarBuilders: CalendarBuilders(
-  //           defaultBuilder: (context, date, _) {
-  //             bool isPresent = groupedInOutDetails.keys.contains(DateFormat('yyyy-MM-dd').format(date));
-  //             return Center(
-  //               child: Container(
-  //                 width: 35,
-  //                 height: 35,
-  //                 decoration: BoxDecoration(
-  //                   color: isPresent ? Colors.green.shade400 : Colors.red.shade400,
-  //                   shape: BoxShape.circle,
-  //                 ),
-  //                 alignment: Alignment.center,
-  //                 child: Text(
-  //                   date.day.toString(),
-  //                   style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-  //                 ),
-  //               ),
-  //             );
-  //           },
-  //         ),
-  //       )*/
-  //     ],
-  //   );
-  // }
-  ///
-//   Widget _buildMonthlyReportNew() {
-//     return isLoading
-//         ? Center(child: CircularProgressIndicator())
-//         : Column(
-//       children: [
-//       Padding(
-//               padding: const EdgeInsets.all(6.0),
-//               child: Row(
-//                 children: [
-//                   IconButton(
-//                     onPressed: () {
-//                       setState(() {
-//                         isMonthlyReport = false;
-//                       });
-//                     },
-//                     icon: const Icon(Icons.arrow_back_rounded, color: MyColors.darkBlue),
-//                   ),
-//                   const Expanded(
-//                     child: Center(
-//                       child: Text(
-//                         'Monthly Attendance Report',
-//                         style: TextStyle(
-//                           color: MyColors.darkBlue,
-//                           fontSize: 18,
-//                           fontWeight: FontWeight.bold,
-//                         ),
-//                       ),
-//                     ),
-//                   ),
-//                   const SizedBox(width: 20,)
-//                 ],
-//               ),
-//             ),
-//         TableCalendar(
-//           firstDay: DateTime.utc(2024, 1, 1),
-//                   lastDay: DateTime.now(),
-//                   focusedDay: DateTime.now(),
-//           selectedDayPredicate: (day) => isSameDay(selectedDay, day),
-//           calendarFormat: CalendarFormat.month,
-//           eventLoader: (day) => attendanceData[day] ?? [],
-//           calendarStyle: CalendarStyle(
-//             todayDecoration: BoxDecoration(
-//               color: Colors.blue.withOpacity(0.5),
-//               shape: BoxShape.circle,
-//             ),
-//             markerDecoration: BoxDecoration(
-//               color: Colors.white,
-//               shape: BoxShape.circle,
-//             ),
-//             defaultDecoration: BoxDecoration(
-//               shape: BoxShape.circle,
-//             ),
-//             holidayDecoration: BoxDecoration(
-//               color: Colors.red.withOpacity(0.5),
-//               shape: BoxShape.circle,
-//             ),
-//             outsideDaysVisible: false,
-//           ),
-//           headerStyle: const HeaderStyle(formatButtonVisible: false, titleCentered: true),
-//           calendarBuilders: CalendarBuilders(
-//             defaultBuilder: (context, day, focusedDay) {
-//               DateTime normalizedDay = DateTime(day.year, day.month, day.day); // Normalize the date
-//
-//               if (presentDays.any((d) => isSameDay(d, normalizedDay))) {
-//                 return _buildCalendarCell(day, Colors.green);
-//               } else if (absentDays.any((d) => isSameDay(d, normalizedDay))) {
-//                 return _buildCalendarCell(day, Colors.red);
-//               }
-//               return null;
-//             },
-//           ),
-//             onDaySelected: (selectedDay, focusedDay) {
-//              try{
-//                 setState(() {
-//                   this.selectedDay = DateTime(selectedDay.year, selectedDay.month, selectedDay.day);
-//                   // this.selectedDay = DateTime(selectedDay.year, selectedDay.month, selectedDay.day);
-//                   // this.focusedDay = DateTime(selectedDay.year, selectedDay.month, selectedDay.day);
-//                 });
-//
-//               if (attendanceData.containsKey(selectedDay)) {
-//                 _showAttendanceDetails(selectedDay);
-//               } /*else {
-//                 Fluttertoast.showToast(msg: 'No attendance records for this day');
-//               }*/
-//             } catch(e){
-//               print('onDaySelected: Error : $e');
-//             }
-//
-//             },
-//         ),
-//         SizedBox(height: 20),
-//         _buildLegend(),
-//         // if (selectedDay != null && attendanceData.containsKey(selectedDay))
-//           // _buildAttendanceDetails(selectedDay!), // Show details below the calendar
-//           //  _showAttendanceDetails(selectedDay!),
-//       ],
-//     );
-//   }
-  ///
-  // Widget _buildMonthlyReportNew() {
-  //   return isLoading
-  //       ? Center(child: CircularProgressIndicator())
-  //       : Column(
-  //     children: [
-  //       Padding(
-  //         padding: const EdgeInsets.all(6.0),
-  //         child: Row(
-  //           children: [
-  //             IconButton(
-  //               onPressed: () {
-  //                 setState(() {
-  //                   isMonthlyReport = false;
-  //                 });
-  //               },
-  //               icon: const Icon(Icons.arrow_back_rounded, color: MyColors.darkBlue),
-  //             ),
-  //             const Expanded(
-  //               child: Center(
-  //                 child: Text(
-  //                   'Monthly Attendance Report',
-  //                   style: TextStyle(
-  //                     color: MyColors.darkBlue,
-  //                     fontSize: 18,
-  //                     fontWeight: FontWeight.bold,
-  //                   ),
-  //                 ),
-  //               ),
-  //             ),
-  //             const SizedBox(width: 20,)
-  //           ],
-  //         ),
-  //       ),
-  //   /*    TableCalendar(
-  //         firstDay: DateTime.utc(2024, 1, 1),
-  //         lastDay: DateTime.now(),
-  //         focusedDay: focusedDay!, // Use the state variable
-  //         selectedDayPredicate: (day) => isSameDay(selectedDay, day),
-  //         calendarFormat: CalendarFormat.month,
-  //         eventLoader: (day) => attendanceData[day] ?? [],
-  //         calendarStyle: CalendarStyle(
-  //           todayDecoration: BoxDecoration(
-  //             color: Colors.blue.withOpacity(0.5),
-  //             shape: BoxShape.circle,
-  //           ),
-  //           markerDecoration: BoxDecoration(
-  //             color: Colors.white,
-  //             shape: BoxShape.circle,
-  //           ),
-  //           defaultDecoration: BoxDecoration(
-  //             shape: BoxShape.circle,
-  //           ),
-  //           holidayDecoration: BoxDecoration(
-  //             color: Colors.red.withOpacity(0.5),
-  //             shape: BoxShape.circle,
-  //           ),
-  //           outsideDaysVisible: false,
-  //         ),
-  //         headerStyle: const HeaderStyle(formatButtonVisible: false, titleCentered: true),
-  //         calendarBuilders: CalendarBuilders(
-  //           defaultBuilder: (context, day, focusedDay) {
-  //             DateTime normalizedDay = DateTime(day.year, day.month, day.day);
-  //
-  //             if (presentDays.any((d) => isSameDay(d, normalizedDay))) {
-  //               return _buildCalendarCell(day, Colors.green);
-  //             } else if (absentDays.any((d) => isSameDay(d, normalizedDay))) {
-  //               return _buildCalendarCell(day, Colors.red);
-  //             }
-  //             return null;
-  //           },
-  //         ),
-  //         onDaySelected: (selectedDay, focusedDay) {
-  //           setState(() {
-  //             this.selectedDay = DateTime(selectedDay.year, selectedDay.month, selectedDay.day);
-  //             //this.focusedDay = focusedDay;  //  Keep the focusedDay managed by TableCalendar
-  //           });
-  //           _buildAttendanceDetails(selectedDay );
-  //           _showAttendanceDetails(selectedDay); // Call the details function
-  //         },
-  //         onPageChanged: (focusedDay) {
-  //           setState(() {
-  //             this.focusedDay = focusedDay; // Update focusedDay when the page changes
-  //           });
-  //         },
-  //       ),*/
-  //       TableCalendar(
-  //         firstDay: DateTime.utc(2024, 1, 1),
-  //         lastDay: DateTime.now(),
-  //         focusedDay: focusedDay ?? DateTime.now(), // ✅ Use state-managed focusedDay
-  //         selectedDayPredicate: (day) => isSameDay(selectedDay, day),
-  //         calendarFormat: CalendarFormat.month,
-  //         eventLoader: (day) => attendanceData[day] ?? [],
-  //         calendarStyle: CalendarStyle(
-  //           todayDecoration: BoxDecoration(
-  //             color: Colors.blue.withOpacity(0.5),
-  //             shape: BoxShape.circle,
-  //           ),
-  //           markerDecoration: BoxDecoration(
-  //             color: Colors.white,
-  //             shape: BoxShape.circle,
-  //           ),
-  //           defaultDecoration: BoxDecoration(
-  //             shape: BoxShape.circle,
-  //           ),
-  //           holidayDecoration: BoxDecoration(
-  //             color: Colors.red.withOpacity(0.5),
-  //             shape: BoxShape.circle,
-  //           ),
-  //           outsideDaysVisible: false,
-  //         ),
-  //         headerStyle: const HeaderStyle(formatButtonVisible: false, titleCentered: true),
-  //         calendarBuilders: CalendarBuilders(
-  //           defaultBuilder: (context, day, _) {
-  //             DateTime normalizedDay = DateTime(day.year, day.month, day.day);
-  //
-  //             if (presentDays.any((d) => isSameDay(d, normalizedDay))) {
-  //               return _buildCalendarCell(day, Colors.green);
-  //             } else if (absentDays.any((d) => isSameDay(d, normalizedDay))) {
-  //               return _buildCalendarCell(day, Colors.red);
-  //             }
-  //             return null;
-  //           },
-  //         ),
-  //         onDaySelected: (selectedDay, newFocusedDay) async {
-  //           final normalizedSelected = DateTime(
-  //             selectedDay.year,
-  //             selectedDay.month,
-  //             selectedDay.day,
-  //           );
-  //
-  //           setState(() {
-  //             this.selectedDay = normalizedSelected;
-  //             if (focusedDay?.month != newFocusedDay.month || focusedDay?.year != newFocusedDay.year) {
-  //               focusedDay = newFocusedDay;
-  //             }
-  //             fromDate = normalizedSelected;
-  //             toDate = normalizedSelected;
-  //           });
-  //
-  //           await fetchInOutDetails();
-  //
-  //           setState(() {
-  //             selectedDayDetails = attendanceData[normalizedSelected] ?? [];
-  //           });
-  //         },
-  //
-  //       ),
-  //
-  //       SizedBox(height: 20),
-  //       _buildLegend(),
-  //       // SizedBox(height: 10),
-  //       // if (selectedDayDetails.isNotEmpty)
-  //       //   _buildSelectedAttendanceList(),
-  //       // if (selectedDayDetails.isEmpty && selectedDay != null)
-  //       //   Padding(
-  //       //     padding: EdgeInsets.all(10),
-  //       //     child: Text(
-  //       //       "No attendance records for ${DateFormat('dd MMM yyyy').format(selectedDay!)}",
-  //       //       style: TextStyle(color: Colors.grey),
-  //       //     ),
-  //       //   ),
-  //
-  //       // if (selectedDay != null && attendanceData.containsKey(selectedDay))
-  //       //   _buildAttendanceDetails(selectedDay!), // Show details below the calendar
-  //       //  _showAttendanceDetails(selectedDay!),
-  //     ],
-  //   );
-  // }
-  ///in use with details
-/*  Widget _buildMonthlyReportNew() {
-    return isLoading
-        ? Center(child: CircularProgressIndicator())
-        : SingleChildScrollView( // ✅ Enable vertical scrolling
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(6.0),
-            child: Row(
-              // children: [
-              //   IconButton(
-              //     onPressed: () {
-              //       setState(() {
-              //         isMonthlyReport = false;
-              //       });
-              //     },
-              //     icon: const Icon(Icons.arrow_back_rounded, color: MyColors.darkBlue),
-              //
-              //   ),
-              //   const Expanded(
-              //     child: Center(
-              //       child: Text(
-              //         'Monthly Attendance Report',
-              //         style: TextStyle(
-              //           color: MyColors.darkBlue,
-              //           fontSize: 18,
-              //           fontWeight: FontWeight.bold,
-              //         ),
-              //
-              //       ),
-              //     ),
-              //
-              //   ),
-              //
-              //   const SizedBox(width: 20),
-              // ],
-              children: [
-                IconButton(
-                  onPressed: () {
-                    setState(() {
-                      isMonthlyReport = false;
-                    });
-                  },
-                  icon: const Icon(Icons.arrow_back_rounded, color: MyColors.darkBlue),
-                ),
-
-                const Expanded(
-                  child: Center(
-                    child: Text(
-                      'Monthly Attendance Report',
-                      style: TextStyle(
-                        color: MyColors.darkBlue,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-
-                const SizedBox(width: 20),
-
-                // Conditionally show grid/list toggle button
-                if (!isMonthlyReport)
-                  IconButton(
-                    icon: Icon(
-                      isGridView ? Icons.list : Icons.grid_view,
-                      color: Colors.white,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        isGridView = !isGridView;
-                      });
-                    },
-                  ),
-              ],
-
-            ),
-          ),
-          TableCalendar(
-            firstDay: DateTime.utc(2024, 1, 1),
-            lastDay: DateTime.now(),
-            focusedDay: focusedDay ?? DateTime.now(),
-            selectedDayPredicate: (day) => isSameDay(selectedDay, day),
-            calendarFormat: CalendarFormat.month,
-            eventLoader: (day) => attendanceData[day] ?? [],
-            calendarStyle: CalendarStyle(
-              todayDecoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.5),
-                shape: BoxShape.circle,
-              ),
-              markerDecoration: BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
-              ),
-              defaultDecoration: BoxDecoration(
-                shape: BoxShape.circle,
-              ),
-              holidayDecoration: BoxDecoration(
-                color: Colors.red.withOpacity(0.5),
-                shape: BoxShape.circle,
-              ),
-              outsideDaysVisible: false,
-            ),
-            headerStyle: const HeaderStyle(formatButtonVisible: false, titleCentered: true),
-            calendarBuilders: CalendarBuilders(
-              defaultBuilder: (context, day, _) {
-                DateTime normalizedDay = DateTime(day.year, day.month, day.day);
-                if (presentDays.any((d) => isSameDay(d, normalizedDay))) {
-                  return _buildCalendarCell(day, Colors.green);
-                } else if (absentDays.any((d) => isSameDay(d, normalizedDay))) {
-                  return _buildCalendarCell(day, Colors.red);
-                }
-                return null;
-              },
-            ),
-            onDaySelected: (selectedDay, newFocusedDay) async {
-              final normalizedSelected = DateTime(
-                selectedDay.year,
-                selectedDay.month,
-                selectedDay.day,
-              );
-
-              setState(() {
-                this.selectedDay = normalizedSelected;
-                if (focusedDay?.month != newFocusedDay.month || focusedDay?.year != newFocusedDay.year) {
-                  focusedDay = newFocusedDay;
-                }
-                fromDate = normalizedSelected;
-                toDate = normalizedSelected;
-              });
-
-              await fetchInOutDetails();
-
-              setState(() {
-                selectedDayDetails = attendanceData[normalizedSelected] ?? [];
-              });
-            },
-          ),
-
-          TableCalendar(
-            firstDay: DateTime.utc(2024, 1, 1),
-            lastDay: DateTime.now(),
-            focusedDay: focusedDay ?? DateTime.now(),
-            selectedDayPredicate: (day) => isSameDay(selectedDay, day),
-            calendarFormat: CalendarFormat.month,
-            eventLoader: (day) => attendanceData[day] ?? [],
-            calendarStyle: CalendarStyle(
-              todayDecoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.5),
-                shape: BoxShape.circle,
-              ),
-              markerDecoration: BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
-              ),
-              defaultDecoration: BoxDecoration(
-                shape: BoxShape.circle,
-              ),
-              holidayDecoration: BoxDecoration(
-                color: Colors.red.withOpacity(0.5),
-                shape: BoxShape.circle,
-              ),
-              outsideDaysVisible: false,
-            ),
-            headerStyle: const HeaderStyle(formatButtonVisible: false, titleCentered: true),
-            calendarBuilders: CalendarBuilders(
-              defaultBuilder: (context, day, _) {
-                DateTime normalizedDay = DateTime(day.year, day.month, day.day);
-                if (presentDays.any((d) => isSameDay(d, normalizedDay))) {
-                  return _buildCalendarCell(day, Colors.green);
-                } else if (absentDays.any((d) => isSameDay(d, normalizedDay))) {
-                  return _buildCalendarCell(day, Colors.red);
-                }
-                return null;
-              },
-            ),
-            onDaySelected: (selectedDay, newFocusedDay) async {
-              final normalizedSelected = DateTime(
-                selectedDay.year,
-                selectedDay.month,
-                selectedDay.day,
-              );
-
-              setState(() {
-                this.selectedDay = normalizedSelected;
-                if (focusedDay?.month != newFocusedDay.month || focusedDay?.year != newFocusedDay.year) {
-                  focusedDay = newFocusedDay;
-                }
-                fromDate = normalizedSelected;
-                toDate = normalizedSelected;
-              });
-
-              await fetchInOutDetails();
-
-              setState(() {
-                selectedDayDetails = attendanceData[normalizedSelected] ?? [];
-              });
-            },
-            onPageChanged: (focusedDay) {
-              setState(() {
-                this.focusedDay = focusedDay;
-              });
-            },
-          ),
-
-
-          const SizedBox(height: 20),
-          _buildLegend(),
-          const SizedBox(height: 10),
-          if (selectedDayDetails.isNotEmpty)
-            _buildSelectedAttendanceList(),
-          if (selectedDayDetails.isEmpty && selectedDay != null)
-            Padding(
-              padding: EdgeInsets.all(10),
-              child: Text(
-                "No attendance records for ${DateFormat('dd MMM yyyy').format(selectedDay!)}",
-                style: TextStyle(color: Colors.grey),
-              ),
-            ),
-        ],
-      ),
-    );
-  }*/
-  ///without details
-  /* Widget _buildMonthlyReportNew() {
-    return isLoading
-        ? Center(child: CircularProgressIndicator())
-        : Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(6.0),
-          child: Row(
-            children: [
-              IconButton(
-                onPressed: () {
-                  setState(() {
-                    isMonthlyReport = false;
-                  });
-                },
-                icon: const Icon(Icons.arrow_back_rounded, color: MyColors.darkBlue),
-              ),
-              const Expanded(
-                child: Center(
-                  child: Text(
-                    'Monthly Attendance Report',
-                    style: TextStyle(
-                      color: MyColors.darkBlue,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 20,)
-            ],
-          ),
-        ),
-        TableCalendar(
-          firstDay: DateTime.utc(2024, 1, 1),
-          lastDay: DateTime.now(),
-          focusedDay: focusedDay!, // Use the state variable
-          selectedDayPredicate: (day) => isSameDay(selectedDay, day),
-          calendarFormat: CalendarFormat.month,
-          eventLoader: (day) => attendanceData[day] ?? [],
-          calendarStyle: CalendarStyle(
-            todayDecoration: BoxDecoration(
-              color: Colors.blue.withOpacity(0.5),
-              shape: BoxShape.circle,
-            ),
-            markerDecoration: BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-            ),
-            defaultDecoration: BoxDecoration(
-              shape: BoxShape.circle,
-            ),
-            holidayDecoration: BoxDecoration(
-              color: Colors.red.withOpacity(0.5),
-              shape: BoxShape.circle,
-            ),
-            outsideDaysVisible: false,
-          ),
-          headerStyle: const HeaderStyle(formatButtonVisible: false, titleCentered: true),
-          calendarBuilders: CalendarBuilders(
-            defaultBuilder: (context, day, focusedDay) {
-              DateTime normalizedDay = DateTime(day.year, day.month, day.day);
-
-              if (presentDays.any((d) => isSameDay(d, normalizedDay))) {
-                return _buildCalendarCell(day, Colors.green);
-              } else if (absentDays.any((d) => isSameDay(d, normalizedDay))) {
-                return _buildCalendarCell(day, Colors.red);
-              }
-              return null;
-            },
-          ),
-          onDaySelected: (selectedDay, focusedDay) {
-            setState(() {
-              this.selectedDay = DateTime(selectedDay.year, selectedDay.month, selectedDay.day);
-              //this.focusedDay = focusedDay;  //  Keep the focusedDay managed by TableCalendar
-            });
-            _showAttendanceDetails(selectedDay); // Call the details function
-          },
-          onPageChanged: (focusedDay) {
-            setState(() {
-              this.focusedDay = focusedDay; // Update focusedDay when the page changes
-            });
-          },
-        ),
-        SizedBox(height: 20),
-        _buildLegend(),
-        // if (selectedDay != null && attendanceData.containsKey(selectedDay))
-        //   _buildAttendanceDetails(selectedDay!), // Show details below the calendar
-        //  _showAttendanceDetails(selectedDay!),
-      ],
-    );
-  }*/
-
-  //
-  // Widget _buildMonthlyReportNew() {
-  //   return isLoading
-  //       ? Center(child: CircularProgressIndicator())
-  //       : SingleChildScrollView(
-  //     child: Column(
-  //       crossAxisAlignment: CrossAxisAlignment.start,
-  //       children: [
-  //         Padding(
-  //           padding: const EdgeInsets.all(6.0),
-  //           child: Row(
-  //             children: [
-  //               IconButton(
-  //                 onPressed: () {
-  //                   setState(() {
-  //                     isMonthlyReport = false;
-  //                   });
-  //                 },
-  //                 icon: const Icon(Icons.arrow_back_rounded, color: MyColors.darkBlue),
-  //               ),
-  //               const Expanded(
-  //                 child: Center(
-  //                   child: Text(
-  //                     'Monthly Attendance Report',
-  //                     style: TextStyle(
-  //                       color: MyColors.darkBlue,
-  //                       fontSize: 18,
-  //                       fontWeight: FontWeight.bold,
-  //                     ),
-  //                   ),
-  //                 ),
-  //               ),
-  //               const SizedBox(width: 20),
-  //             ],
-  //           ),
-  //         ),
-  //         /*TableCalendar(
-  //           firstDay: DateTime.utc(2024, 1, 1),
-  //           lastDay: DateTime.now(),
-  //           focusedDay: focusedDay ?? DateTime.now(),
-  //           selectedDayPredicate: (day) => isSameDay(selectedDay, day),
-  //           calendarFormat: CalendarFormat.month,
-  //           eventLoader: (day) => attendanceData[day] ?? [],
-  //           calendarStyle: CalendarStyle(
-  //             todayDecoration: BoxDecoration(
-  //               color: Colors.blue.withOpacity(0.5),
-  //               shape: BoxShape.circle,
-  //             ),
-  //             markerDecoration: BoxDecoration(
-  //               color: Colors.white,
-  //               shape: BoxShape.circle,
-  //             ),
-  //             defaultDecoration: BoxDecoration(
-  //               shape: BoxShape.circle,
-  //             ),
-  //             holidayDecoration: BoxDecoration(
-  //               color: Colors.red.withOpacity(0.5),
-  //               shape: BoxShape.circle,
-  //             ),
-  //             outsideDaysVisible: false,
-  //           ),
-  //           headerStyle: const HeaderStyle(formatButtonVisible: false, titleCentered: true),
-  //           calendarBuilders: CalendarBuilders(
-  //             defaultBuilder: (context, day, _) {
-  //               DateTime normalizedDay = DateTime(day.year, day.month, day.day);
-  //               if (presentDays.any((d) => isSameDay(d, normalizedDay))) {
-  //                 return _buildCalendarCell(day, Colors.green);
-  //               } else if (absentDays.any((d) => isSameDay(d, normalizedDay))) {
-  //                 return _buildCalendarCell(day, Colors.red);
-  //               }
-  //               return null;
-  //             },
-  //           ),
-  //           onDaySelected: (selectedDay, newFocusedDay) async {
-  //             final normalizedSelected = DateTime(
-  //               selectedDay.year,
-  //               selectedDay.month,
-  //               selectedDay.day,
-  //             );
-  //
-  //             setState(() {
-  //               this.selectedDay = normalizedSelected;
-  //               if (focusedDay?.month != newFocusedDay.month || focusedDay?.year != newFocusedDay.year) {
-  //                 focusedDay = newFocusedDay;
-  //               }
-  //               fromDate = normalizedSelected;
-  //               toDate = normalizedSelected;
-  //             });
-  //
-  //             await fetchInOutDetails();
-  //
-  //             setState(() {
-  //               selectedDayDetails = attendanceData[normalizedSelected] ?? [];
-  //             });
-  //           },
-  //           onPageChanged: (focusedDay) {
-  //             setState(() {
-  //               this.focusedDay = focusedDay;
-  //             });
-  //           },
-  //         ),*/
-  //
-  //         TableCalendar(
-  //           firstDay: DateTime.utc(2024, 1, 1),
-  //           lastDay: DateTime.now(),
-  //           focusedDay: focusedDay ?? DateTime.now(),
-  //           selectedDayPredicate: (day) => isSameDay(selectedDay, day),
-  //           calendarFormat: CalendarFormat.month,
-  //           eventLoader: (day) => attendanceData[day] ?? [],
-  //           calendarStyle: CalendarStyle(
-  //             todayDecoration: BoxDecoration(
-  //               color: Colors.blue.withOpacity(0.5),
-  //               shape: BoxShape.circle,
-  //             ),
-  //             markerDecoration: BoxDecoration(
-  //               color: Colors.white,
-  //               shape: BoxShape.circle,
-  //             ),
-  //             defaultDecoration: BoxDecoration(
-  //               shape: BoxShape.circle,
-  //             ),
-  //             holidayDecoration: BoxDecoration(
-  //               color: Colors.red.withOpacity(0.5),
-  //               shape: BoxShape.circle,
-  //             ),
-  //             outsideDaysVisible: false,
-  //           ),
-  //           headerStyle: const HeaderStyle(formatButtonVisible: false, titleCentered: true),
-  //           calendarBuilders: CalendarBuilders(
-  //             defaultBuilder: (context, day, _) {
-  //               DateTime normalizedDay = DateTime(day.year, day.month, day.day);
-  //               if (presentDays.any((d) => isSameDay(d, normalizedDay))) {
-  //                 return _buildCalendarCell(day, Colors.green);
-  //               } else if (absentDays.any((d) => isSameDay(d, normalizedDay))) {
-  //                 return _buildCalendarCell(day, Colors.red);
-  //               }
-  //               return null;
-  //             },
-  //           ),
-  //         /*  onDaySelected: (selectedDay, newFocusedDay) async {
-  //             final normalizedSelected = DateTime(
-  //               selectedDay.year,
-  //               selectedDay.month,
-  //               selectedDay.day,
-  //             );
-  //
-  //             setState(() {
-  //               this.selectedDay = normalizedSelected;
-  //               if (focusedDay?.month != newFocusedDay.month || focusedDay?.year != newFocusedDay.year) {
-  //                 focusedDay = newFocusedDay;
-  //               }
-  //               fromDate = normalizedSelected;
-  //               toDate = normalizedSelected;
-  //             });
-  //
-  //             await fetchInOutDetails();
-  //
-  //             setState(() {
-  //               selectedDayDetails = attendanceData[normalizedSelected] ?? [];
-  //             });
-  //           },*/
-  //
-  //           onDaySelected: (selectedDay, newFocusedDay) async {
-  //             final normalizedDay = DateTime(
-  //                 selectedDay.year,
-  //                 selectedDay.month,
-  //                 selectedDay.day
-  //             );
-  //
-  //             setState(() {
-  //               this.selectedDay = normalizedDay;
-  //               focusedDay = newFocusedDay;
-  //             });
-  //
-  //             // Show details if available
-  //             if (attendanceData.containsKey(normalizedDay)) {
-  //               setState(() {
-  //                 selectedDayDetails = attendanceData[normalizedDay]!;
-  //               });
-  //             } else {
-  //               setState(() {
-  //                 selectedDayDetails = [];
-  //               });
-  //               Fluttertoast.showToast(
-  //                 msg: "No records for ${DateFormat('dd MMM').format(normalizedDay)}",
-  //                 toastLength: Toast.LENGTH_SHORT,
-  //               );
-  //             }
-  //           },
-  //           // onPageChanged: (focusedDay) {
-  //           //   setState(() {
-  //           //     this.focusedDay = focusedDay;
-  //           //     _getPresentDaysCount(focusedDay);
-  //           //   });
-  //           // },
-  //
-  //         ),
-  //         _buildLegend(),
-  //
-  //         const SizedBox(height: 20),
-  //       //  _buildLegend(),
-  //
-  //         // In _buildMonthlyReportNew(), after _buildLegend():
-  //         const SizedBox(height: 10),
-  //         if (selectedDay != null)
-  //           Column(
-  //             children: [
-  //               if (selectedDayDetails.isNotEmpty)
-  //                 _buildSelectedAttendanceList(),
-  //               if (selectedDayDetails.isEmpty)
-  //                 Padding(
-  //                   padding: EdgeInsets.all(10),
-  //                   child: Text(
-  //                     "No attendance records for ${DateFormat('dd MMM yyyy').format(selectedDay!)}",
-  //                     style: TextStyle(color: Colors.grey),
-  //                   ),
-  //                 ),
-  //             ],
-  //           ),// Now centered
-  //
-  //         // const SizedBox(height: 10),
-  //         // if (selectedDayDetails.isNotEmpty)
-  //         //   _buildSelectedAttendanceList(),
-  //         // if (selectedDayDetails.isEmpty && selectedDay != null)
-  //         //   Padding(
-  //         //     padding: EdgeInsets.all(10),
-  //         //     child: Text(
-  //         //       "No attendance records for ${DateFormat('dd MMM yyyy').format(selectedDay!)}",
-  //         //       style: TextStyle(color: Colors.grey),
-  //         //     ),
-  //         //   ),
-  //       ],
-  //     ),
-  //   );
-  // }
-
   Widget _buildMonthlyReportNew() {
     return isLoading
         ? Center(child: CircularProgressIndicator())
         : SingleChildScrollView(
-      child: Column(
-        children: [
-          // Header
-          Padding(
-            padding: const EdgeInsets.all(6.0),
-            child: Row(
+            child: Column(
               children: [
-                IconButton(
-                  onPressed: () => setState(() => isMonthlyReport = false),
-                  icon: const Icon(Icons.arrow_back_rounded, color: MyColors.darkBlue),
-                ),
-                const Expanded(
-                  child: Center(
-                    child: Text(
-                      'Monthly Attendance Report',
-                      style: TextStyle(
-                        color: MyColors.darkBlue,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                // Header
+                Padding(
+                  padding: const EdgeInsets.all(6.0),
+                  child: Row(
+                    children: [
+                      IconButton(
+                        onPressed: () =>
+                            setState(() => isMonthlyReport = false),
+                        icon: const Icon(Icons.arrow_back_rounded,
+                            color: MyColors.darkBlue),
                       ),
-                    ),
+                      const Expanded(
+                        child: Center(
+                          child: Text(
+                            'Monthly Attendance Report',
+                            style: TextStyle(
+                              color: MyColors.darkBlue,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 20),
+                    ],
                   ),
                 ),
-                const SizedBox(width: 20),
-              ],
-            ),
-          ),
 
-          // Calendar Widget
-          TableCalendar(
-            firstDay: DateTime.utc(2024, 1, 1),
-            lastDay: DateTime.now(),
-            focusedDay: focusedDay ?? DateTime.now(),
-            selectedDayPredicate: (day) => isSameDay(selectedDay!, day),
-            calendarFormat: CalendarFormat.month,
-            eventLoader: (day) => attendanceData[day] ?? [],
-            calendarStyle: CalendarStyle(
-              // ... (keep your existing calendar styles) ...
-            ),
-            headerStyle: const HeaderStyle(
-              formatButtonVisible: false,
-              titleCentered: true,
-            ),
-            calendarBuilders: CalendarBuilders(
-              defaultBuilder: (context, day, _) {
-                final normalizedDay = DateTime(day.year, day.month, day.day);
-                if (presentDays.any((d) => isSameDay(d, normalizedDay))) {
-                  return _buildCalendarCell(day, Colors.green);
-                } else if (absentDays.any((d) => isSameDay(d, normalizedDay))) {
-                  return _buildCalendarCell(day, Colors.red);
-                }
-                return null;
-              },
-            ),
-            onPageChanged: (focusedDay) async {
-              final now = DateTime.now();
-              DateTime targetDay = focusedDay.month == now.month && focusedDay.year == now.year
-                  ? now
-                  : DateTime(focusedDay.year, focusedDay.month, 1);
+                // Calendar Widget
+                TableCalendar(
+                  firstDay: DateTime.utc(2024, 1, 1),
+                  lastDay: DateTime.now(),
+                  focusedDay: focusedDay ?? DateTime.now(),
+                  selectedDayPredicate: (day) => isSameDay(selectedDay!, day),
+                  calendarFormat: CalendarFormat.month,
+                  eventLoader: (day) => attendanceData[day] ?? [],
+                  calendarStyle: CalendarStyle(
+                      // ... (keep your existing calendar styles) ...
+                      ),
+                  headerStyle: const HeaderStyle(
+                    formatButtonVisible: false,
+                    titleCentered: true,
+                  ),
+                  calendarBuilders: CalendarBuilders(
+                    defaultBuilder: (context, day, _) {
+                      final normalizedDay =
+                          DateTime(day.year, day.month, day.day);
+                      if (presentDays.any((d) => isSameDay(d, normalizedDay))) {
+                        return _buildCalendarCell(day, Colors.green);
+                      } else if (absentDays
+                          .any((d) => isSameDay(d, normalizedDay))) {
+                        return _buildCalendarCell(day, Colors.red);
+                      }
+                      return null;
+                    },
+                  ),
+                  onPageChanged: (focusedDay) async {
+                    final now = DateTime.now();
+                    DateTime targetDay = focusedDay.month == now.month &&
+                            focusedDay.year == now.year
+                        ? now
+                        : DateTime(focusedDay.year, focusedDay.month, 1);
 
-              setState(() {
-                this.focusedDay = targetDay;
-                selectedDay = targetDay;
-              });
+                    setState(() {
+                      this.focusedDay = targetDay;
+                      selectedDay = targetDay;
+                    });
 
-              // NEW: Safe way to find matching data
-              List<InOutDetail>? detailsForDay;
-              for (final entry in attendanceData.entries) {
-                if (isSameDay(entry.key, targetDay)) {
-                  detailsForDay = entry.value;
-                  break;
-                }
-              }
+                    // NEW: Safe way to find matching data
+                    List<InOutDetail>? detailsForDay;
+                    for (final entry in attendanceData.entries) {
+                      if (isSameDay(entry.key, targetDay)) {
+                        detailsForDay = entry.value;
+                        break;
+                      }
+                    }
 
-              setState(() {
-                selectedDayDetails = detailsForDay ?? [];
-              });
-            },
-            onDaySelected: (selectedDay, focusedDay) {
-              final normalizedDay = DateTime(selectedDay.year, selectedDay.month, selectedDay.day);
+                    setState(() {
+                      selectedDayDetails = detailsForDay ?? [];
+                    });
+                  },
+                  onDaySelected: (selectedDay, focusedDay) {
+                    final normalizedDay = DateTime(
+                        selectedDay.year, selectedDay.month, selectedDay.day);
 
-              // Alternative lookup method that handles nulls properly
-              List<InOutDetail>? detailsForDay;
-              for (final entry in attendanceData.entries) {
-                if (isSameDay(entry.key, normalizedDay)) {
-                  detailsForDay = entry.value;
-                  break;
-                }
-              }
+                    // Alternative lookup method that handles nulls properly
+                    List<InOutDetail>? detailsForDay;
+                    for (final entry in attendanceData.entries) {
+                      if (isSameDay(entry.key, normalizedDay)) {
+                        detailsForDay = entry.value;
+                        break;
+                      }
+                    }
 
-              setState(() {
-                this.selectedDay = normalizedDay;
-                this.focusedDay = focusedDay;
-                selectedDayDetails = detailsForDay ?? [];
-              });
+                    setState(() {
+                      this.selectedDay = normalizedDay;
+                      this.focusedDay = focusedDay;
+                      selectedDayDetails = detailsForDay ?? [];
+                    });
 
-              if (detailsForDay == null) {
-                Fluttertoast.showToast(
-                  msg: "No records for ${DateFormat('dd MMM yyyy').format(normalizedDay)}",
-                  toastLength: Toast.LENGTH_SHORT,
-                );
-              }
-            },
-          ),
+                    if (detailsForDay == null) {
+                      Fluttertoast.showToast(
+                        msg:
+                            "No records for ${DateFormat('dd MMM yyyy').format(normalizedDay)}",
+                        toastLength: Toast.LENGTH_SHORT,
+                      );
+                    }
+                  },
+                ),
 
-          const SizedBox(height: 20),
-          _buildLegend(),
+                const SizedBox(height: 20),
+                _buildLegend(),
 
-          // Attendance Details Section
-          if (selectedDay != null)
-            Column(
-              children: [
-                const SizedBox(height: 10),
-                if (selectedDayDetails.isNotEmpty)
-                  _buildSelectedAttendanceList(),
-                if (selectedDayDetails.isEmpty)
-                  Padding(
-                    padding: const EdgeInsets.all(10),
-                    child: Text(
-                      "No attendance records for ${DateFormat('dd MMM yyyy').format(selectedDay!)}",
-                      style: TextStyle(color: Colors.grey),
-                    ),
+                // Attendance Details Section
+                if (selectedDay != null)
+                  Column(
+                    children: [
+                      const SizedBox(height: 10),
+                      if (selectedDayDetails.isNotEmpty)
+                        _buildSelectedAttendanceList(),
+                      if (selectedDayDetails.isEmpty)
+                        Padding(
+                          padding: const EdgeInsets.all(10),
+                          child: Text(
+                            "No attendance records for ${DateFormat('dd MMM yyyy').format(selectedDay!)}",
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                        ),
+                    ],
                   ),
               ],
             ),
-        ],
-      ),
-    );
+          );
   }
 
 // Helper method for date comparison
@@ -4064,19 +565,21 @@ class _AttendanceReportState extends State<AdminAttendanceReport> {
 
   int _getPresentDaysCount(DateTime month) {
     return presentDays
-        .where((date) =>
-    date.year == month.year &&
-        date.month == month.month)
+        .where((date) => date.year == month.year && date.month == month.month)
         .length;
   }
 
   Widget _buildSelectedAttendanceList() {
     DateTime day = selectedDay!;
     DateTime? firstPunch = selectedDayDetails.isNotEmpty
-        ? DateFormat('dd/MM/yyyy HH:mm:ss').parse(selectedDayDetails.first.transactionTime!).toLocal()
+        ? DateFormat('dd/MM/yyyy HH:mm:ss')
+            .parse(selectedDayDetails.first.transactionTime!)
+            .toLocal()
         : null;
     DateTime? lastPunch = selectedDayDetails.isNotEmpty
-        ? DateFormat('dd/MM/yyyy HH:mm:ss').parse(selectedDayDetails.last.transactionTime!).toLocal()
+        ? DateFormat('dd/MM/yyyy HH:mm:ss')
+            .parse(selectedDayDetails.last.transactionTime!)
+            .toLocal()
         : null;
 
     Duration totalDuration = Duration();
@@ -4091,7 +594,10 @@ class _AttendanceReportState extends State<AdminAttendanceReport> {
         color: Colors.grey.shade100,
         borderRadius: BorderRadius.circular(10),
         boxShadow: [
-          BoxShadow(color: Colors.grey.withOpacity(0.2), blurRadius: 4, offset: Offset(2, 2)),
+          BoxShadow(
+              color: Colors.grey.withOpacity(0.2),
+              blurRadius: 4,
+              offset: Offset(2, 2)),
         ],
       ),
       child: Column(
@@ -4122,131 +628,13 @@ class _AttendanceReportState extends State<AdminAttendanceReport> {
           Divider(),
           Text(
             "Total Hours: ${totalDuration.inHours}h ${totalDuration.inMinutes.remainder(60)}m",
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue),
+            style: TextStyle(
+                fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue),
           ),
         ],
       ),
     );
   }
-
-
-/*  Widget _buildMonthlyReportNew() {
-    return isLoading
-        ? Center(child: CircularProgressIndicator())
-        : SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(6.0),
-            child: Row(
-              children: [
-                IconButton(
-                  onPressed: () {
-                    setState(() {
-                      isMonthlyReport = false;
-                    });
-                  },
-                  icon: const Icon(Icons.arrow_back_rounded, color: MyColors.darkBlue),
-                ),
-                const Expanded(
-                  child: Center(
-                    child: Text(
-                      'Monthly Attendance Report',
-                      style: TextStyle(
-                        color: MyColors.darkBlue,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 20),
-              ],
-            ),
-          ),
-          TableCalendar(
-            firstDay: DateTime.utc(2024, 1, 1),
-            lastDay: DateTime.now(),
-            focusedDay: focusedDay ?? DateTime.now(),
-            selectedDayPredicate: (day) => isSameDay(selectedDay, day),
-            calendarFormat: CalendarFormat.month,
-            eventLoader: (day) => attendanceData[day] ?? [],
-            calendarStyle: CalendarStyle(
-              todayDecoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.5),
-                shape: BoxShape.circle,
-              ),
-              markerDecoration: BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
-              ),
-              defaultDecoration: BoxDecoration(
-                shape: BoxShape.circle,
-              ),
-              holidayDecoration: BoxDecoration(
-                color: Colors.red.withOpacity(0.5),
-                shape: BoxShape.circle,
-              ),
-              outsideDaysVisible: false,
-            ),
-            headerStyle: const HeaderStyle(formatButtonVisible: false, titleCentered: true),
-            calendarBuilders: CalendarBuilders(
-              defaultBuilder: (context, day, _) {
-                DateTime normalizedDay = DateTime(day.year, day.month, day.day);
-                if (presentDays.any((d) => isSameDay(d, normalizedDay))) {
-                  return _buildCalendarCell(day, Colors.green);
-                } else if (absentDays.any((d) => isSameDay(d, normalizedDay))) {
-                  return _buildCalendarCell(day, Colors.red);
-                }
-                return null;
-              },
-            ),
-            onDaySelected: (selectedDay, newFocusedDay) async {
-              final normalizedSelected = DateTime(
-                selectedDay.year,
-                selectedDay.month,
-                selectedDay.day,
-              );
-
-              setState(() {
-                this.selectedDay = normalizedSelected;
-                if (focusedDay?.month != newFocusedDay.month || focusedDay?.year != newFocusedDay.year) {
-                  focusedDay = newFocusedDay;
-                }
-                fromDate = normalizedSelected;
-                toDate = normalizedSelected;
-              });
-
-              await fetchInOutDetails();
-
-              setState(() {
-                selectedDayDetails = attendanceData[normalizedSelected] ?? [];
-              });
-            },
-            onPageChanged: (focusedDay) {
-              setState(() {
-                this.focusedDay = focusedDay;
-              });
-            },
-          ),
-          const SizedBox(height: 20),
-          _buildLegend(), // Now centered
-          const SizedBox(height: 10),
-          if (selectedDayDetails.isNotEmpty)
-            _buildSelectedAttendanceList(),
-          if (selectedDayDetails.isEmpty && selectedDay != null)
-            Padding(
-              padding: EdgeInsets.all(10),
-              child: Text(
-                "No attendance records for ${DateFormat('dd MMM yyyy').format(selectedDay!)}",
-                style: TextStyle(color: Colors.grey),
-              ),
-            ),
-        ],
-      ),
-    );
-  }*/
 
   Widget _buildCalendarCell(DateTime day, Color color) {
     return Center(
@@ -4270,11 +658,15 @@ class _AttendanceReportState extends State<AdminAttendanceReport> {
     if (details.isEmpty) return SizedBox();
 
     DateTime? firstPunch = details.isNotEmpty
-        ? DateFormat('dd/MM/yyyy HH:mm:ss').parse(details.first.transactionTime!).toLocal()
+        ? DateFormat('dd/MM/yyyy HH:mm:ss')
+            .parse(details.first.transactionTime!)
+            .toLocal()
         : null;
 
     DateTime? lastPunch = details.isNotEmpty
-        ? DateFormat('dd/MM/yyyy HH:mm:ss').parse(details.last.transactionTime!).toLocal()
+        ? DateFormat('dd/MM/yyyy HH:mm:ss')
+            .parse(details.last.transactionTime!)
+            .toLocal()
         : null;
 
     Duration totalDuration = Duration();
@@ -4310,7 +702,10 @@ class _AttendanceReportState extends State<AdminAttendanceReport> {
             Divider(),
             Text(
               "Total Hours: ${totalDuration.inHours}h ${totalDuration.inMinutes.remainder(60)}m",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue),
+              style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blue),
             ),
           ],
         ),
@@ -4318,69 +713,9 @@ class _AttendanceReportState extends State<AdminAttendanceReport> {
     );
   }
 
-  // Function to count present days in the selected month
-/*  int _getPresentDaysCount(DateTime day) {
-    return presentDays
-        .where((date) => date.year == day.year && date.month == day.month)
-        .toSet()
-        .length;
-  }
-
   Widget _buildLegend() {
-    int presentCount = _getPresentDaysCount(selectedDay ?? DateTime.now());
-
-    return Container(
-      padding: EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.grey.shade400),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.3),
-            blurRadius: 5,
-            spreadRadius: 2,
-            offset: Offset(2, 3),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Row(
-            children: [
-              CircleAvatar(backgroundColor: Colors.green, radius: 8),
-              SizedBox(width: 8),
-              Text(
-                "Present ($presentCount)",
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ],
-          ),
-          SizedBox(width: 8), // Space between rows
-          Row(
-            children: [
-              CircleAvatar(backgroundColor: Colors.red, radius: 8),
-              SizedBox(width: 8),
-              Text("Absent"),
-            ],
-          ),
-        ],
-      ),
-    );
-  }*/
-
-  // Function to count present days in the selected month
-  // int _getPresentDaysCount(DateTime focusedDay) {
-  //   return presentDays
-  //       .where((date) => date.year == focusedDay.year && date.month == focusedDay.month)
-  //       .toSet()
-  //       .length;
-  // }
-
-  Widget _buildLegend() {
-    int presentCount = _getPresentDaysCount(focusedDay ?? DateTime.now()); // Use focusedDay
+    int presentCount =
+        _getPresentDaysCount(focusedDay ?? DateTime.now()); // Use focusedDay
 
     return Center(
       child: Container(
@@ -4426,7 +761,7 @@ class _AttendanceReportState extends State<AdminAttendanceReport> {
     );
   }
 
-  Widget _buildDailyReport(){
+  Widget _buildDailyReport() {
     return Column(
       children: [
         Padding(
@@ -4438,7 +773,13 @@ class _AttendanceReportState extends State<AdminAttendanceReport> {
                 onPressed: () => _selectDateRange(context),
                 label: const Row(
                   children: [
-                    Text("Select Date Range", style: TextStyle(color: MyColors.darkBlue, fontSize: 16, fontWeight: FontWeight.bold),),
+                    Text(
+                      "Select Date Range",
+                      style: TextStyle(
+                          color: MyColors.darkBlue,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold),
+                    ),
                     Icon(Icons.edit)
                   ],
                 ),
@@ -4449,7 +790,11 @@ class _AttendanceReportState extends State<AdminAttendanceReport> {
                 }),
                 label: const Row(
                   children: [
-                    Text("Monthly Report", style: TextStyle(color: MyColors.darkBlue, fontSize: 16, fontWeight: FontWeight.bold)),
+                    Text("Monthly Report",
+                        style: TextStyle(
+                            color: MyColors.darkBlue,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold)),
                     Icon(Icons.calendar_month)
                   ],
                 ),
@@ -4476,17 +821,26 @@ class _AttendanceReportState extends State<AdminAttendanceReport> {
         if (fromDate != null && toDate != null)
           Padding(
               padding: const EdgeInsets.all(8.0),
-              child:  Row(
-                mainAxisAlignment: MainAxisAlignment.center ,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
                     'From: ',
                     style: TextStyle(fontSize: 16),
                   ),
                   Text(
-                    '${DateFormat('dd/MM/yyyy').format(fromDate!)}',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    DateFormat('dd/MM/yyyy').format(
+                      DateTime.now().subtract(const Duration(days: 1)),
+                    ),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
+                  // Text(
+                  //   '${DateFormat('dd/MM/yyyy').format(fromDate!)}',
+                  //   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  // ),
                   Text(
                     '  To: ',
                     style: TextStyle(fontSize: 16),
@@ -4495,197 +849,236 @@ class _AttendanceReportState extends State<AdminAttendanceReport> {
                     '${DateFormat('dd/MM/yyyy').format(toDate!)}',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
-                ],)
-          ),
+                ],
+              )),
         Expanded(
           child: isLoading
               ? Center(child: CircularProgressIndicator())
               : groupedInOutDetails.isEmpty
-              ? Center(child: Text("No Data Available"))
-              : isGridView
-              ? GridView.builder(
-            padding: const EdgeInsets.all(8),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 8,
-              mainAxisSpacing: 8,
-            ),
-            itemCount: groupedInOutDetails.keys.length,
-            itemBuilder: (context, index) {
-              String date = groupedInOutDetails.keys.elementAt(index);
-              List<InOutDetail> details = groupedInOutDetails[date]!;
-
-              return Card(
-                elevation: 2,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                color: Colors.white,
-                child: SingleChildScrollView( // Add scrolling capability
-                  padding: const EdgeInsets.all(12.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Date: $date",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: MyColors.fontBlue,
-                        ),
-                      ),
-                      ...details.map((detail) {
-                        return Container(
-                          margin: EdgeInsets.only(top: 10),
-                          padding: EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: detail.inOut == "IN"
-                                ? Colors.green.shade100
-                                : Colors.red.shade100,
-                            borderRadius: BorderRadius.circular(10),
+                  ? Center(child: Text("No Data Available"))
+                  : isGridView
+                      ? GridView.builder(
+                          padding: const EdgeInsets.all(8),
+                          gridDelegate:
+                              SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            crossAxisSpacing: 8,
+                            mainAxisSpacing: 8,
                           ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                "Staff Code: ${detail.staffCode}",
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                ),
-                              ),
-                              SizedBox(height: 6),
-                              Text("Transaction Time: ${detail.transactionTime}"),
-                              Row(
-                                children: [
-                                  const Text("In/Out: "),
-                                  Text(
-                                    "${detail.inOut}",
-                                    style: TextStyle(fontWeight: FontWeight.bold),
-                                  ),
-                                ],
-                              ),
-                              Text(
-                                "Address: ${detail.address}",
-                                overflow: TextOverflow.ellipsis, // Truncate if too long
-                                maxLines: 1, // Limit to 1 line
-                              ),
-                            ],
-                          ),
-                        );
-                      }).toList(),
-                    ],
-                  ),
-                ),
-              );
-            },
-          )
-              : ListView.builder(
-            padding: const EdgeInsets.all(8),
-            itemCount: groupedInOutDetails.keys.length,
-            itemBuilder: (context, index) {
-              String date = groupedInOutDetails.keys.elementAt(index);
-              List<InOutDetail> details = groupedInOutDetails[date]!;
+                          itemCount: groupedInOutDetails.keys.length,
+                          itemBuilder: (context, index) {
+                            String date =
+                                groupedInOutDetails.keys.elementAt(index);
+                            List<InOutDetail> details =
+                                groupedInOutDetails[date]!;
 
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 10.0),
-                    child: Text(
-                      "Date: $date",
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: MyColors.fontBlue,
-                      ),
-                    ),
-                  ),
-                  ...details.map((detail) {
-                    return Card(
-                      elevation: 3,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      color: detail.inOut == "IN"
-                          ? Colors.green.shade100 // Highlight for Punch In
-                          : Colors.red.shade100, // Highlight for Punch Out
-                      child: Padding(
-                        padding: const EdgeInsets.all(14.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Icon(
-                                  detail.inOut == "IN" ? Icons.login : Icons.logout,
-                                  color: detail.inOut == "IN" ? Colors.green : Colors.red,
-                                  size: 20,
+                            return Card(
+                              elevation: 2,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              color: Colors.white,
+                              child: SingleChildScrollView(
+                                // Add scrolling capability
+                                padding: const EdgeInsets.all(12.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Date: $date",
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        color: MyColors.fontBlue,
+                                      ),
+                                    ),
+                                    ...details.map((detail) {
+                                      return Container(
+                                        margin: EdgeInsets.only(top: 10),
+                                        padding: EdgeInsets.all(8),
+                                        decoration: BoxDecoration(
+                                          color: detail.inOut == "IN"
+                                              ? Colors.green.shade100
+                                              : Colors.red.shade100,
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                        ),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              "Staff Code: ${detail.staffCode}",
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 16,
+                                              ),
+                                            ),
+                                            SizedBox(height: 6),
+                                            Text(
+                                                "Transaction Time: ${detail.transactionTime}"),
+                                            Row(
+                                              children: [
+                                                const Text("In/Out: "),
+                                                Text(
+                                                  "${detail.inOut}",
+                                                  style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.bold),
+                                                ),
+                                              ],
+                                            ),
+                                            Text(
+                                              "Address: ${detail.address}",
+                                              overflow: TextOverflow.ellipsis,
+                                              // Truncate if too long
+                                              maxLines: 1, // Limit to 1 line
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    }).toList(),
+                                  ],
                                 ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  detail.inOut == "IN" ? "Punch In" : "Punch Out",
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 18,
-                                    color: detail.inOut == "IN" ? Colors.green[700] : Colors.red[700],
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 10),
-                            Divider(height: 1, color: Colors.grey.shade400),
-                            const SizedBox(height: 10),
-                            Row(
-                              children: [
-                                const Text(
-                                  "Staff Code: ",
-                                  style: TextStyle(fontWeight: FontWeight.w600),
-                                ),
-                                Expanded(
-                                  child: Text(
-                                    "${detail.staffCode}",
-                                    style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black87),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(height: 6),
-                            Row(
-                              children: [
-                                Icon(Icons.access_time, size: 18, color: Colors.grey.shade600),
-                                SizedBox(width: 5),
-                                Text(
-                                  "Transaction Time: ${detail.transactionTime}",
-                                  style: TextStyle(color: Colors.black87),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 6),
-                            Row(
+                              ),
+                            );
+                          },
+                        )
+                      : ListView.builder(
+                          padding: const EdgeInsets.all(8),
+                          itemCount: groupedInOutDetails.keys.length,
+                          itemBuilder: (context, index) {
+                            String date =
+                                groupedInOutDetails.keys.elementAt(index);
+                            List<InOutDetail> details =
+                                groupedInOutDetails[date]!;
+
+                            return Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Icon(Icons.location_on, size: 18, color: Colors.grey.shade600),
-                                const SizedBox(width: 5),
-                                Expanded(
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 10.0),
                                   child: Text(
-                                    "Address: ${detail.address}",
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(color: Colors.black87),
+                                    "Date: $date",
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: MyColors.fontBlue,
+                                    ),
                                   ),
                                 ),
+                                ...details.map((detail) {
+                                  return Card(
+                                    elevation: 3,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    color: detail.inOut == "IN"
+                                        ? Colors.green
+                                            .shade100 // Highlight for Punch In
+                                        : Colors.red
+                                            .shade100, // Highlight for Punch Out
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(14.0),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              Icon(
+                                                detail.inOut == "IN"
+                                                    ? Icons.login
+                                                    : Icons.logout,
+                                                color: detail.inOut == "IN"
+                                                    ? Colors.green
+                                                    : Colors.red,
+                                                size: 20,
+                                              ),
+                                              const SizedBox(width: 8),
+                                              Text(
+                                                detail.inOut == "IN"
+                                                    ? "Punch In"
+                                                    : "Punch Out",
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 18,
+                                                  color: detail.inOut == "IN"
+                                                      ? Colors.green[700]
+                                                      : Colors.red[700],
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 10),
+                                          Divider(
+                                              height: 1,
+                                              color: Colors.grey.shade400),
+                                          const SizedBox(height: 10),
+                                          Row(
+                                            children: [
+                                              const Text(
+                                                "Staff Code: ",
+                                                style: TextStyle(
+                                                    fontWeight:
+                                                        FontWeight.w600),
+                                              ),
+                                              Expanded(
+                                                child: Text(
+                                                  "${detail.staffCode}",
+                                                  style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      color: Colors.black87),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          SizedBox(height: 6),
+                                          Row(
+                                            children: [
+                                              Icon(Icons.access_time,
+                                                  size: 18,
+                                                  color: Colors.grey.shade600),
+                                              SizedBox(width: 5),
+                                              Text(
+                                                "Transaction Time: ${detail.transactionTime}",
+                                                style: TextStyle(
+                                                    color: Colors.black87),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 6),
+                                          Row(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Icon(Icons.location_on,
+                                                  size: 18,
+                                                  color: Colors.grey.shade600),
+                                              const SizedBox(width: 5),
+                                              Expanded(
+                                                child: Text(
+                                                  "Address: ${detail.address}",
+                                                  maxLines: 2,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  style: TextStyle(
+                                                      color: Colors.black87),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                }),
                               ],
-                            ),
-                          ],
+                            );
+                          },
                         ),
-                      ),
-                    );
-                  }),
-                ],
-              );
-            },
-          ),
         ),
       ],
     );
@@ -4708,20 +1101,22 @@ class _AttendanceReportState extends State<AdminAttendanceReport> {
     );
   }
 
-
   _showAttendanceDetails(DateTime day) {
     List<InOutDetail> details = attendanceData[day] ?? [];
 
     if (details.isEmpty) return;
 
     DateTime? firstPunch = details.isNotEmpty
-        ? DateFormat('dd/MM/yyyy HH:mm:ss').parse(details.first.transactionTime!).toLocal()
+        ? DateFormat('dd/MM/yyyy HH:mm:ss')
+            .parse(details.first.transactionTime!)
+            .toLocal()
         : null;
 
     DateTime? lastPunch = details.isNotEmpty
-        ? DateFormat('dd/MM/yyyy HH:mm:ss').parse(details.last.transactionTime!).toLocal()
+        ? DateFormat('dd/MM/yyyy HH:mm:ss')
+            .parse(details.last.transactionTime!)
+            .toLocal()
         : null;
-
 
     Duration totalDuration = Duration();
     if (firstPunch != null && lastPunch != null) {
@@ -4731,26 +1126,34 @@ class _AttendanceReportState extends State<AdminAttendanceReport> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Padding(padding: EdgeInsets.all(15),
-          child: Text("Attendance Details - ${DateFormat('dd MMM yyyy').format(day)}"),),
-        content: Padding(padding: EdgeInsets.all(10),
+        title: Padding(
+          padding: EdgeInsets.all(15),
+          child: Text(
+              "Attendance Details - ${DateFormat('dd MMM yyyy').format(day)}"),
+        ),
+        content: Padding(
+            padding: EdgeInsets.all(10),
             child: Expanded(
               flex: 2,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   ...details.map((detail) => ListTile(
-                    title: Text("${detail.inOut} at ${detail.transactionTime}"),
-                    subtitle: Text("Address: ${detail.address}"),
-                  )),
+                        title: Text(
+                            "${detail.inOut} at ${detail.transactionTime}"),
+                        subtitle: Text("Address: ${detail.address}"),
+                      )),
                   Divider(),
                   Text(
                     "Total Hours: ${totalDuration.inHours}h ${totalDuration.inMinutes.remainder(60)}m",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue),
+                    style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue),
                   ),
                 ],
-              ),)),
-
+              ),
+            )),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -4760,7 +1163,6 @@ class _AttendanceReportState extends State<AdminAttendanceReport> {
       ),
     );
   }
-
 }
 
 /// old list view
@@ -4806,7 +1208,6 @@ maxLines: 1, // Limit to 1 line
 ),
 ),
 );*/
-
 
 //    Grid view of data
 /*body: Column(
@@ -4859,7 +1260,6 @@ maxLines: 1, // Limit to 1 line
           ),
         ],
       ),*/
-
 
 //    Simple List view of In/Out Data
 /*body: Column(
@@ -4920,7 +1320,6 @@ maxLines: 1, // Limit to 1 line
           ),
         ],
       ),*/
-
 
 // list view with green and red In/Out indication, with grouped by date but date is not in sequence because of backend
 /*body: Column(
@@ -5009,7 +1408,6 @@ maxLines: 1, // Limit to 1 line
           ),
         ],
       ),*/
-
 
 /*body: Padding(
       padding: const EdgeInsets.all(8.0),
