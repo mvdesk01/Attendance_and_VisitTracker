@@ -178,4 +178,18 @@ class DatabaseHelper {
 
     return null;
   }
+
+  Future<Map<String, dynamic>?> getLatestPunchOut(String staffCode) async {
+    final db = await database;
+
+    final result = await db.query(
+      'punch_state',
+      where: 'staff_code = ? AND flag_value = ?',
+      whereArgs: [staffCode, '000'],
+      orderBy: 'id DESC',
+      limit: 1,
+    );
+
+    return result.isNotEmpty ? result.first : null;
+  }
 }
