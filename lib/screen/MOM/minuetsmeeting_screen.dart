@@ -650,8 +650,8 @@ class _MinutesOfTheMeetingFormScreenState
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: const Color(0xFFE2E8F0)),
       ),
-      child: Column(
-        children: const [
+      child: const Column(
+        children: [
           Icon(Icons.event_note_rounded, size: 40, color: Color(0xFF94A3B8)),
           SizedBox(height: 12),
           Text(

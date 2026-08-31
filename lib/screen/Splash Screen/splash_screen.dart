@@ -301,18 +301,18 @@ class _SplashScreenState extends State<SplashScreen> {
                   ),
                 ],
               ),
-              Positioned(
+              const Positioned(
                 bottom: 40,
                 left: 0,
                 right: 0,
                 child: Column(
                   children: [
-                    const CircularProgressIndicator(
+                    CircularProgressIndicator(
                       strokeWidth: 3,
                       valueColor: AlwaysStoppedAnimation<Color>(
                           MyColors.appDefaultColorCode),
                     ),
-                    const SizedBox(height: 24),
+                    SizedBox(height: 24),
                     Text(
                       "@ 2025 M-Tech Innovations Ltd Pune\nAttendance System",
                       textAlign: TextAlign.center,

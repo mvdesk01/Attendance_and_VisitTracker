@@ -12,6 +12,7 @@ import 'package:attendance_system_ios/service/WebService.dart';
 import 'package:attendance_system_ios/service/internet_service.dart';
 import 'package:attendance_system_ios/simple_bloc_observer.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -28,6 +29,8 @@ final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
 bool isloggedIn = false;
 
 void main() async {
+  // print("Active environment: $appFlavor"); // Prints 'dev', 'staging', or 'prod'
+
   WidgetsFlutterBinding.ensureInitialized();
   tz_data.initializeTimeZones();
   HttpOverrides.global = MyHttpOverrides();
