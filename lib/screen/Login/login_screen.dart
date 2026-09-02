@@ -22,6 +22,7 @@ import '../../main.dart';
 import '../../util/MyColor.dart';
 import '../Forget Password/forgetpassword.dart';
 import '../password retrieval/password_retrieval.dart';
+import 'UpdateDeviceID.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -254,8 +255,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               width: 100,
                               height: 110,
                             ),
-                            SizedBox(height: 12),
-                            Text(
+                            const SizedBox(height: 12),
+                            const Text(
                               "Attendance System",
                               style: TextStyle(
                                 fontSize: 22,
@@ -264,7 +265,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             ),
                             SizedBox(height: 6),
-                            Text(
+                            const Text(
                               "Sign in to continue",
                               style: TextStyle(
                                 fontSize: 14,
@@ -412,22 +413,24 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         ),
 
+                        // SizedBox(height: 20,),
+                        // Center(
+                        //   child:
+                        //     TextButton(onPressed: (){
+                        //       Navigator.push(context, MaterialPageRoute(builder: (context)=> Updatedeviceid()));
+                        //       //Navigator.push(context, MaterialPageRoute(builder: (context)=> Updatedeviceidnew()));
+                        //     },
+                        //         child: const Text('Switched To New Device?Register New Device Here!'))
+                        //
+                        // )
+
                       ])),
             ],
           )),
     );
   }
 
-  // Row(
-  //   mainAxisAlignment: MainAxisAlignment.center,
-  //   children: [
-  //     TextButton(onPressed: (){
-  //       Navigator.push(context, MaterialPageRoute(builder: (context)=> Updatedeviceid()));
-  //       //Navigator.push(context, MaterialPageRoute(builder: (context)=> Updatedeviceidnew()));
-  //     },
-  //         child: const Text('Switched To New Device?Register New Device Here!'))
-  //   ],
-  // )
+
 
   void doLogin(String username, String passwordd) {
     String userName = username;

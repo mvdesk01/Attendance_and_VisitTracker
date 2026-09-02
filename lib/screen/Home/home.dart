@@ -229,7 +229,7 @@ class _HomeScreenState extends State<HomeScreen> {
       final response = await http
           .post(
             Uri.parse(
-              'http://114.143.140.28:8091/api/InOut/InOutDetails',
+              'http://114.143.140.28:8020/api/InOut/InOutDetails',
             ),
             headers: {
               "Content-Type": "application/json",
@@ -241,7 +241,7 @@ class _HomeScreenState extends State<HomeScreen> {
               "toDate": toDate,
             }),
           )
-          .timeout(const Duration(seconds: 15));
+          .timeout(const Duration(seconds: 25));
 
       print("========== RESTORE PUNCH ==========");
       print("Staff Code: $staffCode");
@@ -406,7 +406,7 @@ class _HomeScreenState extends State<HomeScreen> {
               "toDate": formattedToDate,
             }),
           )
-          .timeout(const Duration(seconds: 15));
+          .timeout(const Duration(seconds: 25));
 
       print("home inout details statuscode: ${response.statusCode}");
       print("home inout details body: ${response.body}");
