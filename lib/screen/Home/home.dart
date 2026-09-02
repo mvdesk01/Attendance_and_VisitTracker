@@ -621,73 +621,6 @@ class _HomeScreenState extends State<HomeScreen> {
       );
   }
 
-  Future<void> _updateButtonInitialsqliteState() async {
-    if (staffCode == null || staffCode!.isEmpty) return;
-
-    final dbHelper = DatabaseHelper();
-
-    final latestPunch = await dbHelper.getLatestPunchState(staffCode!);
-
-    final latestIn = await dbHelper.getLatestPunchIn(staffCode!);
-
-    final latestOut = await dbHelper.getLatestPunchOut(staffCode!);
-
-    if (!mounted) return;
-
-    setState(() {
-      // Display latest IN and OUT independently
-      lastInTime = latestIn?['transaction_time'] ?? "-";
-      lastOutTime = latestOut?['transaction_time'] ?? "-";
-
-      // Button state is based ONLY on latest transaction
-      if (latestPunch == null) {
-        isButtonDisabledIn = false;
-        isButtonDisabledOut = true;
-        return;
-      }
-
-      final flagValue = latestPunch['flag_value'];
-
-      if (flagValue == "001") {
-        // Currently punched IN
-        isButtonDisabledIn = true;
-        isButtonDisabledOut = false;
-      } else if (flagValue == "000") {
-        // Currently punched OUT
-        isButtonDisabledIn = false;
-        isButtonDisabledOut = true;
-      }
-    });
-
-    // setState(() {
-    //   if (latestPunch == null) {
-    //     // No punch history
-    //     isButtonDisabledIn = false;
-    //     isButtonDisabledOut = true;
-    //
-    //     lastInTime = "-";
-    //     lastOutTime = "-";
-    //     return;
-    //   }
-    //
-    //   final flagValue = latestPunch['flag_value'];
-    //
-    //   if (flagValue == "001") {
-    //     // Last punch was IN
-    //     isButtonDisabledIn = true;
-    //     isButtonDisabledOut = false;
-    //
-    //     lastInTime = latestPunch['transaction_time'];
-    //   } else if (flagValue == "000") {
-    //     // Last punch was OUT
-    //     isButtonDisabledIn = false;
-    //     isButtonDisabledOut = true;
-    //
-    //     lastOutTime = latestPunch['transaction_time'];
-    //   }
-    // });
-  }
-
   final ButtonStyle raisedButtonStyle = ElevatedButton.styleFrom(
     foregroundColor: Colors.white, backgroundColor: MyColors.darkBlue,
     minimumSize: const Size(32, 35),
@@ -1121,6 +1054,37 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Future<String?> getShiftType(String date) async {
+    try {
+      final uri = Uri.parse(
+        'http://114.143.140.28:8020 /api/InOut/CheckShiftType',
+      ).replace(
+        queryParameters: {
+          'staffCode': staffCode!,
+          'dateValue': date,
+        },
+      );
+
+      final response = await http.get(uri);
+      print("CheckShiftType status: ${uri}");
+      print("CheckShiftType status: ${response.statusCode}");
+      print("CheckShiftType response: ${response.body}");
+
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+
+        if (decoded['status'] == true) {
+          return decoded['data']['shiftType']?.toString();
+        }
+      }
+
+      return null;
+    } catch (e) {
+      print("CheckShiftType error: $e");
+      return null;
+    }
+  }
+
   _homescreen() {
     return LoadingOverlay(
       isLoading: _isLoading,
@@ -1140,19 +1104,6 @@ class _HomeScreenState extends State<HomeScreen> {
             setState(() {
               _isLoading = false;
             });
-
-            // if(state.staffDetailsResponse?.message?.errorMessage == "StaffCode is Not Valid.."){
-            //     scaffoldMessengerKey.currentState!.showSnackBar(
-            //       SnackBar(content: Text("Session Expire. Kindly Login Again"),
-            //         action: SnackBarAction(
-            //             label: 'Login Again',
-            //             onPressed: (){
-            //           onLogout();
-            //         }),
-            //         duration: Duration(days: 2),
-            //       ),
-            //     );
-            // }
           } else if (state is GetStaffDetailsErrorState) {
             setState(() {
               _isLoading = false;
@@ -1299,54 +1250,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         ],
                       ),
                     ),
-
-                    ///old
-/*
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      // mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            const SizedBox(height: 16, width: 0,),
-                            Padding(padding: const EdgeInsets.symmetric(horizontal: 18),
-                              child:  Text(staffName!, style: const TextStyle(
-                                fontSize: 14,
-                                fontFamily: 'Dubai',
-                                color: Colors.black87,
-                              ),),
-                            ),
-                            Row(
-                              children: [
-                                const SizedBox(width: 18,),
-                                const Padding(padding: EdgeInsets.zero,
-                                  child: Text("Staff Code: ", style: TextStyle(fontSize: 14, fontFamily: 'Dubai', color: Colors.black54),),
-                                ),
-                                Padding(padding: EdgeInsets.zero,
-                                  child: Text(staffCode!, style: TextStyle(fontSize: 14, fontFamily: 'Dubai', color: Colors.black87),),
-                                ),
-                              ],
-                            ),
-
-                          ],
-                        ),
-
-                        // const SizedBox(width: 100,),
-                        Padding(padding: const EdgeInsets.symmetric(horizontal: 10),),
-                        Flexible(
-                          child:  Image.asset("assets/icons/mtechlogo2.png",
-                            // width: double.nan,
-                            height: 70,
-                          ),
-                        ),
-                        // ),
-
-                      ],
-                    ),
-*/
 
                     SizedBox(
                       height: isTablet ? 300 : 200,
@@ -2132,7 +2035,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _reloadPage() {
-    _updateButtonInitialState();
+    _restorePunchState();
+    // _updateButtonInitialState();
     // setState(() {
     //   isLoading = true;
     // });
@@ -2207,8 +2111,9 @@ class _HomeScreenState extends State<HomeScreen> {
           setState(() {
             isButtonDisabledIn = true;
             isButtonDisabledOut = false;
-            _updateButtonInitialState();
+            //_updateButtonInitialsqliteState();
           });
+          await _updateButtonInitialsqliteState();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
                 content: const Text('Punch-in Successful!'),
@@ -2286,6 +2191,9 @@ class _HomeScreenState extends State<HomeScreen> {
 //             await retorepunchdata();
             if (await getInEntryFromDataBase(
                 currentDate, currentTime, staffCode!)) {
+              String shiftDate =
+                  DateFormat('dd/MM/yyyy').format(DateTime.now());
+              String? shiftType = await getShiftType(shiftDate);
               String? result = await storeInEntry(
                   currentDate,
                   currentDateTime,
@@ -2303,8 +2211,8 @@ class _HomeScreenState extends State<HomeScreen> {
               setState(() {
                 isButtonDisabledIn = true;
                 isButtonDisabledOut = false;
-                _updateButtonInitialState();
               });
+              await _updateButtonInitialsqliteState();
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                     content: const Text('Punch-in Successful!'),
@@ -2423,8 +2331,21 @@ class _HomeScreenState extends State<HomeScreen> {
             .substring(0, 19);
         // await retorepunchoutdata();
 
-        if (await getOutEntryFromDataBase(
-            currentDate, currentTime, staffCode!)) {
+        // if (await getOutEntryFromDataBase(
+        //     currentDate, currentTime, staffCode!)) {
+        //   String? result = await storeOutEntry(
+        //       currentDate,
+        //       currentDateTime,
+        //       staffCode!,
+        //       "000",
+        //       _currentAddress!,
+        //       _currentLat!,
+        //       _currentLon!,
+        //       plantcode?.toString() ?? "01");
+        final latestPunch =
+            await DatabaseHelper().getLatestPunchState(staffCode!);
+
+        if (latestPunch != null && latestPunch['flag_value'] == "001") {
           String? result = await storeOutEntry(
               currentDate,
               currentDateTime,
@@ -2441,8 +2362,10 @@ class _HomeScreenState extends State<HomeScreen> {
           setState(() {
             isButtonDisabledIn = true;
             isButtonDisabledOut = false;
-            _updateButtonInitialState();
+            //_updateButtonInitialsqliteState();
+            //_updateButtonInitialState();
           });
+          await _updateButtonInitialsqliteState();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
                 content: const Text('Punch-out Successful!'),
@@ -2516,8 +2439,21 @@ class _HomeScreenState extends State<HomeScreen> {
                 .substring(0, 19);
             // await retorepunchoutdata();
 
-            if (await getOutEntryFromDataBase(
-                currentDate, currentTime, staffCode!)) {
+            // if (await getOutEntryFromDataBase(
+            //     currentDate, currentTime, staffCode!)) {
+            //   String? result = await storeOutEntry(
+            //       currentDate,
+            //       currentDateTime,
+            //       staffCode!,
+            //       "000",
+            //       _currentAddress!,
+            //       _currentLat!,
+            //       _currentLon!,
+            //       plantcode?.toString() ?? "01");
+            final latestPunch =
+                await DatabaseHelper().getLatestPunchState(staffCode!);
+
+            if (latestPunch != null && latestPunch['flag_value'] == "001") {
               String? result = await storeOutEntry(
                   currentDate,
                   currentDateTime,
@@ -2531,8 +2467,10 @@ class _HomeScreenState extends State<HomeScreen> {
               setState(() {
                 isButtonDisabledOut = true;
                 isButtonDisabledIn = false;
-                _updateButtonInitialState();
+                //_updateButtonInitialsqliteState();
+                //_updateButtonInitialState();
               });
+              await _updateButtonInitialsqliteState();
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: const Text('Punch-out Successful!'),
@@ -2731,6 +2669,18 @@ class _HomeScreenState extends State<HomeScreen> {
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         LogFileManager.writeLog("storeinentry $response");
+
+        String shiftDate = DateFormat('dd/MM/yyyy').format(DateTime.now());
+        String? shiftType = await getShiftType(shiftDate);
+        await DatabaseHelper().insertPunchState(
+          staffCode: staffCode!,
+          transactionDate: TransactionDate,
+          transactionTime: TransactionTime,
+          flagValue: "001",
+          shiftDate: shiftDate,
+          shiftType: shiftType,
+        );
+
         if (atsflag == 'Y') {
           try {
             final response = await http.post(
@@ -2808,6 +2758,24 @@ class _HomeScreenState extends State<HomeScreen> {
       print("punch-out response body" + response.body);
       print("punch-out response status code" + response.statusCode.toString());
       if (response.statusCode == 201 || response.statusCode == 200) {
+        final latestIn = await DatabaseHelper().getLatestPunchIn(staffCode!);
+        String? shiftType = latestIn?['shift_type'];
+        String? shiftDate = latestIn?['shift_date'];
+        if ((shiftType == null || shiftType.isEmpty) &&
+            shiftDate != null &&
+            shiftDate.isNotEmpty) {
+          shiftType = await getShiftType(shiftDate);
+        }
+
+        await DatabaseHelper().insertPunchState(
+          staffCode: staffCode!,
+          transactionDate: TransactionDate,
+          transactionTime: TransactionTime,
+          flagValue: "000",
+          shiftDate: shiftDate,
+          shiftType: shiftType,
+        );
+
         LogFileManager.writeLog("storeoutentry $response");
         if (atsflag == 'Y') {
           try {
@@ -3411,6 +3379,192 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     }
   }
+
+  Future<void> _updateButtonInitialsqliteState() async {
+    if (staffCode == null || staffCode!.isEmpty) return;
+
+    final dbHelper = DatabaseHelper();
+
+    final latestPunch = await dbHelper.getLatestPunchState(staffCode!);
+    final latestIn = await dbHelper.getLatestPunchIn(staffCode!);
+    final latestOut = await dbHelper.getLatestPunchOut(staffCode!);
+
+    String extractTime(dynamic value) {
+      if (value == null) return "-";
+
+      final text = value.toString().trim();
+
+      if (text.isEmpty) return "-";
+
+      // Handles:
+      // 15:32:00
+      // 02/09/2026 15:32:00
+      // 02-09-2026 15:32:00
+      if (text.contains(' ')) {
+        return text.split(RegExp(r'\s+')).last;
+      }
+
+      return text;
+    }
+
+    if (!mounted) return;
+
+    setState(() {
+      // Display latest IN and OUT times
+      lastInTime = extractTime(latestIn?['transaction_time']);
+      lastOutTime = extractTime(latestOut?['transaction_time']);
+
+      // Default color states
+      lastPunchIn = true;
+      lastPunchOut = true;
+
+      if (latestPunch == null) {
+        isButtonDisabledIn = false;
+        isButtonDisabledOut = true;
+        return;
+      }
+
+      final flagValue = latestPunch['flag_value'];
+
+      if (flagValue == "001") {
+        // Currently PUNCHED IN
+        isButtonDisabledIn = true;
+        isButtonDisabledOut = false;
+
+        // Last action was IN → Last IN should be GREEN
+        lastPunchIn = false;
+        lastPunchOut = true;
+      } else if (flagValue == "000") {
+        // Currently PUNCHED OUT
+        isButtonDisabledIn = false;
+        isButtonDisabledOut = true;
+
+        // Last action was OUT → Last OUT should be GREEN
+        lastPunchIn = true;
+        lastPunchOut = false;
+      }
+    });
+  }
+/*  Future<void> _updateButtonInitialsqliteState() async {
+    if (staffCode == null || staffCode!.isEmpty) return;
+
+    final dbHelper = DatabaseHelper();
+
+    final latestPunch = await dbHelper.getLatestPunchState(staffCode!);
+    final latestIn = await dbHelper.getLatestPunchIn(staffCode!);
+    final latestOut = await dbHelper.getLatestPunchOut(staffCode!);
+
+    // Safely extract only time from any format:
+    // 15:32:00
+    // 02/09/2026 15:32:00
+    // 02-09-2026 15:32:00
+    String extractTime(dynamic value) {
+      if (value == null) return "-";
+
+      final text = value.toString().trim();
+
+      if (text.isEmpty) return "-";
+
+      // If date + time is present, take everything after the last space
+      if (text.contains(' ')) {
+        return text.split(RegExp(r'\s+')).last;
+      }
+
+      // Already only time
+      return text;
+    }
+
+    if (!mounted) return;
+
+    setState(() {
+      lastInTime = extractTime(latestIn?['transaction_time']);
+      lastOutTime = extractTime(latestOut?['transaction_time']);
+
+      if (latestPunch == null) {
+        isButtonDisabledIn = false;
+        isButtonDisabledOut = true;
+        return;
+      }
+
+      final flagValue = latestPunch['flag_value'];
+
+      if (flagValue == "001") {
+        // Currently IN
+        isButtonDisabledIn = true;
+        isButtonDisabledOut = false;
+      } else if (flagValue == "000") {
+        // Currently OUT
+        isButtonDisabledIn = false;
+        isButtonDisabledOut = true;
+      }
+    });
+  }*/
+// Future<void> _updateButtonInitialsqliteState() async {
+//   if (staffCode == null || staffCode!.isEmpty) return;
+//
+//   final dbHelper = DatabaseHelper();
+//
+//   final latestPunch = await dbHelper.getLatestPunchState(staffCode!);
+//
+//   final latestIn = await dbHelper.getLatestPunchIn(staffCode!);
+//
+//   final latestOut = await dbHelper.getLatestPunchOut(staffCode!);
+//
+//   if (!mounted) return;
+//   setState(() {
+//     lastInTime = latestIn?['transaction_time'] != null
+//         ? latestIn!['transaction_time'].toString().substring(11, 19)
+//         : "-";
+//
+//     lastOutTime = latestOut?['transaction_time'] != null
+//         ? latestOut!['transaction_time'].toString().substring(11, 19)
+//         : "-";
+//
+//     // Button state is based ONLY on latest transaction
+//     if (latestPunch == null) {
+//       isButtonDisabledIn = false;
+//       isButtonDisabledOut = true;
+//       return;
+//     }
+//
+//     final flagValue = latestPunch['flag_value'];
+//
+//     if (flagValue == "001") {
+//       // Currently punched IN
+//       isButtonDisabledIn = true;
+//       isButtonDisabledOut = false;
+//     } else if (flagValue == "000") {
+//       // Currently punched OUT
+//       isButtonDisabledIn = false;
+//       isButtonDisabledOut = true;
+//     }
+//   });
+//
+//   // setState(() {
+//   //   // Display latest IN and OUT independently
+//   //   lastInTime = latestIn?['transaction_time'] ?? "-";
+//   //   lastOutTime = latestOut?['transaction_time'] ?? "-";
+//   //
+//   //   // Button state is based ONLY on latest transaction
+//   //   if (latestPunch == null) {
+//   //     isButtonDisabledIn = false;
+//   //     isButtonDisabledOut = true;
+//   //     return;
+//   //   }
+//   //
+//   //   final flagValue = latestPunch['flag_value'];
+//   //
+//   //   if (flagValue == "001") {
+//   //     // Currently punched IN
+//   //     isButtonDisabledIn = true;
+//   //     isButtonDisabledOut = false;
+//   //   } else if (flagValue == "000") {
+//   //     // Currently punched OUT
+//   //     isButtonDisabledIn = false;
+//   //     isButtonDisabledOut = true;
+//   //   }
+//   // });
+// }
 }
 
 class _BannerItem {
@@ -3419,722 +3573,3 @@ class _BannerItem {
 
   _BannerItem({required this.image, required this.text});
 }
-
-/// old punch in-out code
-/*
-Future<void> punchIn() async {
-  bool hasPermission = await handleLocationPermission();
-
-  if (!hasPermission) {
-    _showSnackbar("Location permission required for Punch In!.Please allow from settings");
-    return;
-  }
-
-  if(DISTANCEFLAG == 'Y'){
-    print("errorrr0N");
-    if(ADDRESSFLAG == 'Y') {
-      print("errorrr0NY");
-
-      LocationHandler.changeToRemoteLocation();
-
-      LocationHandler.remoteZoneLat = double.parse(REMOTELAT);
-      LocationHandler.remoteZoneLon = double.parse(REMOTELONG);
-      try {
-        _currentLat = LocationHandler.currentLat.toString();
-        _currentLon = LocationHandler.currentLon.toString();
-        _currentAddress = LocationHandler.currentAddress;
-        LogFileManager.writeLog("punch in N Y"+_currentLat! + _currentLon! + _currentAddress!);
-
-        print(_currentLat);
-        print(_currentLon);
-        print(_currentAddress);
-
-        String currentDate = DateFormat('dd-MM-yyyy HH:mm:ss').format(
-            DateTime.now()).substring(0, 10);
-        String currentTime = DateFormat('dd-MM-yyyy HH:mm:ss').format(
-            DateTime.now()).substring(11, 19);
-        String currentDateTime = DateFormat('dd-MM-yyyy HH:mm:ss').format(
-            DateTime.now()).substring(0, 19);
-        print(currentDate);
-        print(currentTime);
-        print(currentDateTime);
-        print(_currentAddress);
-        await retorepunchdata();
-        if (await getInEntryFromDataBase(currentDate, currentTime, staffCode!)) {
-          String? result = await storeInEntry(
-              currentDate,
-              currentDateTime,
-              staffCode!,
-              "001",
-              _currentAddress!,
-              _currentLat!,
-              _currentLon!,
-              plantcode?.toString() ?? "01"
-          );
-
-          print("result $result");
-          // After successful operation, show a SnackBar
-          setState(() {
-            isButtonDisabledIn = true;
-            isButtonDisabledOut = false;
-            _updateButtonInitialState();
-          });
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content: const Text('Punch-in Successful!'),
-                action: SnackBarAction(label: 'OK', onPressed: () {
-                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                }),
-                backgroundColor: Colors.green,
-                duration: const Duration(seconds: 3)
-            ),
-          );
-          LogFileManager.writeLog("punch in try flag y result if $result");
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content: const Text('Already Marked!! or First Punch Out!!'),
-                action: SnackBarAction(label: 'X', onPressed: () {
-                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                }),
-                backgroundColor: Colors.redAccent,
-                duration: const Duration(seconds: 3)
-            ),
-          );
-          LogFileManager.writeLog("punch in try flag Y else result ");
-        }
-      } catch (e) {
-        print("Error: $e");
-
-        // If there is an error, show a SnackBar with the error message
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('Punch-in failed! Please try again.'),
-              duration: const Duration(seconds: 3)
-          ),
-        );
-        LogFileManager.writeLog("punch in catch flag N catch Error: $e");
-      } finally{
-        setState(() {
-          isLoading=false;
-        });
-      }
-    }
-    else{
-      try {
-        await LocationHandler.checkIfInZone();
-        _currentLat = LocationHandler.currentLat.toString();
-        _currentLon = LocationHandler.currentLon.toString();
-        _currentAddress = LocationHandler.currentAddress;
-        LogFileManager.writeLog("punch in N y else"+_currentLat! + _currentLon! + _currentAddress!);
-
-        String currentDate = DateFormat('dd-MM-yyyy HH:mm:ss').format(DateTime.now()).substring(0, 10);
-        String currentTime = DateFormat('dd-MM-yyyy HH:mm:ss').format(DateTime.now()).substring(11, 19);
-        String currentDateTime = DateFormat('dd-MM-yyyy HH:mm:ss').format(DateTime.now()).substring(0, 19);
-        await retorepunchdata();
-        if (await getInEntryFromDataBase(currentDate, currentTime, staffCode!)) {
-          String? result = await storeInEntry(currentDate, currentDateTime, staffCode!, "001", _currentAddress!, _currentLat!, _currentLon!,
-              plantcode?.toString() ?? "01"
-
-          );
-
-          print("result $result");
-
-          // After successful operation, show a SnackBar
-          setState(() {
-            isButtonDisabledIn = true;
-            isButtonDisabledOut = false;
-            _updateButtonInitialState();
-          });
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content: const Text('Punch-in Successful!'),
-                action: SnackBarAction(label: 'OK', onPressed: (){ScaffoldMessenger.of(context).hideCurrentSnackBar();}),
-                backgroundColor: Colors.green,
-                duration: const Duration(seconds: 3)
-            ),
-          );
-          LogFileManager.writeLog("punch in flag Y try if: $result");
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content: const Text('Already Marked!! or First Punch Out!!'),
-                action: SnackBarAction(label: 'X', onPressed: (){ScaffoldMessenger.of(context).hideCurrentSnackBar();}),
-                backgroundColor: Colors.redAccent,
-                duration: const Duration(seconds: 3)
-            ),
-          );
-          LogFileManager.writeLog("punch in flag Y try else ");
-        }
-      } catch (e) {
-        print("Error: $e");
-
-        // If there is an error, show a SnackBar with the error message
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('Punch-in failed! Please try again.'),
-              duration: const Duration(seconds: 3)
-          ),
-        );
-        print(_currentLat);
-        print(_currentLon);
-        print(_currentAddress);
-        print(staffCode);
-        print("actual location flag N catch $e");
-        LogFileManager.writeLog("actual location flag N catch $e");
-      } finally{
-        setState(() {
-          isLoading = false;
-        });
-      }
-    }
-  }
-  else{
-    print("errorrr0001");
-    if(ADDRESSFLAG == 'Y'){
-      print("errorrr0002");
-
-      LocationHandler.changeToRemoteLocation();
-      LocationHandler.remoteZoneLat = double.parse(REMOTELAT);
-      LocationHandler.remoteZoneLon = double.parse(REMOTELONG);
-      // _currentAddress = REMOTELOCATION.toString();
-      bool ifInZone = await LocationHandler.checkIfInZone();
-      print(ifInZone);
-      if(ifInZone) {
-        // Simulate API calls
-        try {
-          _currentLat = LocationHandler.currentLat.toString();
-          _currentLon = LocationHandler.currentLon.toString();
-          _currentAddress = LocationHandler.currentAddress;
-          LogFileManager.writeLog("punch in Y"+_currentLat! + _currentLon! + _currentAddress!);
-
-          String currentDate = DateFormat('dd-MM-yyyy HH:mm:ss').format(DateTime.now()).substring(0, 10);
-          String currentTime = DateFormat('dd-MM-yyyy HH:mm:ss').format(DateTime.now()).substring(11, 19);
-          String currentDateTime = DateFormat('dd-MM-yyyy HH:mm:ss').format(DateTime.now()).substring(0, 19);
-//if (await getOutEntryFromDataBase(currentDate, currentTime, staffCode!))
-          await retorepunchdata();
-          if (await getInEntryFromDataBase(currentDate, currentTime, staffCode!)) {
-            String? result = await storeInEntry(currentDate, currentDateTime, staffCode!, "001", _currentAddress!, _currentLat!, _currentLon!,plantcode?.toString() ?? "01"
-            );
-            print(currentDate);
-            print(currentTime);
-            print(currentDateTime);
-            print(_currentAddress);
-            // After successful operation, show a SnackBar
-            setState(() {
-              isButtonDisabledIn = true;
-              isButtonDisabledOut = false;
-              _updateButtonInitialState();
-            });
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                  content: const Text('Punch-in Successful!'),
-                  action: SnackBarAction(label: 'OK', onPressed: (){ScaffoldMessenger.of(context).hideCurrentSnackBar();}),
-                  backgroundColor: Colors.green,
-                  duration: const Duration(seconds: 3)
-              ),
-            );
-            LogFileManager.writeLog("punch in flag N else if try: $result");
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                  content: const Text('Already Marked!! or First Punch Out!!'),
-                  action: SnackBarAction(label: 'X', onPressed: (){ScaffoldMessenger.of(context).hideCurrentSnackBar();}),
-                  backgroundColor: Colors.redAccent,
-                  duration: const Duration(seconds: 3)
-              ),
-            );
-          }
-          LogFileManager.writeLog("punch in flag N else if else");
-        } catch (e) {
-          print("Error: $e");
-
-          // If there is an error, show a SnackBar with the error message
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-                content: Text('Punch-in failed! Please try again.'),
-                duration: const Duration(seconds: 3)
-            ),
-          );
-          LogFileManager.writeLog("punch in flag N else catch Error: $e");
-        } finally{
-          setState(() {
-            isLoading = false;
-          });
-        }
-      } else{
-        Fluttertoast.showToast(
-            msg: "Not in zone!!",
-            toastLength: Toast.LENGTH_SHORT,
-            gravity: ToastGravity.BOTTOM,
-            timeInSecForIosWeb: 1,
-            // textColor: Colors.white,
-            fontSize: 12.0
-        );
-        LogFileManager.writeLog("punch in flag y not in zone");
-        print("Not in zone");
-      }
-    }
-    else{
-      bool ifInZone = await LocationHandler.checkIfInZone();
-      if(ifInZone) {
-        try {
-          _currentLat = LocationHandler.currentLat.toString();
-          _currentLon = LocationHandler.currentLon.toString();
-          _currentAddress = LocationHandler.currentAddress;
-          print(_currentLat);
-          print(_currentLon);
-          print(_currentAddress);
-          LogFileManager.writeLog("punch in else y  else"+_currentLat! + _currentLon! + _currentAddress!);
-
-          String currentDate = DateFormat('dd-MM-yyyy HH:mm:ss').format(
-              DateTime.now()).substring(0, 10);
-          String currentTime = DateFormat('dd-MM-yyyy HH:mm:ss').format(
-              DateTime.now()).substring(11, 19);
-          String currentDateTime = DateFormat('dd-MM-yyyy HH:mm:ss').format(
-              DateTime.now()).substring(0, 19);
-          await retorepunchdata();
-          if (await getInEntryFromDataBase(
-              currentDate, currentTime, staffCode!)) {
-            String? result = await storeInEntry(
-                currentDate,
-                currentDateTime,
-                staffCode!,
-                "001",
-                _currentAddress!,
-                _currentLat!,
-                _currentLon!,
-                plantcode?.toString() ?? "01"
-
-            );
-
-            print("result $result");
-
-            // After successful operation, show a SnackBar
-            setState(() {
-              isButtonDisabledIn = true;
-              isButtonDisabledOut = false;
-              _updateButtonInitialState();
-            });
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                  content: const Text('Punch-in Successful!'),
-                  action: SnackBarAction(label: 'OK', onPressed: () {
-                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                  }),
-                  backgroundColor: Colors.green,
-                  duration: const Duration(seconds: 3)
-              ),
-            );
-            LogFileManager.writeLog("punch in flag N else actual location: $result");
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                  content: const Text(
-                      'Already Marked!! or First Punch Out!!'),
-                  action: SnackBarAction(label: 'X', onPressed: () {
-                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                  }),
-                  backgroundColor: Colors.redAccent,
-                  duration: const Duration(seconds: 3)
-              ),
-            );
-          }
-        } catch (e) {
-          print("Error: $e");
-
-          // If there is an error, show a SnackBar with the error message
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-                content: Text('Punch-in failed! Please try again.'),
-                duration: const Duration(seconds: 3)
-            ),
-          );
-          LogFileManager.writeLog("punch in flag N else actual location catch: $e");
-
-        } finally{
-          setState(() {
-            isLoading = false;
-          });
-        }
-      } else {
-        Fluttertoast.showToast(
-            msg: "Not in zone!!",
-            toastLength: Toast.LENGTH_SHORT,
-            gravity: ToastGravity.BOTTOM,
-            timeInSecForIosWeb: 1,
-            // textColor: Colors.white,
-            fontSize: 12.0
-        );
-        LogFileManager.writeLog("punch in flag P not in zone");
-        print("Not in zone");
-      }
-    }
-  }
-
-}
-
-Future<void> punchOut() async {
-  bool hasPermission = await handleLocationPermission();
-  if (!hasPermission) {
-    _showSnackbar("Location permission required for Punch In!.Please allow from settings");
-    return;
-  }
-
-  if(DISTANCEFLAG =='Y'){
-    if(ADDRESSFLAG == 'Y') {
-      LocationHandler.changeToRemoteLocation();
-
-      LocationHandler.remoteZoneLat = double.parse(REMOTELAT);
-      LocationHandler.remoteZoneLon = double.parse(REMOTELONG);
-      // _currentAddress = REMOTELOCATION.toString();
-      // bool ifInZone = await LocationHandler.checkIfInZone();
-      // if (ifInZone) {
-      try {
-        _currentLat = LocationHandler.currentLat.toString();
-        _currentLon = LocationHandler.currentLon.toString();
-        _currentAddress = LocationHandler.currentAddress;
-        LogFileManager.writeLog("punch out N Y"+_currentLat! + _currentLon! + _currentAddress!);
-
-        String currentDate = DateFormat('dd-MM-yyyy HH:mm:ss').format(
-            DateTime.now()).substring(0, 10);
-        String currentTime = DateFormat('dd-MM-yyyy HH:mm:ss').format(
-            DateTime.now()).substring(11, 19);
-        String currentDateTime = DateFormat('dd-MM-yyyy HH:mm:ss').format(
-            DateTime.now()).substring(0, 19);
-        await retorepunchoutdata();
-        if (await getOutEntryFromDataBase(currentDate, currentTime, staffCode!)) {
-          String? result = await storeOutEntry(
-              currentDate,
-              currentDateTime,
-              staffCode!,
-              "000",
-              _currentAddress!,
-              _currentLat!,
-              _currentLon!,
-              plantcode?.toString() ?? "01"
-          );
-
-          print("result $result");
-
-          // After successful operation, show a SnackBar
-          setState(() {
-            isButtonDisabledIn = true;
-            isButtonDisabledOut = false;
-            _updateButtonInitialState();
-          });
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content: const Text('Punch-out Successful!'),
-                action: SnackBarAction(label: 'OK', onPressed: () {
-                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                }),
-                backgroundColor: Colors.green,
-                duration: const Duration(seconds: 3)
-            ),
-          );
-          LogFileManager.writeLog("punch out remote location try: $result");
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content: const Text('Already Marked!! or First Punch Out!!'),
-                action: SnackBarAction(label: 'X', onPressed: () {
-                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                }),
-                backgroundColor: Colors.redAccent,
-                duration: const Duration(seconds: 3)
-            ),
-          );
-        }
-      } catch (e) {
-        print("Error: $e");
-
-        // If there is an error, show a SnackBar with the error message
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('Punch-out failed! Please try again.'),
-              duration: const Duration(seconds: 3)
-          ),
-        );
-        LogFileManager.writeLog("punch out remote location catch: $e");
-      } finally{
-        setState(() {
-          isLoading = false;
-        });
-      }
-    }
-    else{
-      try {
-        await LocationHandler.checkIfInZone();
-        _currentLat = LocationHandler.currentLat.toString()??'';
-        _currentLon = LocationHandler.currentLon.toString();
-        _currentAddress = LocationHandler.currentAddress;
-        LogFileManager.writeLog("punch out N y else"+_currentLat! + _currentLon! + _currentAddress!);
-
-        String currentDate = DateFormat('dd-MM-yyyy HH:mm:ss').format(DateTime.now()).substring(0, 10);
-        String currentTime = DateFormat('dd-MM-yyyy HH:mm:ss').format(DateTime.now()).substring(11, 19);
-        String currentDateTime = DateFormat('dd-MM-yyyy HH:mm:ss').format(DateTime.now()).substring(0, 19);
-        await retorepunchoutdata();
-
-        if (await getOutEntryFromDataBase(currentDate, currentTime, staffCode!)) {
-          String? result = await storeOutEntry(currentDate, currentDateTime, staffCode!, "000", _currentAddress!, _currentLat!, _currentLon!,plantcode?.toString() ?? "01"
-          );
-
-          print("result $result");
-
-          // After successful operation, show a SnackBar
-          setState(() {
-            isButtonDisabledIn = true;
-            isButtonDisabledOut = false;
-            _updateButtonInitialState();
-          });
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content: const Text('Punch-out Successful!'),
-                action: SnackBarAction(label: 'OK', onPressed: (){ScaffoldMessenger.of(context).hideCurrentSnackBar();}),
-                backgroundColor: Colors.green,
-                duration: const Duration(seconds: 3)
-            ),
-          );
-          LogFileManager.writeLog("punch out acual location try: $result");
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content: const Text('Already Marked!! or First Punch Out!!'),
-                action: SnackBarAction(label: 'X', onPressed: (){ScaffoldMessenger.of(context).hideCurrentSnackBar();}),
-                backgroundColor: Colors.redAccent,
-                duration: const Duration(seconds: 3)
-            ),
-          );
-          LogFileManager.writeLog("punch out actual location try else");
-        }
-
-      } catch (e) {
-        print("Error: $e");
-
-        // If there is an error, show a SnackBar with the error message
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('Punch-out failed! Please try again.'),
-              duration: const Duration(seconds: 3)
-          ),
-        );
-        LogFileManager.writeLog("punch out actual location catch: $e");
-      } finally {
-        setState(() {
-          isLoading = false;
-        });
-      }
-    }
-  }
-  else{
-    print("errorrr001");
-
-    if(ADDRESSFLAG == 'Y'){
-
-      print("errorrr002");
-
-      LocationHandler.changeToRemoteLocation();
-
-      // String? remoLoc= REMOTELOCATION.toString();
-      // String? remoLat= REMOTELAT.toString();
-      // String? remoLong= REMOTELONG.toString();
-      // print("error"+ remoLoc + remoLong + remoLat);
-
-      // setState(() async {
-      //
-      // });
-*/
-/**/ /*
-
-      LocationHandler.remoteZoneLat = double.parse(REMOTELAT);
-      LocationHandler.remoteZoneLon = double.parse(REMOTELONG);
-      // _currentAddress = REMOTELOCATION.toString();
-      bool ifInZone = await LocationHandler.checkIfInZone();
-      if(ifInZone) {
-        // Simulate API calls
-        try {
-          _currentLat = LocationHandler.currentLat.toString();
-          _currentLon = LocationHandler.currentLon.toString();
-          _currentAddress = LocationHandler.currentAddress;
-          LogFileManager.writeLog("punch out else y"+_currentLat! + _currentLon! + _currentAddress!);
-
-          String currentDate = DateFormat('dd-MM-yyyy HH:mm:ss').format(
-              DateTime.now()).toString().substring(0, 10);
-          String currentTime = DateFormat('dd-MM-yyyy HH:mm:ss').format(
-              DateTime.now()).toString().substring(11, 19);
-          String currentDateTime = DateFormat('dd-MM-yyyy HH:mm:ss').format(
-              DateTime.now()).toString().substring(0, 19);
-          await retorepunchoutdata();
-
-          if (await getOutEntryFromDataBase(
-              currentDate, currentTime, staffCode!)) {
-            String? result = await storeOutEntry(
-                currentDate,
-                currentDateTime,
-                staffCode!,
-                "000",
-                _currentAddress!,
-                _currentLat!,
-                _currentLon!,
-                plantcode?.toString() ?? "01"
-            );
-
-            setState(() {
-              isButtonDisabledOut = true;
-              isButtonDisabledIn = false;
-              _updateButtonInitialState();
-            });
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: const Text('Punch-out Successful!'),
-                action: SnackBarAction(label: 'OK', onPressed: () {
-                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                }),
-                backgroundColor: Colors.green,
-              ),
-            );
-            LogFileManager.writeLog("punch out remote location flagN else  try: $result");
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                  content: const Text('Already Marked!! or First Punch In!!'),
-                  action: SnackBarAction(label: 'X', onPressed: () {
-                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                  }),
-                  backgroundColor: Colors.redAccent,
-                  duration: const Duration(seconds: 3)
-              ),
-            );
-            LogFileManager.writeLog("punch out remote location fllag N else else");
-          }
-        } catch (e) {
-          print("Error: $e");
-
-          // If there is an error, show a SnackBar with the error message
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-                content: Text('Punch-out failed! Please try again.'),
-                duration: const Duration(seconds: 3)
-            ),
-          );
-          LogFileManager.writeLog("punch out remote location flagN else  catch: $e");
-        } finally{
-          setState(() {
-            isLoading = false;
-          });
-        }
-      } else{
-        Fluttertoast.showToast(
-            msg: "Not in zone!!",
-            toastLength: Toast.LENGTH_SHORT,
-            gravity: ToastGravity.BOTTOM,
-            timeInSecForIosWeb: 1,
-            // textColor: Colors.white,
-            fontSize: 12.0
-        );
-        print("Not in zone");
-        LogFileManager.writeLog("punch out remote location flagN not in zone");
-      }
-    }
-    else{
-      bool ifInZone = await LocationHandler.checkIfInZone();
-      if(ifInZone) {
-        try {
-          _currentLat = LocationHandler.currentLat.toString();
-          _currentLon = LocationHandler.currentLon.toString();
-          _currentAddress = LocationHandler.currentAddress;
-          LogFileManager.writeLog("punch out else y else"+_currentLat! + _currentLon! + _currentAddress!);
-
-          String currentDate = DateFormat('dd-MM-yyyy HH:mm:ss').format(
-              DateTime.now()).substring(0, 10);
-          String currentTime = DateFormat('dd-MM-yyyy HH:mm:ss').format(
-              DateTime.now()).substring(11, 19);
-          String currentDateTime = DateFormat('dd-MM-yyyy HH:mm:ss').format(
-              DateTime.now()).substring(0, 19);
-          await retorepunchoutdata();
-
-          if (await getOutEntryFromDataBase(
-              currentDate, currentTime, staffCode!)) {
-            String? result = await storeOutEntry(
-                currentDate,
-                currentDateTime,
-                staffCode!,
-                "000",
-                _currentAddress!,
-                _currentLat!,
-                _currentLon!,
-                plantcode?.toString() ?? "01"
-            );
-
-            print("result $result");
-
-            // After successful operation, show a SnackBar
-            setState(() {
-              isButtonDisabledIn = true;
-              isButtonDisabledOut = false;
-              _updateButtonInitialState();
-            });
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                  content: const Text('Punch-out Successful!'),
-                  action: SnackBarAction(label: 'OK', onPressed: () {
-                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                  }),
-                  backgroundColor: Colors.green,
-                  duration: const Duration(seconds: 3)
-              ),
-            );
-            LogFileManager.writeLog("punch out actual location flagN else  catch: $result");
-
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                  content: const Text(
-                      'Already Marked!! or First Punch Out!!'),
-                  action: SnackBarAction(label: 'X', onPressed: () {
-                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                  }),
-                  backgroundColor: Colors.redAccent,
-                  duration: const Duration(seconds: 3)
-              ),
-            );
-            LogFileManager.writeLog("punch out remote location flagN else  else");
-
-          }
-        } catch (e) {
-          print("Error: $e");
-          print(_currentLat);
-          print(_currentLon);
-          print(_currentAddress);
-          // If there is an error, show a SnackBar with the error message
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-                content: Text('Punch-out failed! Please try again.'),
-                duration: const Duration(seconds: 3)
-            ),
-          );
-          LogFileManager.writeLog("punch out actual location flagN else  catch: $e");
-
-        } finally{
-          setState(() {
-            isLoading = false;
-          });
-        }
-      }
-      else{
-        Fluttertoast.showToast(
-            msg: "Not in zone!!",
-            toastLength: Toast.LENGTH_SHORT,
-            gravity: ToastGravity.BOTTOM,
-            timeInSecForIosWeb: 1,
-            // textColor: Colors.white,
-            fontSize: 12.0
-        );
-        print("Not in zone");
-        LogFileManager.writeLog("punch out actaual location flagN else not in zone");
-
-      }
-    }
-  }
-}*/
