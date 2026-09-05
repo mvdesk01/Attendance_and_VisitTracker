@@ -45,7 +45,10 @@ class _AttendanceReportState extends State<AttendanceReport> {
   DateTime? focusedDay;
   DateTime? selectedDay;
   Map<DateTime, List<InOutDetail>> attendanceData = {};
-  Set<DateTime> presentDays = {};
+
+  Set<DateTime> completedDays = {}; // IN + OUT
+  Set<DateTime> punchInOnlyDays = {}; // IN but no OUT
+  // Set<DateTime> presentDays = {};
   Set<DateTime> absentDays = {};
 
   // int countOfPresentDayinMonth = countOfPresent();
@@ -89,9 +92,10 @@ class _AttendanceReportState extends State<AttendanceReport> {
       setState(() => isLoading = true);
 
       DateTime now = DateTime.now();
-      DateTime sixMonthsAgo = DateTime(now.year, now.month - 5, 1);
+      // DateTime sixMonthsAgo = DateTime(now.year, now.month - 5, 1);
+      DateTime oneYearAgo = DateTime(now.year, now.month - 11, 1,);
 
-      String formattedFromDate = DateFormat('dd/MM/yyyy').format(sixMonthsAgo);
+      String formattedFromDate = DateFormat('dd/MM/yyyy').format(oneYearAgo);
       String formattedToDate = DateFormat('dd/MM/yyyy').format(now);
 
       final response = await http
@@ -120,31 +124,73 @@ class _AttendanceReportState extends State<AttendanceReport> {
             data.map((item) => InOutDetail.fromJson(item)).toList();
 
         attendanceData.clear();
-        presentDays.clear();
+        completedDays.clear();
+        punchInOnlyDays.clear();
         absentDays.clear();
 
         for (var detail in details) {
-          DateTime date = DateFormat('dd/MM/yyyy HH:mm:ss')
+          final date = DateFormat('dd/MM/yyyy HH:mm:ss')
               .parse(detail.transactionTime!)
               .toLocal();
-          DateTime normalizedDate =
-              DateTime(date.year, date.month, date.day); // Remove time
 
-          presentDays.add(normalizedDate);
+          final normalizedDate = DateTime(
+            date.year,
+            date.month,
+            date.day,
+          );
 
-          if (!attendanceData.containsKey(normalizedDate)) {
-            attendanceData[normalizedDate] = [];
-          }
+          attendanceData.putIfAbsent(normalizedDate, () => []);
           attendanceData[normalizedDate]!.add(detail);
+        }
+        for (final entry in attendanceData.entries) {
+          final date = entry.key;
+          final records = entry.value;
+
+          final hasPunchIn = records.any(
+                (detail) => detail.inOut?.toUpperCase() == 'IN',
+          );
+
+          final hasPunchOut = records.any(
+                (detail) => detail.inOut?.toUpperCase() == 'OUT',
+          );
+
+          if (hasPunchIn && hasPunchOut) {
+            completedDays.add(date);
+          } else if (hasPunchIn) {
+            punchInOnlyDays.add(date);
+          }
         }
 
         // Identify absent days for the last 6 months
-        for (int i = 0; i < 180; i++) {
-          // 6 months = ~180 days
-          DateTime day = sixMonthsAgo.add(Duration(days: i));
-          if (!presentDays.contains(day) && day.isBefore(now)) {
-            absentDays.add(day);
+        // for (int i = 0; i < 180; i++) {
+        //   // 6 months = ~180 days
+        //   DateTime day = sixMonthsAgo.add(Duration(days: i));
+        //   if (!presentDays.contains(day) && day.isBefore(now)) {
+        //     absentDays.add(day);
+        //   }
+        // }
+        DateTime currentDay = DateTime(
+          oneYearAgo.year,
+          oneYearAgo.month,
+          oneYearAgo.day,
+        );
+
+        final todayDate = DateTime(
+          now.year,
+          now.month,
+          now.day,
+        );
+
+        while (!currentDay.isAfter(todayDate)) {
+          final hasAttendance = attendanceData.keys.any(
+                (date) => isSameDay(date, currentDay),
+          );
+
+          if (!hasAttendance) {
+            absentDays.add(currentDay);
           }
+
+          currentDay = currentDay.add(const Duration(days: 1));
         }
       }
 
@@ -395,14 +441,42 @@ class _AttendanceReportState extends State<AttendanceReport> {
                   ),
                   calendarBuilders: CalendarBuilders(
                     defaultBuilder: (context, day, _) {
-                      final normalizedDay =
-                          DateTime(day.year, day.month, day.day);
-                      if (presentDays.any((d) => isSameDay(d, normalizedDay))) {
-                        return _buildCalendarCell(day, Colors.green);
-                      } else if (absentDays
-                          .any((d) => isSameDay(d, normalizedDay))) {
-                        return _buildCalendarCell(day, Colors.red);
+                      final normalizedDay = DateTime(
+                        day.year,
+                        day.month,
+                        day.day,
+                      );
+
+                      // IN + OUT = Completed
+                      if (completedDays.any(
+                            (d) => isSameDay(d, normalizedDay),
+                      )) {
+                        return _buildCalendarCell(
+                          day,
+                          Colors.green,
+                        );
                       }
+
+                      // Only IN = Currently inside / incomplete
+                      if (punchInOnlyDays.any(
+                            (d) => isSameDay(d, normalizedDay),
+                      )) {
+                        return _buildCalendarCell(
+                          day,
+                          Colors.orange,
+                        );
+                      }
+
+                      // No attendance = Absent
+                      if (absentDays.any(
+                            (d) => isSameDay(d, normalizedDay),
+                      )) {
+                        return _buildCalendarCell(
+                          day,
+                          Colors.red,
+                        );
+                      }
+
                       return null;
                     },
                   ),
@@ -490,11 +564,11 @@ class _AttendanceReportState extends State<AttendanceReport> {
     return a.year == b.year && a.month == b.month && a.day == b.day;
   }
 
-  int _getPresentDaysCount(DateTime month) {
-    return presentDays
-        .where((date) => date.year == month.year && date.month == month.month)
-        .length;
-  }
+  // int _getPresentDaysCount(DateTime month) {
+  //   return presentDays
+  //       .where((date) => date.year == month.year && date.month == month.month)
+  //       .length;
+  // }
 
   Widget _buildSelectedAttendanceList() {
     DateTime day = selectedDay!;
@@ -579,60 +653,49 @@ class _AttendanceReportState extends State<AttendanceReport> {
     );
   }
 
-  Widget _buildAttendanceDetails(DateTime day) {
-    List<InOutDetail> details = attendanceData[day] ?? [];
+  Widget _buildLegend() {
+    final presentCount = completedDays
+        .where(
+          (date) =>
+      date.year == (focusedDay ?? DateTime.now()).year &&
+          date.month == (focusedDay ?? DateTime.now()).month,
+    )
+        .length;
 
-    if (details.isEmpty) return SizedBox();
+    final incompleteCount = punchInOnlyDays
+        .where(
+          (date) =>
+      date.year == (focusedDay ?? DateTime.now()).year &&
+          date.month == (focusedDay ?? DateTime.now()).month,
+    )
+        .length;
 
-    DateTime? firstPunch = details.isNotEmpty
-        ? DateFormat('dd/MM/yyyy HH:mm:ss')
-            .parse(details.first.transactionTime!)
-            .toLocal()
-        : null;
-
-    DateTime? lastPunch = details.isNotEmpty
-        ? DateFormat('dd/MM/yyyy HH:mm:ss')
-            .parse(details.last.transactionTime!)
-            .toLocal()
-        : null;
-
-    Duration totalDuration = Duration();
-    if (firstPunch != null && lastPunch != null) {
-      totalDuration = lastPunch.difference(firstPunch);
-    }
-
-    return Flexible(
+    return Center(
       child: Container(
-        padding: EdgeInsets.all(15),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: Colors.grey.shade400,
+          ),
+        ),
+        child: Wrap(
+          spacing: 14,
+          runSpacing: 8,
+          alignment: WrapAlignment.center,
           children: [
-            Text(
-              "Attendance Details - ${DateFormat('dd MMM yyyy').format(day)}",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            _legendItem(
+              Colors.green,
+              "Present ($presentCount)",
             ),
-            SizedBox(height: 10),
-            Expanded(
-              child: ListView.builder(
-                shrinkWrap: true,
-                physics: BouncingScrollPhysics(),
-                itemCount: details.length,
-                itemBuilder: (context, index) {
-                  final detail = details[index];
-                  return ListTile(
-                    title: Text("${detail.inOut} at ${detail.transactionTime}"),
-                    subtitle: Text("Address: ${detail.address}"),
-                  );
-                },
-              ),
+            _legendItem(
+              Colors.orange,
+              "Attendance Started ($incompleteCount)",
             ),
-            Divider(),
-            Text(
-              "Total Hours: ${totalDuration.inHours}h ${totalDuration.inMinutes.remainder(60)}m",
-              style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.blue),
+            _legendItem(
+              Colors.red,
+              "Absent",
             ),
           ],
         ),
@@ -640,51 +703,22 @@ class _AttendanceReportState extends State<AttendanceReport> {
     );
   }
 
-  Widget _buildLegend() {
-    int presentCount =
-        _getPresentDaysCount(focusedDay ?? DateTime.now()); // Use focusedDay
-
-    return Center(
-      child: Container(
-        padding: EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: Colors.grey.shade400),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.3),
-              blurRadius: 5,
-              spreadRadius: 2,
-              offset: Offset(2, 3),
-            ),
-          ],
+  Widget _legendItem(Color color, String text) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        CircleAvatar(
+          backgroundColor: color,
+          radius: 8,
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Row(
-              children: [
-                CircleAvatar(backgroundColor: Colors.green, radius: 8),
-                SizedBox(width: 8),
-                Text(
-                  "Present ($presentCount)",
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-            SizedBox(width: 8), // Space between rows
-            Row(
-              children: [
-                CircleAvatar(backgroundColor: Colors.red, radius: 8),
-                SizedBox(width: 8),
-                Text("Absent"),
-              ],
-            ),
-          ],
+        const SizedBox(width: 6),
+        Text(
+          text,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+          ),
         ),
-      ),
+      ],
     );
   }
 
@@ -1011,85 +1045,6 @@ class _AttendanceReportState extends State<AttendanceReport> {
     );
   }
 
-  Widget _buildLegendItem(Color color, String label) {
-    return Row(
-      children: [
-        Container(
-          width: 15,
-          height: 15,
-          decoration: BoxDecoration(
-            color: color,
-            shape: BoxShape.circle,
-          ),
-        ),
-        const SizedBox(width: 5),
-        Text(label),
-      ],
-    );
-  }
-
-  _showAttendanceDetails(DateTime day) {
-    List<InOutDetail> details = attendanceData[day] ?? [];
-
-    if (details.isEmpty) return;
-
-    DateTime? firstPunch = details.isNotEmpty
-        ? DateFormat('dd/MM/yyyy HH:mm:ss')
-            .parse(details.first.transactionTime!)
-            .toLocal()
-        : null;
-
-    DateTime? lastPunch = details.isNotEmpty
-        ? DateFormat('dd/MM/yyyy HH:mm:ss')
-            .parse(details.last.transactionTime!)
-            .toLocal()
-        : null;
-
-    Duration totalDuration = Duration();
-    if (firstPunch != null && lastPunch != null) {
-      totalDuration = lastPunch.difference(firstPunch);
-    }
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Padding(
-          padding: EdgeInsets.all(15),
-          child: Text(
-              "Attendance Details - ${DateFormat('dd MMM yyyy').format(day)}"),
-        ),
-        content: Padding(
-            padding: EdgeInsets.all(10),
-            child: Expanded(
-              flex: 2,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  ...details.map((detail) => ListTile(
-                        title: Text(
-                            "${detail.inOut} at ${detail.transactionTime}"),
-                        subtitle: Text("Address: ${detail.address}"),
-                      )),
-                  Divider(),
-                  Text(
-                    "Total Hours: ${totalDuration.inHours}h ${totalDuration.inMinutes.remainder(60)}m",
-                    style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blue),
-                  ),
-                ],
-              ),
-            )),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text("Close"),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 /*Future<void> fetchAttendanceDataMonthlyReport() async {

@@ -33,14 +33,14 @@ if let controller = window?.rootViewController as? FlutterViewController {
 }
 //   LocationManager.shared.startTracking()
 
-   // 🔧 Set background task identifier
+       // 🔧 Set background task identifier
        SwiftFlutterBackgroundServicePlugin.taskIdentifier = "dev.flutter.background.refresh"
 
     // ✅ Replace with your actual Google Maps API key
-    GMSServices.provideAPIKey("AIzaSyBC90u7o29p3ewzEWoTzXNlt1EQuYOZGV8")
+    GMSServices.provideAPIKey("AIzaSyBC90u7o29p3ewzEWoTzXNlt1EQuYOZGV8")     // native sdk initiallization
 
     FlutterLocalNotificationsPlugin.setPluginRegistrantCallback { (registry) in
-      GeneratedPluginRegistrant.register(with: registry)
+      GeneratedPluginRegistrant.register(with: registry)                    // plugin register
     }
 
     GeneratedPluginRegistrant.register(with: self)

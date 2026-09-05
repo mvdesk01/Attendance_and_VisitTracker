@@ -54,7 +54,14 @@ class UpdatedeviceidState extends State<Updatedeviceid>{
     _mainBloc = BlocProvider.of(context);
     return Scaffold(
       resizeToAvoidBottomInset: true,
-
+      appBar: AppBar(
+        title: const Text("Register New Device", style: TextStyle(color: Colors.white),),
+        centerTitle: true,
+        backgroundColor: MyColors.lightBlue,
+        // actions: [
+        //   IconButton(onPressed:(){}, icon: const Icon(Icons.arrow_back))
+        // ],
+      ),
       body: _updatescreen(),
     );
   }
@@ -63,7 +70,7 @@ class UpdatedeviceidState extends State<Updatedeviceid>{
       isLoading: isLoading,
       opacity: 0.5,
       color: Colors.white,
-      progressIndicator: CircularProgressIndicator(
+      progressIndicator: const CircularProgressIndicator(
         backgroundColor: Color(0xFFCE4A6F),
         valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
       ),

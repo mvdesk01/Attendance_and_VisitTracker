@@ -285,6 +285,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         SizedBox(height: 5),
                         const SizedBox(height: 30),
+
                         Padding(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 32, vertical: 12),
@@ -413,24 +414,22 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         ),
 
-                        // SizedBox(height: 20,),
-                        // Center(
-                        //   child:
-                        //     TextButton(onPressed: (){
-                        //       Navigator.push(context, MaterialPageRoute(builder: (context)=> Updatedeviceid()));
-                        //       //Navigator.push(context, MaterialPageRoute(builder: (context)=> Updatedeviceidnew()));
-                        //     },
-                        //         child: const Text('Switched To New Device?Register New Device Here!'))
-                        //
-                        // )
+                        const SizedBox(height: 20,),
+                        Center(
+                          child:
+                            TextButton(onPressed: (){
+                              Navigator.push(context, MaterialPageRoute(builder: (context)=> const Updatedeviceid()));
+                              //Navigator.push(context, MaterialPageRoute(builder: (context)=> Updatedeviceidnew()));
+                            },
+                                child: const Text('Switched To New Device?Register New Device Here!'))
+
+                        )
 
                       ])),
             ],
           )),
     );
   }
-
-
 
   void doLogin(String username, String passwordd) {
     String userName = username;
@@ -482,6 +481,13 @@ class _LoginScreenState extends State<LoginScreen> {
       storage.delete(key: 'password');
     }
   }
+
+  Future<void> checkDeviceId() async {
+    final deviceInfo = DeviceInfoPlugin();
+
+    await checkBiometrics();
+  }
+
 
   Future<void> checkBiometrics() async {
     try {
