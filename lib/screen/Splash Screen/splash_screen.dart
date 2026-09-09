@@ -191,7 +191,41 @@ class _SplashScreenState extends State<SplashScreen> {
     }
   }
 
-  Future<void> _checkRememberMe() async {
+  Future<void> _logoutAndGoToLogin() async {
+    try {
+      // Clear remembered login credentials
+      await storage.delete(key: 'username');
+      await storage.delete(key: 'password');
+
+      // Clear authentication/session data as well
+      await storage.delete(key: 'Auth_Token');
+      await storage.delete(key: 'Staff_Code');
+      await storage.delete(key: 'Staff_Name');
+
+      final prefs = await SharedPreferences.getInstance();
+
+      // Clear stored token from SharedPreferences
+      await prefs.remove('Auth_TokenVal');
+
+      if (!mounted) return;
+
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(
+          builder: (_) => BlocProvider(
+            create: (_) => MainBloc(webService: WebService()),
+            child: const LoginScreen(),
+          ),
+        ),
+        (route) => false,
+      );
+    } catch (e) {
+      LogFileManager.writeLog(
+        "Error while logging out from splash: $e",
+      );
+    }
+  }
+
+/*  Future<void> _checkRememberMe() async {
     String storedUsername = 'Null';
     String storedPassword = 'Null';
     try {
@@ -219,6 +253,63 @@ class _SplashScreenState extends State<SplashScreen> {
         ),
       );
     }
+  }*/
+
+  Future<void> _checkRememberMe() async {
+    String? storedUsername;
+    String? storedPassword;
+
+    try {
+      storedUsername = await storage.read(key: 'username');
+      storedPassword = await storage.read(key: 'password');
+    } catch (e) {
+      LogFileManager.writeLog(
+        "Error reading remembered credentials: $e",
+      );
+
+      await storage.delete(key: 'username');
+      await storage.delete(key: 'password');
+
+      if (!mounted) return;
+
+      await _logoutAndGoToLogin();
+      return;
+    }
+
+    // No remembered credentials
+    if (storedUsername == null ||
+        storedUsername!.isEmpty ||
+        storedPassword == null ||
+        storedPassword!.isEmpty) {
+      if (!mounted) return;
+
+      await Future.delayed(const Duration(seconds: 1));
+
+      if (!mounted) return;
+
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => BlocProvider(
+            create: (_) => MainBloc(webService: WebService()),
+            child: const LoginScreen(),
+          ),
+        ),
+      );
+
+      return;
+    }
+
+    // Check admin
+    isAdminLogin =
+        (storedUsername == "mzdl002" && storedPassword == "Admin@123\$");
+
+    // Automatically attempt login with remembered credentials
+    _mainBloc?.add(
+      LoginEvents(
+        username: storedUsername!,
+        password: storedPassword!,
+      ),
+    );
   }
 
   @override
@@ -233,7 +324,7 @@ class _SplashScreenState extends State<SplashScreen> {
           color: MyColors.appDefaultColorCode,
         ),
         child: BlocListener<MainBloc, MainState>(
-          listener: (context, state) {
+          listener: (context, state) async {
             if (state is LoginLoadingState) {
               setState(() => _isLoading = true);
             } else if (state is LoginLoadedState) {
@@ -242,6 +333,8 @@ class _SplashScreenState extends State<SplashScreen> {
                 storage.write(
                     key: 'Auth_Token',
                     value: state.loginResponse!.token!.result!.token);
+                if (!mounted) return;
+
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
@@ -253,19 +346,43 @@ class _SplashScreenState extends State<SplashScreen> {
                     ),
                   ),
                 );
+              } else {
+                LogFileManager.writeLog(
+                  "Automatic login failed: invalid remembered credentials.",
+                );
+
+                await _logoutAndGoToLogin();
               }
             } else if (state is LoginErrorState) {
+              if (!mounted) return;
               setState(() => _isLoading = false);
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => BlocProvider(
-                    create: (context) => MainBloc(webService: WebService()),
-                    child: const LoginScreen(),
-                  ),
-                ),
+              LogFileManager.writeLog(
+                "Automatic login failed with LoginErrorState.",
               );
+
+              await _logoutAndGoToLogin();
+              // Navigator.pushReplacement(
+              //   context,
+              //   MaterialPageRoute(
+              //     builder: (_) => BlocProvider(
+              //       create: (context) => MainBloc(webService: WebService()),
+              //       child: const LoginScreen(),
+              //     ),
+              //   ),
+              // );
             }
+            // else if (state is LoginErrorState) {
+            //   setState(() => _isLoading = false);
+            //   Navigator.pushReplacement(
+            //     context,
+            //     MaterialPageRoute(
+            //       builder: (_) => BlocProvider(
+            //         create: (context) => MainBloc(webService: WebService()),
+            //         child: const LoginScreen(),
+            //       ),
+            //     ),
+            //   );
+            // }
           },
           child: Stack(
             fit: StackFit.expand,

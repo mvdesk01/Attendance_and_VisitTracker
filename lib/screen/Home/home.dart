@@ -176,7 +176,16 @@ class _HomeScreenState extends State<HomeScreen> {
     await getData();
     await _checkAndRequestLocationPermission();
 
-    await _restorePunchState();
+    ///new changes
+    final nightShift = await isNightShift();
+    if (nightShift) {
+      // NIGHT SHIFT → SQLite state
+      await _restorePunchState();
+    } else {
+      // DAY SHIFT → existing date-wise API behavior
+      await _updateButtonInitialState();
+    }
+    // await _restorePunchState();
     // await _updateButtonInitialsqliteState();
     // await _updateButtonInitialState();
   }
@@ -300,6 +309,16 @@ class _HomeScreenState extends State<HomeScreen> {
       print("Error restoring latest punch from server: $e");
       return null;
     }
+  }
+
+  Future<bool> isNightShift() async {
+    final shiftDate = DateFormat('dd/MM/yyyy').format(DateTime.now());
+
+    final shiftType = await getShiftType(shiftDate);
+
+    print("Current shift type: $shiftType");
+
+    return shiftType?.toUpperCase() == "N";
   }
 
   Future<void> _checkauthorisation() async {
@@ -679,7 +698,7 @@ class _HomeScreenState extends State<HomeScreen> {
           color: Colors.white,
           size: 28,
         ),
-        title: const Text("AttendanceKD"),
+        title: const Text("Attendance"),
         backgroundColor: MyColors.darkBlue,
         centerTitle: true,
         titleTextStyle: GoogleFonts.roboto(
@@ -699,7 +718,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Column(children: [
                   const Padding(padding: EdgeInsets.symmetric(vertical: 8)),
                   const Text(
-                    "AttendanceKD",
+                    "Attendance",
                     style: TextStyle(
                         color: Colors.white,
                         fontSize: 20.0,
@@ -1111,6 +1130,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
       return null;
     } catch (e) {
+      Fluttertoast.showToast(msg: "check shift");
       print("CheckShiftType error: $e");
       return null;
     }
@@ -1294,54 +1314,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         ],
                       ),
                     ),
-
-                    ///old
-/*
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      // mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            const SizedBox(height: 16, width: 0,),
-                            Padding(padding: const EdgeInsets.symmetric(horizontal: 18),
-                              child:  Text(staffName!, style: const TextStyle(
-                                fontSize: 14,
-                                fontFamily: 'Dubai',
-                                color: Colors.black87,
-                              ),),
-                            ),
-                            Row(
-                              children: [
-                                const SizedBox(width: 18,),
-                                const Padding(padding: EdgeInsets.zero,
-                                  child: Text("Staff Code: ", style: TextStyle(fontSize: 14, fontFamily: 'Dubai', color: Colors.black54),),
-                                ),
-                                Padding(padding: EdgeInsets.zero,
-                                  child: Text(staffCode!, style: TextStyle(fontSize: 14, fontFamily: 'Dubai', color: Colors.black87),),
-                                ),
-                              ],
-                            ),
-
-                          ],
-                        ),
-
-                        // const SizedBox(width: 100,),
-                        Padding(padding: const EdgeInsets.symmetric(horizontal: 10),),
-                        Flexible(
-                          child:  Image.asset("assets/icons/mtechlogo2.png",
-                            // width: double.nan,
-                            height: 70,
-                          ),
-                        ),
-                        // ),
-
-                      ],
-                    ),
-*/
 
                     SizedBox(
                       height: isTablet ? 300 : 210,
@@ -2156,6 +2128,16 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Future<void> updatePunchUI() async {
+    final nightShift = await isNightShift();
+
+    if (nightShift) {
+      await _updateButtonInitialsqliteState();
+    } else {
+      await _updateButtonInitialState();
+    }
+  }
+
   Future<void> punchIn() async {
     bool hasPermission = await handleLocationPermission();
 
@@ -2185,9 +2167,31 @@ class _HomeScreenState extends State<HomeScreen> {
         String currentDateTime = DateFormat('dd-MM-yyyy HH:mm:ss')
             .format(DateTime.now())
             .substring(0, 19);
+
+        ///shift changes
         // await retorepunchdata();
-        if (await getInEntryFromDataBase(
-            currentDate, currentTime, staffCode!)) {
+        // if (await getInEntryFromDataBase(
+        //     currentDate, currentTime, staffCode!)) {
+
+        final nightShift = await isNightShift();
+
+        bool canPunchIn;
+
+        if (nightShift) {
+          final latestPunch =
+              await DatabaseHelper().getLatestPunchState(staffCode!);
+
+          canPunchIn =
+              latestPunch == null || latestPunch['flag_value'] == "000";
+        } else {
+          canPunchIn = await getInEntryFromDataBase(
+            currentDate,
+            currentTime,
+            staffCode!,
+          );
+        }
+
+        if (canPunchIn) {
           String? result = await storeInEntry(
               currentDate,
               currentDateTime,
@@ -2201,12 +2205,13 @@ class _HomeScreenState extends State<HomeScreen> {
           print("result $result");
 
           // After successful operation, show a SnackBar
-          setState(() {
-            isButtonDisabledIn = true;
-            isButtonDisabledOut = false;
-            _updateButtonInitialsqliteState();
-            //  _updateButtonInitialState();
-          });
+          // setState(() {
+          //   isButtonDisabledIn = true;
+          //   isButtonDisabledOut = false;
+          //   _updateButtonInitialsqliteState();
+          //   //  _updateButtonInitialState();
+          // });
+          await updatePunchUI();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
                 content: const Text('Punch-in Successful!'),
@@ -2280,13 +2285,34 @@ class _HomeScreenState extends State<HomeScreen> {
             String currentDateTime = DateFormat('dd-MM-yyyy HH:mm:ss')
                 .format(DateTime.now())
                 .substring(0, 19);
+
+            ///night shift changes
 //if (await getOutEntryFromDataBase(currentDate, currentTime, staffCode!))
 //             await retorepunchdata();
-            if (await getInEntryFromDataBase(
-                currentDate, currentTime, staffCode!)) {
-              String shiftDate =
-                  DateFormat('dd/MM/yyyy').format(DateTime.now());
-              String? shiftType = await getShiftType(shiftDate);
+//             if (await getInEntryFromDataBase(
+//                 currentDate, currentTime, staffCode!)) {
+//               String shiftDate =
+//                   DateFormat('dd/MM/yyyy').format(DateTime.now());
+//               String? shiftType = await getShiftType(shiftDate);
+            final nightShift = await isNightShift();
+
+            bool canPunchIn;
+
+            if (nightShift) {
+              final latestPunch =
+                  await DatabaseHelper().getLatestPunchState(staffCode!);
+
+              canPunchIn =
+                  latestPunch == null || latestPunch['flag_value'] == "000";
+            } else {
+              canPunchIn = await getInEntryFromDataBase(
+                currentDate,
+                currentTime,
+                staffCode!,
+              );
+            }
+
+            if (canPunchIn) {
               String? result = await storeInEntry(
                   currentDate,
                   currentDateTime,
@@ -2301,12 +2327,14 @@ class _HomeScreenState extends State<HomeScreen> {
               print(currentDateTime);
               print(_currentAddress);
               // After successful operation, show a SnackBar
-              setState(() {
-                isButtonDisabledIn = true;
-                isButtonDisabledOut = false;
-                _updateButtonInitialsqliteState();
-                //  _updateButtonInitialState();
-              });
+              // setState(() {
+              //   isButtonDisabledIn = true;
+              //   isButtonDisabledOut = false;
+              //   _updateButtonInitialsqliteState();
+              //   //  _updateButtonInitialState();
+              // });
+              await updatePunchUI();
+
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                     content: const Text('Punch-in Successful!'),
@@ -2436,10 +2464,30 @@ class _HomeScreenState extends State<HomeScreen> {
         //       _currentLat!,
         //       _currentLon!,
         //       plantcode?.toString() ?? "01");
-        final latestPunch =
-            await DatabaseHelper().getLatestPunchState(staffCode!);
+        ///night shift changes
+        // final latestPunch =
+        //     await DatabaseHelper().getLatestPunchState(staffCode!);
+        //
+        // if (latestPunch != null && latestPunch['flag_value'] == "001") {
+        final nightShift = await isNightShift();
 
-        if (latestPunch != null && latestPunch['flag_value'] == "001") {
+        bool canPunchOut;
+
+        if (nightShift) {
+          final latestPunch =
+              await DatabaseHelper().getLatestPunchState(staffCode!);
+
+          canPunchOut =
+              latestPunch != null && latestPunch['flag_value'] == "001";
+        } else {
+          canPunchOut = await getOutEntryFromDataBase(
+            currentDate,
+            currentTime,
+            staffCode!,
+          );
+        }
+
+        if (canPunchOut) {
           String? result = await storeOutEntry(
               currentDate,
               currentDateTime,
@@ -2453,12 +2501,13 @@ class _HomeScreenState extends State<HomeScreen> {
           print("result $result");
 
           // After successful operation, show a SnackBar
-          setState(() {
-            isButtonDisabledIn = true;
-            isButtonDisabledOut = false;
-            _updateButtonInitialsqliteState();
-            //  _updateButtonInitialState();
-          });
+          // setState(() {
+          //   isButtonDisabledIn = true;
+          //   isButtonDisabledOut = false;
+          //   _updateButtonInitialsqliteState();
+          //   //  _updateButtonInitialState();
+          // });
+          await updatePunchUI();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
                 content: const Text('Punch-out Successful!'),
@@ -2543,10 +2592,30 @@ class _HomeScreenState extends State<HomeScreen> {
             //       _currentLat!,
             //       _currentLon!,
             //       plantcode?.toString() ?? "01");
-            final latestPunch =
-                await DatabaseHelper().getLatestPunchState(staffCode!);
+            ///night shift changes
+            // final latestPunch =
+            //     await DatabaseHelper().getLatestPunchState(staffCode!);
+            //
+            // if (latestPunch != null && latestPunch['flag_value'] == "001") {
+            final nightShift = await isNightShift();
 
-            if (latestPunch != null && latestPunch['flag_value'] == "001") {
+            bool canPunchOut;
+
+            if (nightShift) {
+              final latestPunch =
+                  await DatabaseHelper().getLatestPunchState(staffCode!);
+
+              canPunchOut =
+                  latestPunch != null && latestPunch['flag_value'] == "001";
+            } else {
+              canPunchOut = await getOutEntryFromDataBase(
+                currentDate,
+                currentTime,
+                staffCode!,
+              );
+            }
+
+            if (canPunchOut) {
               String? result = await storeOutEntry(
                   currentDate,
                   currentDateTime,
@@ -2557,12 +2626,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   _currentLon!,
                   plantcode?.toString() ?? "01");
 
-              setState(() {
-                isButtonDisabledOut = true;
-                isButtonDisabledIn = false;
-                _updateButtonInitialsqliteState();
-                _updateButtonInitialState();
-              });
+              // setState(() {
+              //   isButtonDisabledOut = true;
+              //   isButtonDisabledIn = false;
+              //   _updateButtonInitialsqliteState();
+              //   _updateButtonInitialState();
+              // });
+              await updatePunchUI();
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: const Text('Punch-out Successful!'),
@@ -2761,16 +2831,31 @@ class _HomeScreenState extends State<HomeScreen> {
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         LogFileManager.writeLog("storeinentry $response");
+
+        ///night shift
+        // String shiftDate = DateFormat('dd/MM/yyyy').format(DateTime.now());
+        // String? shiftType = await getShiftType(shiftDate);
+        // await DatabaseHelper().insertPunchState(
+        //   staffCode: staffCode!,
+        //   transactionDate: TransactionDate,
+        //   transactionTime: TransactionTime,
+        //   flagValue: "001",
+        //   shiftDate: shiftDate,
+        //   shiftType: shiftType,
+        // );
         String shiftDate = DateFormat('dd/MM/yyyy').format(DateTime.now());
         String? shiftType = await getShiftType(shiftDate);
-        await DatabaseHelper().insertPunchState(
-          staffCode: staffCode!,
-          transactionDate: TransactionDate,
-          transactionTime: TransactionTime,
-          flagValue: "001",
-          shiftDate: shiftDate,
-          shiftType: shiftType,
-        );
+
+        if (shiftType?.toUpperCase() == "N") {
+          await DatabaseHelper().insertPunchState(
+            staffCode: staffCode!,
+            transactionDate: TransactionDate,
+            transactionTime: TransactionTime,
+            flagValue: "001",
+            shiftDate: shiftDate,
+            shiftType: shiftType,
+          );
+        }
         if (atsflag == 'Y') {
           try {
             final response = await http.post(
@@ -2848,23 +2933,45 @@ class _HomeScreenState extends State<HomeScreen> {
       print("punch-out response body" + response.body);
       print("punch-out response status code" + response.statusCode.toString());
       if (response.statusCode == 201 || response.statusCode == 200) {
+        ///shift cnahges
+        // final latestIn = await DatabaseHelper().getLatestPunchIn(staffCode!);
+        // String? shiftType = latestIn?['shift_type'];
+        // String? shiftDate = latestIn?['shift_date'];
+        // if ((shiftType == null || shiftType.isEmpty) &&
+        //     shiftDate != null &&
+        //     shiftDate.isNotEmpty) {
+        //   shiftType = await getShiftType(shiftDate);
+        // }
+        //
+        // await DatabaseHelper().insertPunchState(
+        //   staffCode: staffCode!,
+        //   transactionDate: TransactionDate,
+        //   transactionTime: TransactionTime,
+        //   flagValue: "000",
+        //   shiftDate: shiftDate,
+        //   shiftType: shiftType,
+        // );
         final latestIn = await DatabaseHelper().getLatestPunchIn(staffCode!);
+
         String? shiftType = latestIn?['shift_type'];
         String? shiftDate = latestIn?['shift_date'];
+
         if ((shiftType == null || shiftType.isEmpty) &&
             shiftDate != null &&
             shiftDate.isNotEmpty) {
           shiftType = await getShiftType(shiftDate);
         }
 
-        await DatabaseHelper().insertPunchState(
-          staffCode: staffCode!,
-          transactionDate: TransactionDate,
-          transactionTime: TransactionTime,
-          flagValue: "000",
-          shiftDate: shiftDate,
-          shiftType: shiftType,
-        );
+        if (shiftType?.toUpperCase() == "N") {
+          await DatabaseHelper().insertPunchState(
+            staffCode: staffCode!,
+            transactionDate: TransactionDate,
+            transactionTime: TransactionTime,
+            flagValue: "000",
+            shiftDate: shiftDate,
+            shiftType: shiftType,
+          );
+        }
         LogFileManager.writeLog("storeoutentry $response");
         if (atsflag == 'Y') {
           try {
@@ -3518,6 +3625,8 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  ///shift changes
+/*
   Future<void> _updateButtonInitialsqliteState() async {
     if (staffCode == null || staffCode!.isEmpty) return;
 
@@ -3599,6 +3708,64 @@ class _HomeScreenState extends State<HomeScreen> {
     //     isButtonDisabledOut = true;
     //   }
     // });
+  }
+*/
+
+  Future<void> _updateButtonInitialsqliteState() async {
+    if (staffCode == null || staffCode!.isEmpty) return;
+
+    final dbHelper = DatabaseHelper();
+
+    final latestPunch = await dbHelper.getLatestPunchState(staffCode!);
+    final latestIn = await dbHelper.getLatestPunchIn(staffCode!);
+    final latestOut = await dbHelper.getLatestPunchOut(staffCode!);
+
+    String extractTime(dynamic value) {
+      if (value == null) return "-";
+
+      final text = value.toString().trim();
+
+      if (text.isEmpty) return "-";
+
+      if (text.contains(' ')) {
+        return text.split(RegExp(r'\s+')).last;
+      }
+
+      return text;
+    }
+
+    if (!mounted) return;
+
+    setState(() {
+      lastInTime = extractTime(latestIn?['transaction_time']);
+      lastOutTime = extractTime(latestOut?['transaction_time']);
+
+      if (latestPunch == null) {
+        isButtonDisabledIn = false;
+        isButtonDisabledOut = true;
+
+        lastPunchIn = true;
+        lastPunchOut = true;
+
+        return;
+      }
+
+      final flagValue = latestPunch['flag_value'];
+
+      if (flagValue == "001") {
+        isButtonDisabledIn = true;
+        isButtonDisabledOut = false;
+
+        lastPunchIn = false;
+        lastPunchOut = true;
+      } else if (flagValue == "000") {
+        isButtonDisabledIn = false;
+        isButtonDisabledOut = true;
+
+        lastPunchIn = true;
+        lastPunchOut = false;
+      }
+    });
   }
 }
 

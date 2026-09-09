@@ -133,8 +133,8 @@ class WebService {
     }
   }
 
-  Future<StaffDetailsResponse?> getStaffDetails(
-      String StaffCode, String token) async {
+  Future<StaffDetailsResponse?> getStaffDetails(String StaffCode,
+      String token) async {
     try {
       print(Constant.staffDetailsUrl);
       print("username--->" + StaffCode);
@@ -207,8 +207,8 @@ class WebService {
     }
   }
 
-  Future<GatePassResponse?> getPendingGatepass(
-      String StaffCode, String token) async {
+  Future<GatePassResponse?> getPendingGatepass(String StaffCode,
+      String token) async {
     try {
       print("getPendingGatepass : " + Constant.getPendinggatePassUrl);
       print("username--->" + StaffCode);
@@ -374,8 +374,8 @@ class WebService {
   }
 
 //Visit History
-  Future<VisitDataResponse?> GetAllVisits(
-      String UserId, int pageNumber, int pageSize, String token) async {
+  Future<VisitDataResponse?> GetAllVisits(String UserId, int pageNumber,
+      int pageSize, String token) async {
     try {
       print("GetAllVisits : " + Constant.getAllVisitData);
       print("UserId--->" + UserId);
@@ -433,8 +433,8 @@ class WebService {
     }
   }
 
-  Future<VisitLatLongListResponse?> GetVisiLatLongList(
-      String StaffCode, String ActualDate, String SrNoVal, String token) async {
+  Future<VisitLatLongListResponse?> GetVisiLatLongList(String StaffCode,
+      String ActualDate, String SrNoVal, String token) async {
     try {
       print("getVisitLatLongList : " + Constant.getVisitLatLongList);
       print("UserId--->" + StaffCode);
@@ -494,14 +494,12 @@ class WebService {
   }
 
   ///searchbystaffcode
-  Future<UserResponse> searchuserbystaffcode(
-    String token,
-    String staffcode,
-  ) async {
+  Future<UserResponse> searchuserbystaffcode(String token,
+      String staffcode,) async {
     print("${Constant.searchbystaffcode}${staffcode.toUpperCase()}");
     try {
       final uri =
-          Uri.parse("${Constant.searchbystaffcode}${staffcode.toUpperCase()}");
+      Uri.parse("${Constant.searchbystaffcode}${staffcode.toUpperCase()}");
 
       final response = await http.get(
         uri,
@@ -527,8 +525,8 @@ class WebService {
   }
 
   ///getAllUsersData
-  Future<GetAllusersListResponse?> GetAllUsers(
-      String token, String pagenumber, String pagesize) async {
+  Future<GetAllusersListResponse?> GetAllUsers(String token, String pagenumber,
+      String pagesize) async {
     try {
       print("GetAllUsers : " +
           "${Constant.pageinitiationalluserlist}$pagenumber/$pagesize");
@@ -567,7 +565,7 @@ class WebService {
                 } else {
                   Fluttertoast.showToast(
                       msg:
-                          "unable to navigate. kindly restart the application!");
+                      "unable to navigate. kindly restart the application!");
                   print("Navigator Key is null. Unable to navigate.");
                 }
                 // MyApp.navigatorKey.currentState?.pushReplacement(
@@ -586,8 +584,8 @@ class WebService {
   }
 
   ///clientlist
-  Future<CustomerResponse?> getAllCustomers(
-      int pageNumber, int pageSize) async {
+  Future<CustomerResponse?> getAllCustomers(int pageNumber,
+      int pageSize) async {
     try {
       final uri = Uri.parse(
           "http://114.143.140.28:8091/api/Visit/GetAllCustomersList/$pageNumber/$pageSize");
@@ -670,8 +668,7 @@ class WebService {
   }
 
   //GetVisitByFromDateToDate
-  Future<VisitRecordsResponse?> GetVisitByFromDateToDate(
-      String UserId,
+  Future<VisitRecordsResponse?> GetVisitByFromDateToDate(String UserId,
       int pageNumber,
       int pageSize,
       String fromDate,
@@ -825,8 +822,8 @@ class WebService {
   }
 
 //-----------leave----------------
-  Future<Staffdetails> getleavestaffdetails(
-      String StaffCode, String token) async {
+  Future<Staffdetails> getleavestaffdetails(String StaffCode,
+      String token) async {
     print(Constant.getleavestaffdetailsUrl);
     print("username--->" + StaffCode);
 
@@ -855,15 +852,15 @@ class WebService {
     return Staffdetails.fromJson(jsonDecode(response.body));
   }
 
-  Future<LeavePendingResponse> getpendingleave(
-      String StaffCode, String token, String ApprovedFlag) async {
+  Future<LeavePendingResponse> getpendingleave(String StaffCode, String token,
+      String ApprovedFlag) async {
     print(Constant.getpendingleaveUrl);
     print("username--->" + StaffCode);
     print("ApprovedFlag--->" + ApprovedFlag);
 
     // Add query parameters to the URL
     final Uri url =
-        Uri.parse(Constant.getpendingleaveUrl).replace(queryParameters: {
+    Uri.parse(Constant.getpendingleaveUrl).replace(queryParameters: {
       'StaffCode': StaffCode,
       'ApprovedFlag': ApprovedFlag,
     });
@@ -916,8 +913,8 @@ class WebService {
     return LeavePendingResponse.fromJson(jsonDecode(response.body));
   }
 
-  Future<LeaveDetails> getleavetypelist(
-      String StaffCode, String token, String Year) async {
+  Future<LeaveDetails> getleavetypelist(String StaffCode, String token,
+      String Year) async {
     print(Constant.getleavetypelistUrl);
     print("username--->" + StaffCode);
     print("year--->" + Year);
@@ -1025,8 +1022,8 @@ class WebService {
     }
   }
 
-  Future<CancelLeaveBody> cancelleave(
-      CancelLeaveBody cancelleavebody, String token) async {
+  Future<CancelLeaveBody> cancelleave(CancelLeaveBody cancelleavebody,
+      String token) async {
     try {
       print(Constant.cancelleaveUrl);
       print(cancelleavebody);
@@ -1137,10 +1134,11 @@ class WebService {
     }
   }
 
-  Future<ApiResponse> updateuuid(String staffcode, String uuid) async {
+  Future<ApiResponse> updateuuid(String staffcode, String uuid,
+      String flag) async {
     try {
       final response = await http.get(
-        Uri.parse(Constant.updateuuid + staffcode + "/" + uuid),
+        Uri.parse(Constant.updateuuid + staffcode + "/" + uuid + "/" + flag),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },
@@ -1307,7 +1305,7 @@ class WebService {
       print(Constant.submitapprovesanction);
 
       String payload =
-          jsonEncode(sanctionmodels.map((e) => e.toJson()).toList());
+      jsonEncode(sanctionmodels.map((e) => e.toJson()).toList());
       print("Final Payload: $payload");
 
       // Serialize the list to JSON
@@ -1352,8 +1350,8 @@ class WebService {
 
 //Add New Staff Entry
 
-  Future<CancelGatepassResponse> addStaffEntry(
-      AddStaffRequest addStaffRequest, String token) async {
+  Future<CancelGatepassResponse> addStaffEntry(AddStaffRequest addStaffRequest,
+      String token) async {
     print("addStaffEntry==========>" +
         Constant.addStaffEntry +
         "staffCode :" +
@@ -1387,8 +1385,8 @@ class WebService {
     return CancelGatepassResponse.fromJson(jsonDecode(response.body));
   }
 
-  Future<CancelGatepassResponse> deleteStaffEntry(
-      String staffCode, String token) async {
+  Future<CancelGatepassResponse> deleteStaffEntry(String staffCode,
+      String token) async {
     print("deleteStaffEntry==========>" +
         Constant.deleteStaffEntry +
         "/" +
@@ -1436,8 +1434,8 @@ class WebService {
 
   //COff Credit
 
-  Future<GetStaffDetailsForCoffResponse> GetStaffDetailsForCoff(
-      String typeCode, String staffCode, String date, String token) async {
+  Future<GetStaffDetailsForCoffResponse> GetStaffDetailsForCoff(String typeCode,
+      String staffCode, String date, String token) async {
     print("GetStaffDetailsForCoff typeCode: $typeCode" + ", ");
     String encodedFromDate = Uri.encodeComponent(date);
 
@@ -1565,8 +1563,8 @@ class WebService {
 
 //FetchCoffTransactions
 
-  Future<FetchCoffTransactionsResponse> FetchCoffTransactions(
-      String staffCode, String token) async {
+  Future<FetchCoffTransactionsResponse> FetchCoffTransactions(String staffCode,
+      String token) async {
     print("FetchCoffTransactions staffCode: $staffCode");
 
     print(Constant.FetchCoffTransactions + "/" + staffCode);
@@ -1627,8 +1625,8 @@ class WebService {
 
 //CancelCoffOTHWOFF
 
-  Future<CancelGatepassResponse> CancelCoffOTHWOFF(
-      String staffCode, String transactionId, String token) async {
+  Future<CancelGatepassResponse> CancelCoffOTHWOFF(String staffCode,
+      String transactionId, String token) async {
     print(Constant.CancelCoffOTHWOFF +
         "?StaffCode=" +
         staffCode +
@@ -1681,8 +1679,8 @@ class WebService {
   }
 
   //GetCoffsTransactions
-  Future<GetCoffsTransactionsResponse> GetCoffsTransactions(
-      String staffCode, String token) async {
+  Future<GetCoffsTransactionsResponse> GetCoffsTransactions(String staffCode,
+      String token) async {
     print("GetCoffsTransactions staffCode: $staffCode");
 
     print(Constant.GetCoffsTransactions + "/" + staffCode);
@@ -1741,8 +1739,8 @@ class WebService {
   }
 
 //CancelCoff
-  Future<CancelGatepassResponse> CancelCoff(
-      String staffCode, String CoffId, String token) async {
+  Future<CancelGatepassResponse> CancelCoff(String staffCode, String CoffId,
+      String token) async {
     print(
         Constant.CancelCoff + "?StaffCode=" + staffCode + "&CoffId=" + CoffId);
 
@@ -1929,8 +1927,8 @@ class WebService {
 
   //InsertMMAllData
 
-  Future<String> InsertMMAllData(
-      InsertMMALLDataRequest insertMMALLDataRequest, String token) async {
+  Future<String> InsertMMAllData(InsertMMALLDataRequest insertMMALLDataRequest,
+      String token) async {
     print("InsertMMALLData==========>" +
         Constant.InsertMMALLData +
         "date :" +
@@ -1989,8 +1987,8 @@ class WebService {
 
 //UpdateMeetingFormNo
 
-  Future<CancelGatepassResponse> UpdateMeetingFormNo(
-      int FormNo, int SrNo, String token) async {
+  Future<CancelGatepassResponse> UpdateMeetingFormNo(int FormNo, int SrNo,
+      String token) async {
     print(Constant.UpdateMeetingFormNo +
         FormNo.toString() +
         "/" +
@@ -2101,8 +2099,7 @@ class WebService {
 
 //MinutesOfTheMeetingAllDataByVisitSrNo
   Future<GetMinutesOfTheMeetingAllDataByVisitSrNoResponse>
-      GetMinutesOfTheMeetingAllDataByVisitSrNo(
-          String SrNo, String token) async {
+  GetMinutesOfTheMeetingAllDataByVisitSrNo(String SrNo, String token) async {
     print("GetMinutesOfTheMeetingAllDataByVisitSrNo SrNo: $SrNo");
 
     print(Constant.GetMinutesOfTheMeetingAllDataByVisitSrNo + SrNo);
@@ -2168,8 +2165,7 @@ class WebService {
   //MinutesOfTheMeetingDataByVisitSrNo
 
   Future<GetMinutesOfTheMeetingDataByVisitSrNoResponse>
-      GetMinutesOfTheMeetingDataByVisitSrNo(
-          String VisitSrNo, String token) async {
+  GetMinutesOfTheMeetingDataByVisitSrNo(String VisitSrNo, String token) async {
     print("GetMinutesOfTheMeetingDataByVisitSrNo SrNo: $VisitSrNo ");
 
     print(Constant.GetMinutesOfTheMeetingDataByVisitSrNo + VisitSrNo);
@@ -2530,9 +2526,8 @@ class WebService {
   }
 
   Future<List<OTCancellationRequest>> submitOT(
-    List<OTCancellationRequest> otsubmitcancellations,
-    String token,
-  ) async {
+      List<OTCancellationRequest> otsubmitcancellations,
+      String token,) async {
     String url = Constant.submitOTcancellation;
 
     try {
@@ -2570,7 +2565,8 @@ class WebService {
         return [];
       } else {
         throw Exception(
-            'Failed to submit OT Cancellation: ${response.statusCode} ${response.reasonPhrase}');
+            'Failed to submit OT Cancellation: ${response.statusCode} ${response
+                .reasonPhrase}');
       }
     } catch (e) {
       print('Error submitting OT Cancellation: $e');
@@ -2579,9 +2575,8 @@ class WebService {
   }
 
   Future<List<LeaveCancellationDetail>> submitLeave(
-    List<LeaveCancellationDetail> leavesubmitcancellations,
-    String token,
-  ) async {
+      List<LeaveCancellationDetail> leavesubmitcancellations,
+      String token,) async {
     String url = Constant.submitleavecancellationUrl;
 
     try {
@@ -2620,7 +2615,8 @@ class WebService {
         return [];
       } else {
         throw Exception(
-            'Failed to submit OT Cancellation: ${response.statusCode} ${response.reasonPhrase}');
+            'Failed to submit OT Cancellation: ${response.statusCode} ${response
+                .reasonPhrase}');
       }
     } catch (e) {
       print('Error submitting OT Cancellation: $e');
@@ -2671,8 +2667,8 @@ class WebService {
   }
 
   //UpdateMMData
-  Future<CancelGatepassResponse> UpdateMMDataa(
-      UpdateMMData updateMMData, String token) async {
+  Future<CancelGatepassResponse> UpdateMMDataa(UpdateMMData updateMMData,
+      String token) async {
     final response = await http.post(
       Uri.parse(Constant.UpdateMMData),
       headers: <String, String>{
@@ -2715,9 +2711,8 @@ class WebService {
   }
 
   Future<List<GatepassCancellationDetail>> submitgatepass(
-    List<GatepassCancellationDetail> gatepasscancellation,
-    String token,
-  ) async {
+      List<GatepassCancellationDetail> gatepasscancellation,
+      String token,) async {
     String url = Constant.submitgatepasscancellationUrl;
 
     try {
@@ -2755,7 +2750,8 @@ class WebService {
         return [];
       } else {
         throw Exception(
-            'Failed to submit OT Cancellation: ${response.statusCode} ${response.reasonPhrase}');
+            'Failed to submit OT Cancellation: ${response.statusCode} ${response
+                .reasonPhrase}');
       }
     } catch (e) {
       print('Error submitting OT Cancellation: $e');
@@ -2763,10 +2759,8 @@ class WebService {
     }
   }
 
-  Future<List<Coffcancellation>> submitcoff(
-    List<Coffcancellation> coff,
-    String token,
-  ) async {
+  Future<List<Coffcancellation>> submitcoff(List<Coffcancellation> coff,
+      String token,) async {
     String url = Constant.submitcoffcancellationUrl;
 
     try {
@@ -2804,7 +2798,8 @@ class WebService {
         return [];
       } else {
         throw Exception(
-            'Failed to submit OT Cancellation: ${response.statusCode} ${response.reasonPhrase}');
+            'Failed to submit OT Cancellation: ${response.statusCode} ${response
+                .reasonPhrase}');
       }
     } catch (e) {
       print('Error submitting OT Cancellation: $e');
@@ -2812,10 +2807,8 @@ class WebService {
     }
   }
 
-  Future<List<CDebitcancellation>> submitcdebit(
-    List<CDebitcancellation> cdebit,
-    String token,
-  ) async {
+  Future<List<CDebitcancellation>> submitcdebit(List<CDebitcancellation> cdebit,
+      String token,) async {
     String url = Constant.submitcdebitcancellationUrl;
 
     try {
@@ -2853,7 +2846,8 @@ class WebService {
         return [];
       } else {
         throw Exception(
-            'Failed to submit OT Cancellation: ${response.statusCode} ${response.reasonPhrase}');
+            'Failed to submit OT Cancellation: ${response.statusCode} ${response
+                .reasonPhrase}');
       }
     } catch (e) {
       print('Error submitting OT Cancellation: $e');
@@ -2862,9 +2856,8 @@ class WebService {
   }
 
   Future<List<TourCancellationDetail>> submittour(
-    List<TourCancellationDetail> tour,
-    String token,
-  ) async {
+      List<TourCancellationDetail> tour,
+      String token,) async {
     String url = Constant.submittourcancellationUrl;
 
     try {
@@ -2902,7 +2895,8 @@ class WebService {
         return [];
       } else {
         throw Exception(
-            'Failed to submit OT Cancellation: ${response.statusCode} ${response.reasonPhrase}');
+            'Failed to submit OT Cancellation: ${response.statusCode} ${response
+                .reasonPhrase}');
       }
     } catch (e) {
       print('Error submitting OT Cancellation: $e');
@@ -2957,7 +2951,8 @@ class WebService {
       } else {
         // print(object)
         throw Exception(
-            'Failed to submit expense records: ${response.statusCode} ${response.reasonPhrase}');
+            'Failed to submit expense records: ${response.statusCode} ${response
+                .reasonPhrase}');
       }
     } catch (e) {
       // print("error expense: $e");
@@ -2971,8 +2966,8 @@ class WebService {
     }
   }
 
-  Future<List<ViewExpenseModel>> showExpenseDetails(
-      String staffCode, String token) async {
+  Future<List<ViewExpenseModel>> showExpenseDetails(String staffCode,
+      String token) async {
     print(Constant.viewexpensedetails);
     print("Staff Code ---> $staffCode");
 
@@ -3000,7 +2995,8 @@ class WebService {
         throw Exception("Bad Request: ${response.body}");
       } else {
         throw Exception(
-            "Failed to fetch expense details. Status code: ${response.statusCode}");
+            "Failed to fetch expense details. Status code: ${response
+                .statusCode}");
       }
     } catch (e) {
       print("Error: $e");
@@ -3009,8 +3005,8 @@ class WebService {
   }
 
 //tour
-  Future<StaffDetails> gettourstaffdetails(
-      String staffcode, String token) async {
+  Future<StaffDetails> gettourstaffdetails(String staffcode,
+      String token) async {
     print(Constant.getstafftourdetails);
     print("username--->" + staffcode);
 
@@ -3109,8 +3105,8 @@ class WebService {
     }
   }
 
-  Future<TourDetailsResponse> appliedtourlist(
-      String Staffcode, String token) async {
+  Future<TourDetailsResponse> appliedtourlist(String Staffcode,
+      String token) async {
     print(Constant.getAppliedTour);
     print("username--->" + Staffcode);
     print("token--->" + token);
@@ -3207,12 +3203,12 @@ print(staffcode + slipId);
   }
 */
 
-  Future<String> canceltour(
-      String staffcode, String slipId, String token) async {
+  Future<String> canceltour(String staffcode, String slipId,
+      String token) async {
     // ✅ Build the correct URL with proper query parameters
     print(Constant.canceltour);
     final url =
-        Uri.parse('${Constant.canceltour}staffCode=$staffcode&slipId=$slipId');
+    Uri.parse('${Constant.canceltour}staffCode=$staffcode&slipId=$slipId');
     print(url);
     try {
       final response = await http.post(
@@ -3232,7 +3228,8 @@ print(staffcode + slipId);
         final jsonResponse = json.decode(response.body);
         return jsonResponse['message'] ?? 'Tour canceled successfully';
       } else {
-        return 'Failed to cancel tour: ${response.statusCode} - ${response.reasonPhrase}';
+        return 'Failed to cancel tour: ${response.statusCode} - ${response
+            .reasonPhrase}';
       }
     } catch (e) {
       return 'Error: $e';
@@ -3315,8 +3312,8 @@ print(staffcode + slipId);
     }
   }
 
-  Future<CancelGatepassResponse> acceptremotelocation(
-      String staffcode, String approvedflag, String token) async {
+  Future<CancelGatepassResponse> acceptremotelocation(String staffcode,
+      String approvedflag, String token) async {
     print("deleteStaffEntry==========>" +
         Constant.acceptremotelocation +
         "/" +
@@ -3364,8 +3361,8 @@ print(staffcode + slipId);
     return CancelGatepassResponse.fromJson(jsonDecode(response.body));
   }
 
-  Future<CancelGatepassResponse> showremotelocation(
-      String staffcode, String token) async {
+  Future<CancelGatepassResponse> showremotelocation(String staffcode,
+      String token) async {
     final url = Uri.parse(Constant.showremotelocation + "/" + staffcode);
 
     // Perform the HTTP GET request with the authorization token
@@ -3423,8 +3420,8 @@ print(staffcode + slipId);
     return CancelGatepassResponse.fromJson(jsonDecode(response.body));
   }
 
-  Future<CancelGatepassResponse> nondistancecheck(
-      String staffcode, String approvedflag, String token) async {
+  Future<CancelGatepassResponse> nondistancecheck(String staffcode,
+      String approvedflag, String token) async {
     print("nondistancecheck==========>" +
         Constant.nondistancecheckrequest +
         "/" +
@@ -3475,9 +3472,10 @@ print(staffcode + slipId);
     return CancelGatepassResponse.fromJson(jsonDecode(response.body));
   }
 
-  Future<String> addMultiRemoteLocation(String token, String staffCode, String flag, String lat, String long, String locationName, String radius,) async {
+  Future<String> addMultiRemoteLocation(String token, String staffCode,
+      String flag, String lat, String long, String locationName,
+      String radius,) async {
     try {
-
       final response = await http.post(
         Uri.parse(Constant.addMultiRemoteLocation),
         headers: {
@@ -3499,7 +3497,6 @@ print(staffcode + slipId);
       print("Status: ${response.statusCode}");
 
       if (response.statusCode == 200) {
-
         final data = jsonDecode(response.body);
 
         if (data["status"] == true) {
@@ -3507,15 +3504,13 @@ print(staffcode + slipId);
         } else {
           throw Exception(data["message"]);
         }
-      } else if(response.statusCode == 400) {
+      } else if (response.statusCode == 400) {
         final data = jsonDecode(response.body);
         throw (data['message']);
       }
-      else
-      {
+      else {
         throw ("Failed to add remote location");
       }
-
     } on SocketException {
       throw ("Network Connection issue");
     } on TimeoutException {
@@ -3526,11 +3521,12 @@ print(staffcode + slipId);
     }
   }
 
-  Future<List<Map<String, dynamic>>?> getMultiRemoteLocations(String token, String staffCode) async {
-    try{
-      print(Constant.getMultiRemoteLocation+"/" +staffCode);
+  Future<List<Map<String, dynamic>>?> getMultiRemoteLocations(String token,
+      String staffCode) async {
+    try {
+      print(Constant.getMultiRemoteLocation + "/" + staffCode);
       final response = await http.get(
-          Uri.parse(Constant.getMultiRemoteLocation+"/" +staffCode),
+          Uri.parse(Constant.getMultiRemoteLocation + "/" + staffCode),
           headers: {
             'Content-Type': 'Application/Json',
             'Authorization': 'Bearer $token'
@@ -3540,11 +3536,12 @@ print(staffcode + slipId);
       print(response.body);
       print(response.statusCode);
 
-      if(response.statusCode == 200 || response.statusCode == 201){
+      if (response.statusCode == 200 || response.statusCode == 201) {
         final data = jsonDecode(response.body);
         final data2 = data['data'];
-        final List<Map<String, dynamic>> data3 = List<Map<String, dynamic>>.from(data2['data']);
-        if(data3.isNotEmpty){
+        final List<Map<String, dynamic>> data3 = List<
+            Map<String, dynamic>>.from(data2['data']);
+        if (data3.isNotEmpty) {
           return data3;
         } else {
           return null;
@@ -3558,19 +3555,20 @@ print(staffcode + slipId);
     on TimeoutException {
       throw ('Request timed out');
     }
-    catch (e){
+    catch (e) {
       throw Exception('Error fetching multi remote locations: $e');
     }
   }
 
-  Future<String> deleteMultiRemoteLocation(String staffCode, String token, int srNo) async {
-
+  Future<String> deleteMultiRemoteLocation(String staffCode, String token,
+      int srNo) async {
     try {
       final response = await http.post(
-        Uri.parse (Constant.deleteMultiRemoteLocation+"/"+staffCode+"/"+srNo.toString()),
+        Uri.parse(Constant.deleteMultiRemoteLocation + "/" + staffCode + "/" +
+            srNo.toString()),
         headers: {
           'Content-Type': 'Application/Json',
-          'Authorization' : 'Bearer $token'
+          'Authorization': 'Bearer $token'
         },
         // body: jsonEncode({
         //   'staffCode': staffCode,
@@ -3580,26 +3578,28 @@ print(staffcode + slipId);
 
       print("deleteMultiRemoteLocation status code: ${response.statusCode}");
       print("deleteMultiRemoteLocation body: ${response.body}");
-      if(response.statusCode == 200 || response.statusCode == 201) {
-        final data = jsonDecode (response.body);
-        if(data['status'] == true) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = jsonDecode(response.body);
+        if (data['status'] == true) {
           return data['message'];
         } else {
           throw (data['message']);
         }
       } else {
-        final data = jsonDecode (response.body);
+        final data = jsonDecode(response.body);
         throw (data['message']);
       }
     } catch (e) {
-      print( "Error in delete Multiple remote location: $e");
+      print("Error in delete Multiple remote location: $e");
       throw Exception("Error in delete Multiple remote location: $e");
     }
   }
 
-  Future<String> updateMultiRemoteLocation(int srNo, String flag, String staffCode, String token, String radius, String locationName, String lat, String long) async {
-    try{
-      final response = await http.post (
+  Future<String> updateMultiRemoteLocation(int srNo, String flag,
+      String staffCode, String token, String radius, String locationName,
+      String lat, String long) async {
+    try {
+      final response = await http.post(
           Uri.parse(Constant.updateMultiRemoteLocation),
           headers: {
             'Content-Type': 'Application/Json',
@@ -3618,15 +3618,15 @@ print(staffcode + slipId);
 
       print("updateMultiRemoteLocation status code: ${response.statusCode}");
       print("updateMultiRemoteLocation body: ${response.body}");
-      if(response.statusCode == 200 || response.statusCode == 201) {
-        final data = jsonDecode (response.body);
-        if(data['status'] == true) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = jsonDecode(response.body);
+        if (data['status'] == true) {
           return data['message'];
         } else {
           throw (data['message']);
         }
       } else {
-        final data = jsonDecode (response.body);
+        final data = jsonDecode(response.body);
         throw (data['message']);
       }
     } on SocketException {

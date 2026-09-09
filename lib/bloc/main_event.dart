@@ -516,8 +516,10 @@ class NonDistancecheckRequest extends MainEvent {
 class UpdateUUID extends MainEvent {
   String UserId;
   String UUID;
+  String UUIDFlag;
 
-  UpdateUUID({required this.UserId, required this.UUID});
+  UpdateUUID(
+      {required this.UserId, required this.UUID, required this.UUIDFlag});
 }
 
 class UpdateUserFlagATS extends MainEvent {
@@ -566,7 +568,7 @@ class GetVisitClientListEvent extends MainEvent {
   GetVisitClientListEvent({required this.pagenumber, required this.pagesize});
 }
 
-class AddMultipleRemoteLocation extends MainEvent{
+class AddMultipleRemoteLocation extends MainEvent {
   String token;
   String lat;
   String long;
@@ -575,22 +577,23 @@ class AddMultipleRemoteLocation extends MainEvent{
   String locationName;
   String radius;
 
-  AddMultipleRemoteLocation( this.token, this.lat, this.long, this.staffcode, this.flag, this.locationName, this.radius);
-
+  AddMultipleRemoteLocation(this.token, this.lat, this.long, this.staffcode,
+      this.flag, this.locationName, this.radius);
 }
 
 class GetMultiRemoteLocation extends MainEvent {
   String token;
   String staffCode;
 
-  GetMultiRemoteLocation( this.token, this.staffCode);
+  GetMultiRemoteLocation(this.token, this.staffCode);
 }
 
 class DeleteMultiRemoteLocation extends MainEvent {
   String token;
   String staffCode;
   int srNo;
-  DeleteMultiRemoteLocation( this.token, this.staffCode, this.srNo);
+
+  DeleteMultiRemoteLocation(this.token, this.staffCode, this.srNo);
 }
 
 class UpdateMultiRemoteLocationEvent extends MainEvent {
@@ -603,5 +606,6 @@ class UpdateMultiRemoteLocationEvent extends MainEvent {
   String radius;
   String token;
 
-  UpdateMultiRemoteLocationEvent( this.srNo, this.staffCode, this.lat, this.long, this.locationName, this.flag, this.radius, this.token);
+  UpdateMultiRemoteLocationEvent(this.srNo, this.staffCode, this.lat, this.long,
+      this.locationName, this.flag, this.radius, this.token);
 }
