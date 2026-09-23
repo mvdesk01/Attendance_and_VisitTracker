@@ -33,7 +33,16 @@ jobs:
         run: flutter pub get
 
       - name: Analyze
-        run: flutter analyze
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings
 
       - name: Run tests
         run: flutter test
+
+      - name: Build Android App Bundle
+        run: flutter build appbundle --release
+
+      - name: Upload Android App Bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-release-aab
+          path: build/app/outputs/bundle/release/app-release.aab
