@@ -26,3 +26,11 @@ linter:
 
 # Additional information about this file can be found at
 # https://dart.dev/guides/language/analysis-options
+
+# if can ignore or supress lint/warnings/error if it become the major blocker or encountered unnecessary issue
+#analyzer:
+#  errors:
+#    unused_import: ignore
+#    unused_element: ignore
+#    duplicate_import: ignore
+#    override_on_non_overriding_member: ignore

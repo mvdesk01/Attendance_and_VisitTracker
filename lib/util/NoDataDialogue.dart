@@ -1,7 +1,6 @@
 import 'package:attendance_system_ios/bloc/main_bloc.dart';
 import 'package:attendance_system_ios/screen/Gate%20Pass/gate_pass.dart';
 import 'package:attendance_system_ios/screen/Home/home.dart';
-import 'package:attendance_system_ios/screen/Leave/leave.dart';
 import 'package:attendance_system_ios/screen/Transaction/COff%20Debit/CoffDebitScreen.dart';
 import 'package:attendance_system_ios/screen/Transaction/CoffCreditScreen.dart';
 import 'package:attendance_system_ios/service/WebService.dart';

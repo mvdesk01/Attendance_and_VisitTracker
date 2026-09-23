@@ -13,6 +13,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../util/MyColor.dart';
 
 class LocationPickerScreen extends StatefulWidget {
+  const LocationPickerScreen({super.key});
+
   @override
   _LocationPickerScreenState createState() => _LocationPickerScreenState();
 }
@@ -95,9 +97,9 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
     ).catchError((e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("Try again"),
+          content: const Text("Try again"),
           action: SnackBarAction(label: "retry", onPressed: _getCurrentLocation),
-          duration: Duration(milliseconds: 3000),
+          duration: const Duration(milliseconds: 3000),
         ),
       );
     });

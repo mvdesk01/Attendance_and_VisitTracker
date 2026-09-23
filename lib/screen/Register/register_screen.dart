@@ -3,19 +3,15 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:android_id/android_id.dart';
-import 'package:attendance_system_ios/screen/Login/login_screen.dart';
 import 'package:attendance_system_ios/service/log_file_manager.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server/gmail.dart';
-import '../../bloc/main_bloc.dart';
-import '../../service/WebService.dart';
 import '../../util/MyColor.dart';
 import 'package:http/http.dart' as http;
 

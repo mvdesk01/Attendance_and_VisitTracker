@@ -121,7 +121,7 @@ class _CoffDebitscreenState extends State<CoffDebitscreen> {
                     child: Debitcoffscreen(
                         flag: 1,
                         datum:
-                            CoffList!.length == 0 ? Message() : CoffList[0]))),
+                            CoffList.length == 0 ? Message() : CoffList[0]))),
           );
 
           //     mainBloc.add(GetStaffDetailsEvents(StaffCode: staffCode!, token: Auth_Token!));

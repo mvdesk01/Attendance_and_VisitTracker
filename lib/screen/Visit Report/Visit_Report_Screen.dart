@@ -19,14 +19,13 @@ import '../../model/VisitReport/VisitRecordsResponse.dart';
 
 class VisitReportScreen extends StatefulWidget {
 
-  Message datum;
+   Message datum;
 
   VisitReportScreen(
       {
-        Key? key,
+        super.key,
         required this.datum,
-      })
-      : super(key: key);
+      });
 
   @override
   State<VisitReportScreen> createState() => _VisitReportScreenState();
@@ -61,6 +60,7 @@ class _VisitReportScreenState extends State<VisitReportScreen> {
 
   @override
   void initState() {
+    super.initState();
     mainBloc = BlocProvider.of<MainBloc>(context);
     data=widget.datum;
 
@@ -350,11 +350,11 @@ class _VisitReportScreenState extends State<VisitReportScreen> {
                                                           create: (context) {
                                                             return MainBloc(webService: WebService());
                                                           },
-                                                          child: VisitReportDetailedScreen(StaffCode:visitList![index].userId,visitsrNo:visitList![index].srNo.toString(),selectdate: visitList![index].selectDate ,record: visitList[index],)),
+                                                          child: VisitReportDetailedScreen(StaffCode:visitList[index].userId,visitsrNo:visitList[index].srNo.toString(),selectdate: visitList[index].selectDate ,record: visitList[index],)),
                                                     ),
                                                   );
                                                 },
-                                                shape: RoundedRectangleBorder(
+                                                shape: const RoundedRectangleBorder(
                                                     borderRadius:
                                                     BorderRadius.all(Radius.circular(10))),
                                                 child: Padding(
@@ -383,7 +383,7 @@ class _VisitReportScreenState extends State<VisitReportScreen> {
                                               mainAxisAlignment: MainAxisAlignment.start,
                                               crossAxisAlignment: CrossAxisAlignment.start,
                                               children: [
-                                                Text("Visit Name ",style: TextStyle(color: MyColors.textprofiledetailColorCode,fontSize: 18),),
+                                                const Text("Visit Name ",style: TextStyle(color: MyColors.textprofiledetailColorCode,fontSize: 18),),
                                                 Text(visitList[index].source.toString()!=null ? visitList[index].source.toString()+" - "+visitList[index].destination.toString() : "NA",style: TextStyle(color: MyColors.text5ColorCode,fontSize: 18),),
                                               ],
                                             ),

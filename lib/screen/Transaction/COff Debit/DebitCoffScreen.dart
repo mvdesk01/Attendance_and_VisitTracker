@@ -7,6 +7,7 @@ import 'package:attendance_system_ios/screen/Home/home.dart';
 import 'package:attendance_system_ios/service/WebService.dart';
 import 'package:attendance_system_ios/util/DialogForUpdate.dart';
 import 'package:attendance_system_ios/util/MyColor.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -75,6 +76,7 @@ class _DebitcoffscreenState extends State<Debitcoffscreen> {
 
   @override
   void initState() {
+    super.initState();
     mainBloc = BlocProvider.of(context);
     typeList.add("H/WOFF");
     typeList.add("COFF");
@@ -1095,7 +1097,7 @@ class _DebitcoffscreenState extends State<Debitcoffscreen> {
                           width: double.infinity,
                           margin: EdgeInsets.only(left: 20.0, right: 20.0),
                           child: ListView.builder(
-                            itemCount: reasonsList!.length,
+                            itemCount: reasonsList.length,
                             itemBuilder: (BuildContext context, int index) {
                               return Padding(
                                   padding: const EdgeInsets.all(8.0),
@@ -1108,14 +1110,16 @@ class _DebitcoffscreenState extends State<Debitcoffscreen> {
                                       });
 
                                       String selectedGatepassType =
-                                          reasonsList![index].toString();
-                                      print("reason : " + reason);
+                                          reasonsList[index].toString();
+                                      if (kDebugMode) {
+                                        print("reason : $reason");
+                                      }
                                     },
                                     child: SizedBox(
                                       height: 40.0,
                                       width: 50.0,
                                       child:
-                                          Text(reasonsList![index].toString()),
+                                          Text(reasonsList[index].toString()),
                                     ),
                                   ));
                             },

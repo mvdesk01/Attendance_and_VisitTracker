@@ -1,9 +1,7 @@
 import 'dart:convert';
 
 import 'package:attendance_system_ios/bloc/main_bloc.dart';
-import 'package:attendance_system_ios/screen/CancellationRequest/CancellationRequestScreen.dart';
 import 'package:attendance_system_ios/screen/Login/login_screen.dart';
-import 'package:attendance_system_ios/screen/Sanction/SanctionScreen.dart';
 import 'package:attendance_system_ios/screen/UserListScreen/UserListScreen.dart';
 import 'package:attendance_system_ios/service/WebService.dart';
 import 'package:flutter/material.dart';
@@ -14,11 +12,10 @@ import 'package:fluttertoast/fluttertoast.dart';
 
 import '../screen/AdminHomeScreen/AdminHome.dart';
 import '../screen/Profile/ProfileforAdmin.dart';
-import '../screen/Profile/profile.dart';
 import 'package:http/http.dart' as http;
 
 class MenuDrawer extends StatefulWidget {
-  const MenuDrawer({Key? key}) : super(key: key);
+  const MenuDrawer({super.key});
 
   @override
   _MenuDrawerState createState() => _MenuDrawerState();
@@ -280,13 +277,6 @@ class _MenuDrawerState extends State<MenuDrawer> {
     } catch (e) {
       print("Error fetching profile photo: $e");
     }
-  }
-
-  String _cleanBase64(String base64String) {
-    if (base64String.contains(",")) {
-      return base64String.split(",").last.trim(); // Remove 'data:image/...;base64,' prefix
-    }
-    return base64String.trim();
   }
 
 }

@@ -18,6 +18,7 @@ import 'package:attendance_system_ios/service/LocationHandler.dart';
 import 'package:attendance_system_ios/service/WebService.dart';
 import 'package:attendance_system_ios/service/log_file_manager.dart';
 import 'package:attendance_system_ios/util/MyColor.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -566,8 +567,10 @@ class _HomeScreenState extends State<HomeScreen> {
     } else {
       _currentPosition = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.medium);
-      print(
+      if (kDebugMode) {
+        print(
           "start location lat long : ${_currentPosition!.latitude}, ${_currentPosition!.longitude}");
+      }
       return _currentPosition!;
     }
   }
@@ -2158,15 +2161,10 @@ class _HomeScreenState extends State<HomeScreen> {
               _currentLon!,
               plantcode?.toString() ?? "01");
 
-          print("result $result");
+          if (kDebugMode) {
+            print("result $result");
+          }
 
-          // After successful operation, show a SnackBar
-          // setState(() {
-          //   isButtonDisabledIn = true;
-          //   isButtonDisabledOut = false;
-          //   //_updateButtonInitialsqliteState();
-          // });
-          // await _updateButtonInitialsqliteState();
           await updatePunchUI();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -2387,13 +2385,10 @@ class _HomeScreenState extends State<HomeScreen> {
     if (DISTANCEFLAG == 'Y') {
       try {
         await LocationHandler.checkIfInZone();
-        _currentLat = LocationHandler.currentLat.toString() ?? '';
+        _currentLat = LocationHandler.currentLat.toString();
         _currentLon = LocationHandler.currentLon.toString();
         _currentAddress = LocationHandler.currentAddress;
-        LogFileManager.writeLog("punch out N y else" +
-            _currentLat! +
-            _currentLon! +
-            _currentAddress!);
+        LogFileManager.writeLog("punch out N y else: ${_currentLat!}, ${_currentLon!}, ${_currentAddress!}");
 
         String currentDate = DateFormat('dd-MM-yyyy HH:mm:ss')
             .format(DateTime.now())
@@ -2763,7 +2758,9 @@ class _HomeScreenState extends State<HomeScreen> {
       String Longitude,
       String plantcode) async {
     try {
-      print("plantcode" + plantcode);
+      if (kDebugMode) {
+        print("plant code $plantcode");
+      }
       final response = await http.post(
         Uri.parse("http://114.143.140.28:8020/api/InOut/InOutSaveData"),
         headers: <String, String>{
@@ -2856,6 +2853,7 @@ class _HomeScreenState extends State<HomeScreen> {
       // sqlitePunchIN(TransactionDate,TransactionTime,StaffCode,FlagValue,Address,Latitude,Longitude);
       LogFileManager.writeLog('Error in Store Punch-In Entry: $e');
     }
+    return null;
   }
 
   Future<String?> storeOutEntry(
@@ -2975,6 +2973,7 @@ class _HomeScreenState extends State<HomeScreen> {
       // sqlitePunchOUT(TransactionDate,TransactionTime,StaffCode,"000",Address,Latitude,Longitude);
       print("Error in Store Punch-Out Entry: $e");
     }
+    return null;
   }
 
   Future<String?> storeNotInZoneEntry(
@@ -3021,6 +3020,7 @@ class _HomeScreenState extends State<HomeScreen> {
       // sqlitePunchOUT(TransactionDate,TransactionTime,StaffCode,"000",Address,Latitude,Longitude);
       print("Error in Store storeNotInZoneEntry Entry: $e");
     }
+    return null;
   }
 
   /// ------------------------------ other functions -------------------------------------

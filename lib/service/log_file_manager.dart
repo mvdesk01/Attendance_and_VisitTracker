@@ -1,13 +1,7 @@
 import 'dart:io';
-import 'package:external_path/external_path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:intl/intl.dart';
-
 import 'background_service.dart' as Permission;
-
-import 'dart:io';
-import 'package:path_provider/path_provider.dart';
-import 'package:intl/intl.dart';
 
 class LogFileManager {
 

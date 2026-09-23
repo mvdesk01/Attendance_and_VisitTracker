@@ -67,6 +67,7 @@ class _AddGatePassState extends State<AddGatePass> {
 
   @override
   void initState() {
+    super.initState();
     mainBloc = BlocProvider.of(context);
     gatepasstypeList.add("Personal");
     gatepasstypeList.add("Official");
@@ -713,13 +714,13 @@ class _AddGatePassState extends State<AddGatePass> {
                                 borderRadius: BorderRadius.circular(10.0),
                                 border: Border.all(color: Colors.grey)),*/
                         child: ListTile(
-                          leading: Text(gatePasstype ?? gatePasstype.toString(),
-                              style: TextStyle(
+                          leading: Text(gatePasstype,
+                              style: const TextStyle(
                                 fontSize: 15.0,
                               )),
                           trailing: isGatepasscontainerselected
                               ? IconButton(
-                                  icon: Icon(
+                                  icon: const Icon(
                                     Icons.keyboard_arrow_up,
                                   ),
                                   onPressed: () {
@@ -728,7 +729,7 @@ class _AddGatePassState extends State<AddGatePass> {
                                   },
                                 )
                               : IconButton(
-                                  icon: Icon(Icons.keyboard_arrow_down),
+                                  icon: const Icon(Icons.keyboard_arrow_down),
                                   onPressed: () {
                                     isGatepasscontainerselected = true;
 
@@ -744,7 +745,7 @@ class _AddGatePassState extends State<AddGatePass> {
                         child: Container(
                           height: 150.0,
                           width: double.infinity,
-                          margin: EdgeInsets.only(left: 20.0, right: 20.0),
+                          margin: const EdgeInsets.only(left: 20.0, right: 20.0),
                           child: ListView.builder(
                             itemCount: gatepasstypeList!.length,
                             itemBuilder: (BuildContext context, int index) {

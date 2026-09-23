@@ -4,6 +4,7 @@ import 'package:attendance_system_ios/bloc/main_state.dart';
 import 'package:attendance_system_ios/model/UsersList/AddStaffRequest.dart';
 import 'package:attendance_system_ios/screen/UserListScreen/UserListScreen.dart';
 import 'package:attendance_system_ios/service/WebService.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -60,6 +61,7 @@ class _AddNewStaffScreenState extends State<AddNewStaffScreen> {
 
   @override
   void initState() {
+    super.initState();
     mainBloc = BlocProvider.of<MainBloc>(context);
 
     getData();
@@ -71,7 +73,9 @@ class _AddNewStaffScreenState extends State<AddNewStaffScreen> {
   Future<void> getData() async {
     Auth_Token = await storage.read(key: 'Auth_Token');
 
-    print("Auth_Token-->" + Auth_Token!);
+    if (kDebugMode) {
+      print("Auth_Token-->${Auth_Token!}");
+    }
   }
 
   @override
@@ -806,9 +810,9 @@ class _AddNewStaffScreenState extends State<AddNewStaffScreen> {
                         child: Container(
                           height: 150.0,
                           width: double.infinity,
-                          margin: EdgeInsets.only(left: 20.0, right: 20.0),
+                          margin: const EdgeInsets.only(left: 20.0, right: 20.0),
                           child: ListView.builder(
-                            itemCount: planCodeList!.length,
+                            itemCount: planCodeList.length,
                             itemBuilder: (BuildContext context, int index) {
                               return Padding(
                                   padding: const EdgeInsets.all(8.0),
@@ -822,21 +826,21 @@ class _AddNewStaffScreenState extends State<AddNewStaffScreen> {
                                       });
 
                                       String selectedCode =
-                                          planCodeList![index].toString();
+                                          planCodeList[index].toString();
                                       print("PlantCode : " + selectedCode);
                                     },
                                     child: SizedBox(
                                       height: 40.0,
                                       width: 50.0,
                                       child:
-                                          Text(planCodeList![index].toString()),
+                                          Text(planCodeList[index].toString()),
                                     ),
                                   ));
                             },
                           ),
                         ),
                       )
-                    : SizedBox(),
+                    : const SizedBox(),
               ],
             ),
           ),

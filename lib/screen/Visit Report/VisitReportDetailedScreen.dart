@@ -10,7 +10,6 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
-import 'package:jiffy/jiffy.dart';
 import 'package:loading_overlay/loading_overlay.dart';
 import 'dart:math';
 import '../../model/VisitReport/VisitDetailedRecordsResponse.dart';
@@ -879,10 +878,11 @@ class _VisitReportDetailedScreenState extends State<VisitReportDetailedScreen> {
   @override
   void initState()
   {
+    super.initState();
     mainBloc = BlocProvider.of<MainBloc>(context);
     srNo=widget.visitsrNo;
     selectDate=widget.selectdate!;
-    selectedRecord=widget.record!;
+    selectedRecord=widget.record;
     getData();
   }
   Future<void> getData() async {

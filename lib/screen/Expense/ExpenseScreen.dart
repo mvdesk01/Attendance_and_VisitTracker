@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:attendance_system_ios/bloc/main_event.dart';
-import 'package:attendance_system_ios/main.dart';
 import 'package:attendance_system_ios/util/DialogForUpdate.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';

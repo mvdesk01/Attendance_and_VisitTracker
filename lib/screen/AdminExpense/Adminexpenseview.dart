@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-// import 'dart:nativewrappers/_internal/vm/lib/typed_data_patch.dart';
 import 'dart:typed_data';
 
 import 'package:attendance_system_ios/bloc/main_bloc.dart';

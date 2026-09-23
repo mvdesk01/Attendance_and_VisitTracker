@@ -606,12 +606,12 @@ class _CancellationRequestScreenState
           final leaveDetail = item as LeaveCancelRequest; // Replace with the actual model class for Leave.
           return DataRow(
             cells: [
-              DataCell(Text(leaveDetail.status ?? '')),
+              DataCell(Text(leaveDetail.status)),
               DataCell(Text(leaveDetail.staffcode)),
               DataCell(Text(leaveDetail.name)),
-              DataCell(Text(leaveDetail.startDate ?? '')),
-              DataCell(Text(leaveDetail.endDate ?? '')),
-              DataCell(Text(leaveDetail.leaveType ?? '')),
+              DataCell(Text(leaveDetail.startDate)),
+              DataCell(Text(leaveDetail.endDate)),
+              DataCell(Text(leaveDetail.leaveType)),
               DataCell(Text(leaveDetail.days.toString())),
               DataCell(
                 TextField(
@@ -627,13 +627,13 @@ class _CancellationRequestScreenState
           final gatepassDetail = item as GatepassCancelRequest; // Replace with the actual model class for Gatepass.
           return DataRow(
             cells: [
-              DataCell(Text(gatepassDetail.status ?? '')),
+              DataCell(Text(gatepassDetail.status)),
               DataCell(Text(gatepassDetail.staffcode)),
               DataCell(Text(gatepassDetail.name)),
-              DataCell(Text(gatepassDetail.date ?? '')),
-              DataCell(Text(gatepassDetail.fromtime ?? '')),
-              DataCell(Text(gatepassDetail.totime ?? '')),
-              DataCell(Text(gatepassDetail.type ?? '')),
+              DataCell(Text(gatepassDetail.date)),
+              DataCell(Text(gatepassDetail.fromtime)),
+              DataCell(Text(gatepassDetail.totime)),
+              DataCell(Text(gatepassDetail.type)),
               DataCell(
                 TextField(
                   onChanged: (value) {
@@ -648,12 +648,12 @@ class _CancellationRequestScreenState
           final tourDetail = item as TourCanceelationRequest; // Replace with the actual model class for Tour.
           return DataRow(
             cells: [
-              DataCell(Text(tourDetail.status ?? '')),
+              DataCell(Text(tourDetail.status)),
               DataCell(Text(tourDetail.staffcode)),
               DataCell(Text(tourDetail.name)),
-              DataCell(Text(tourDetail.startdate ?? '')),
-              DataCell(Text(tourDetail.enddate ?? '')),
-              DataCell(Text(tourDetail.touraddress?? '')),
+              DataCell(Text(tourDetail.startdate)),
+              DataCell(Text(tourDetail.enddate)),
+              DataCell(Text(tourDetail.touraddress)),
               DataCell(
                 TextField(
                   onChanged: (value) {

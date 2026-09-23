@@ -12,6 +12,7 @@ import 'package:attendance_system_ios/model/VisitHistory/VisitDataResponse.dart'
 import 'package:attendance_system_ios/model/VisitHistory/VisitLatLongListResponse.dart';
 import 'package:attendance_system_ios/model/VisitReport/VisitDetailedRecordsResponse.dart';
 import 'package:attendance_system_ios/model/VisitReport/VisitRecordsResponse.dart';
+import 'package:equatable/equatable.dart';
 
 import '../model/CancellationRequestData/CCreditCancellationRequest.dart';
 import '../model/CancellationRequestData/CDebitCancellationRequest.dart';
@@ -44,12 +45,16 @@ import '../model/Tour/Submittourdetails.dart';
 import '../model/UsersList/SearchbystaffcodeResponse.dart';
 import '../model/UsersList/UpdateUUID.dart';
 
-class MainState {
+class MainState extends Equatable{
   @override
   String toString() {
     // TODO: implement toString
     return super.toString();
   }
+
+  @override
+  // TODO: implement props
+  List<Object?> get props => throw UnimplementedError();
 }
 
 class MainInitialState extends MainState {
@@ -65,7 +70,7 @@ class LoginLoadingState extends MainState {
 }
 
 class LoginLoadedState extends MainState {
-  LoginResponse? loginResponse;
+  final LoginResponse? loginResponse;
 
   LoginLoadedState({required this.loginResponse});
 
@@ -75,7 +80,7 @@ class LoginLoadedState extends MainState {
 }
 
 class LoginErrorState extends MainState {
-  String msg;
+  final String msg;
 
   LoginErrorState({required this.msg});
 
@@ -91,7 +96,7 @@ class GetStaffDetailsLoadingState extends MainState {
 }
 
 class GetStaffDetailsLoadedState extends MainState {
-  StaffDetailsResponse? staffDetailsResponse;
+  final StaffDetailsResponse? staffDetailsResponse;
 
   GetStaffDetailsLoadedState({required this.staffDetailsResponse});
 
@@ -101,7 +106,7 @@ class GetStaffDetailsLoadedState extends MainState {
 }
 
 class GetStaffDetailsErrorState extends MainState {
-  String msg;
+  final String msg;
 
   GetStaffDetailsErrorState({required this.msg});
 
@@ -116,7 +121,7 @@ class RequestDataDeletionLoadingState extends MainState {
 }
 
 class RequestDataDeletionLoadedState extends MainState {
-  bool result;
+  final bool result;
 
   RequestDataDeletionLoadedState({required this.result});
 
@@ -126,7 +131,7 @@ class RequestDataDeletionLoadedState extends MainState {
 }
 
 class RequestDataDeletionErrorState extends MainState {
-  String msg;
+  final String msg;
 
   RequestDataDeletionErrorState({required this.msg});
 
@@ -142,7 +147,7 @@ class GetPendingGatePassLoadingState extends MainState {
 }
 
 class GetPendingGatePassLoadedState extends MainState {
-  GatePassResponse? gatePassResponse;
+  final GatePassResponse? gatePassResponse;
 
   GetPendingGatePassLoadedState({required this.gatePassResponse});
 
@@ -152,7 +157,7 @@ class GetPendingGatePassLoadedState extends MainState {
 }
 
 class GetPendingGatePassErrorState extends MainState {
-  String msg;
+  final String msg;
 
   GetPendingGatePassErrorState({required this.msg});
 
@@ -169,7 +174,7 @@ class AddGatePassLoadingState extends MainState {
 }
 
 class AddGatePassLoadedState extends MainState {
-  CancelGatepassResponse? cancelGatepassResponse;
+  final CancelGatepassResponse? cancelGatepassResponse;
 
   AddGatePassLoadedState({required this.cancelGatepassResponse});
 
@@ -179,7 +184,7 @@ class AddGatePassLoadedState extends MainState {
 }
 
 class AddGatePassErrorState extends MainState {
-  String msg;
+  final String msg;
 
   AddGatePassErrorState({required this.msg});
 
@@ -262,7 +267,7 @@ class DeleteStaffEntryLoadedState extends MainState {
 }
 
 class DeleteStaffEntryErrorState extends MainState {
-  String msg;
+  final String msg;
 
   DeleteStaffEntryErrorState({required this.msg});
 
@@ -280,7 +285,7 @@ class GetStaffDetailsForCoffLoadingState extends MainState {
 }
 
 class GetStaffDetailsForCoffLoadedState extends MainState {
-  GetStaffDetailsForCoffResponse getStaffDetailsForCoffResponse;
+  final GetStaffDetailsForCoffResponse getStaffDetailsForCoffResponse;
 
   GetStaffDetailsForCoffLoadedState(
       {required this.getStaffDetailsForCoffResponse});
@@ -291,7 +296,7 @@ class GetStaffDetailsForCoffLoadedState extends MainState {
 }
 
 class GetStaffDetailsForCoffErrorState extends MainState {
-  String msg;
+  final String msg;
 
   GetStaffDetailsForCoffErrorState({required this.msg});
 
@@ -309,7 +314,7 @@ class SubmitCoffEventsLoadingState extends MainState {
 }
 
 class SubmitCoffEventsLoadedState extends MainState {
-  CancelGatepassResponse cancelGatepassResponse;
+  final CancelGatepassResponse cancelGatepassResponse;
 
   SubmitCoffEventsLoadedState({required this.cancelGatepassResponse});
 
@@ -319,7 +324,7 @@ class SubmitCoffEventsLoadedState extends MainState {
 }
 
 class SubmitCoffEventsErrorState extends MainState {
-  String msg;
+  final String msg;
 
   SubmitCoffEventsErrorState({required this.msg});
 
@@ -366,7 +371,7 @@ class CancelCoffOTHWOFFLoadingState extends MainState {
 }
 
 class CancelCoffOTHWOFFLoadedState extends MainState {
-  CancelGatepassResponse cancelGatepassResponse;
+  final CancelGatepassResponse cancelGatepassResponse;
 
   CancelCoffOTHWOFFLoadedState({required this.cancelGatepassResponse});
 
@@ -376,7 +381,7 @@ class CancelCoffOTHWOFFLoadedState extends MainState {
 }
 
 class CancelCoffOTHWOFFErrorState extends MainState {
-  String msg;
+  final String msg;
 
   CancelCoffOTHWOFFErrorState({required this.msg});
 
@@ -393,7 +398,7 @@ class GetCoffsTransactionsLoadingState extends MainState {
 }
 
 class GetCoffsTransactionsLoadedState extends MainState {
-  GetCoffsTransactionsResponse getCoffsTransactionsResponse;
+  final GetCoffsTransactionsResponse getCoffsTransactionsResponse;
 
   GetCoffsTransactionsLoadedState({required this.getCoffsTransactionsResponse});
 
@@ -420,7 +425,7 @@ class CancelCoffLoadingState extends MainState {
 }
 
 class CancelCoffLoadedState extends MainState {
-  CancelGatepassResponse cancelGatepassResponse;
+  final CancelGatepassResponse cancelGatepassResponse;
 
   CancelCoffLoadedState({required this.cancelGatepassResponse});
 
@@ -430,7 +435,7 @@ class CancelCoffLoadedState extends MainState {
 }
 
 class CancelCoffErrorState extends MainState {
-  String msg;
+  final String msg;
 
   CancelCoffErrorState({required this.msg});
 
@@ -447,7 +452,7 @@ class SubmitCoffDebitLoadingState extends MainState {
 }
 
 class SubmitCoffDebitLoadedState extends MainState {
-  CancelGatepassResponse cancelGatepassResponse;
+  final CancelGatepassResponse cancelGatepassResponse;
 
   SubmitCoffDebitLoadedState({required this.cancelGatepassResponse});
 
@@ -457,7 +462,7 @@ class SubmitCoffDebitLoadedState extends MainState {
 }
 
 class SubmitCoffDebitErrorState extends MainState {
-  String msg;
+  final String msg;
 
   SubmitCoffDebitErrorState({required this.msg});
 
@@ -474,7 +479,7 @@ class InsertMMRowsDataLoadingState extends MainState {
 }
 
 class InsertMMRowsDataLoadedState extends MainState {
-  CancelGatepassResponse cancelGatepassResponse;
+  final CancelGatepassResponse cancelGatepassResponse;
 
   InsertMMRowsDataLoadedState({required this.cancelGatepassResponse});
 
@@ -528,7 +533,7 @@ class UpdateMeetingFormNoLoadingState extends MainState {
 }
 
 class UpdateMeetingFormNoLoadedState extends MainState {
-  CancelGatepassResponse cancelGatepassResponse;
+  final CancelGatepassResponse cancelGatepassResponse;
 
   UpdateMeetingFormNoLoadedState({required this.cancelGatepassResponse});
 

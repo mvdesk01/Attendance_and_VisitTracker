@@ -76,6 +76,7 @@ class _AdminSideMinutesOfTheMeetingFormScreenState
 
   @override
   void initState() {
+    super.initState();
     mainBloc = BlocProvider.of(context);
 
     getData();
@@ -925,6 +926,7 @@ class _DynamicRowState extends State<DynamicRow> {
 
   @override
   void initState() {
+    super.initState();
     textFieldController1.text = widget.pointsOrIssues;
     textFieldController2.text = widget.discussedWith;
     textFieldController3.text = widget.decisionTaken;

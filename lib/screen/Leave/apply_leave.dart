@@ -63,6 +63,7 @@ class _LeaveDetailsPageState extends State<LeaveDetailsPage> {
   TimeOfDay? toTime;
 
   void initState() {
+    super.initState();
     mainBloc = BlocProvider.of(context);
     getLeaveBalances();
     if (widget.flag == 2) {

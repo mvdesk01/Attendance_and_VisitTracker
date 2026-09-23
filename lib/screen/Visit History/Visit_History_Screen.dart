@@ -60,6 +60,7 @@ class _VisitHistoryScreenState extends State<VisitHistoryScreen> {
 
   @override
   void initState() {
+    super.initState();
     //  data=widget.datum;
     setState(() {
       // Format the current date with Jiffy using the correct constructor
@@ -616,8 +617,8 @@ class _VisitHistoryScreenState extends State<VisitHistoryScreen> {
                                                       : visitList[index]
                                                                   .status ==
                                                               "S"
-                                                          ? (isVisitRunning!
-                                                              ? Text(
+                                                          ? (isVisitRunning
+                                                                ? const Text(
                                                                   "Started",
                                                                   style:
                                                                       TextStyle(
@@ -707,7 +708,7 @@ class _VisitHistoryScreenState extends State<VisitHistoryScreen> {
                                                           CrossAxisAlignment
                                                               .start,
                                                       children: [
-                                                        Text(
+                                                        const Text(
                                                           "Visit Destination",
                                                           style: TextStyle(
                                                               color: MyColors

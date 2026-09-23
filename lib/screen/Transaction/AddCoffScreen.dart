@@ -5,6 +5,7 @@ import 'package:attendance_system_ios/model/CoffCredit/CreditCOffEntryRequest.da
 import 'package:attendance_system_ios/screen/Gate%20Pass/gate_pass.dart';
 import 'package:attendance_system_ios/screen/Home/home.dart';
 import 'package:attendance_system_ios/service/WebService.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -33,7 +34,6 @@ class AddCoffScreen extends StatefulWidget {
 }
 
 class _AddCoffScreenState extends State<AddCoffScreen> {
-  TextEditingController _TransactionidController = new TextEditingController();
   TextEditingController _gatepassdatecontroller = new TextEditingController();
   TextEditingController _staffCodecontroller = new TextEditingController();
   TextEditingController _staffNamecontroller = new TextEditingController();
@@ -78,6 +78,7 @@ class _AddCoffScreenState extends State<AddCoffScreen> {
   @override
   @override
   void initState() {
+    super.initState();
     mainBloc = BlocProvider.of(context);
     typeList.add("H/WOFF");
     typeList.add("COFF");
@@ -133,9 +134,13 @@ class _AddCoffScreenState extends State<AddCoffScreen> {
 
   Future<void> getData() async {
     staffCode = await storage.read(key: 'Staff_Code');
-    print("staffCode-->" + staffCode!);
+    if (kDebugMode) {
+      print("staffCode-->${staffCode!}");
+    }
     Auth_Token = await storage.read(key: 'Auth_Token');
-    print("Auth_Token-->" + Auth_Token!);
+    if (kDebugMode) {
+      print("Auth_Token-->${Auth_Token!}");
+    }
 
     _staffCodecontroller.text = staffCode!;
 
@@ -193,7 +198,9 @@ class _AddCoffScreenState extends State<AddCoffScreen> {
           if (Navigator.canPop(context)) {
             Navigator.pop(context);
           } else {
-            print("Else Navigatorrrrrrrrrrrrr");
+            if (kDebugMode) {
+              print("Else Navigatorrrrrrrrrrrrr");
+            }
 
             Navigator.pushReplacement(
                 context,
@@ -229,7 +236,7 @@ class _AddCoffScreenState extends State<AddCoffScreen> {
                     toTimeInput.text = "";
                   });
                 },
-                child: Column(
+                child: const Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(
@@ -248,11 +255,15 @@ class _AddCoffScreenState extends State<AddCoffScreen> {
                 onTap: () {
                   if (Navigator.canPop(context)) {
                     Navigator.pop(context);
-                    print(" Navigatorrrrrrrrrrrrr");
+                    if (kDebugMode) {
+                      print(" Navigatorrrrrrrrrrrrr");
+                    }
                   } else {
                     // You can also handle custom back button logic here
                     // For example, exit the app, show a confirmation dialog, etc.
-                    print("Else Navigatorrrrrrrrrrrrr");
+                    if (kDebugMode) {
+                      print("Else Navigatorrrrrrrrrrrrr");
+                    }
 
                     Navigator.pushReplacement(
                         context,
@@ -265,7 +276,7 @@ class _AddCoffScreenState extends State<AddCoffScreen> {
                     // Prevent the app from closing
                   }
                 },
-                child: Column(
+                child: const Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(Icons.close, size: 25, color: MyColors.text4ColorCode),
@@ -292,10 +303,10 @@ class _AddCoffScreenState extends State<AddCoffScreen> {
                       top: 6.0, bottom: 6, left: 20, right: 20),
                   decoration: BoxDecoration(
                       color: MyColors.blueColorCode,
-                      borderRadius: BorderRadius.all(Radius.circular(10)),
+                      borderRadius: const BorderRadius.all(Radius.circular(10)),
                       border:
                           Border.all(color: MyColors.textBoxBorderColorCode)),
-                  child: Text(
+                  child: const Text(
                     "Save",
                     style:
                         TextStyle(color: MyColors.whiteColorCode, fontSize: 20),
@@ -314,7 +325,7 @@ class _AddCoffScreenState extends State<AddCoffScreen> {
       isLoading: _isLoading,
       opacity: 0.5,
       color: Colors.white,
-      progressIndicator: CircularProgressIndicator(
+      progressIndicator: const CircularProgressIndicator(
         backgroundColor: Color(0xFFCE4A6F),
         valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
       ),
@@ -446,8 +457,8 @@ class _AddCoffScreenState extends State<AddCoffScreen> {
                 top: 20.0, left: 15, right: 15, bottom: 20),
             child: Column(
               children: [
-                Padding(
-                  padding: const EdgeInsets.only(top: 4.0, bottom: 8),
+                const Padding(
+                  padding: EdgeInsets.only(top: 4.0, bottom: 8),
                   child: Row(
                     children: [
                       Text(
@@ -455,7 +466,7 @@ class _AddCoffScreenState extends State<AddCoffScreen> {
                         style: TextStyle(fontSize: 18),
                       ),
                       Padding(
-                        padding: const EdgeInsets.only(left: 3.0),
+                        padding: EdgeInsets.only(left: 3.0),
                         child: Text("*",
                             style: TextStyle(
                                 fontSize: 18, color: MyColors.redColorCode)),
@@ -512,7 +523,7 @@ class _AddCoffScreenState extends State<AddCoffScreen> {
                   child: Padding(
                     padding: const EdgeInsets.only(bottom: 2),
                     child: Container(
-                      margin: EdgeInsets.only(top: 10.0, right: 3.0, left: 3.0),
+                      margin: const EdgeInsets.only(top: 10.0, right: 3.0, left: 3.0),
                       height: 50.0,
                       width: double.maxFinite,
                       decoration: BoxDecoration(
@@ -520,11 +531,11 @@ class _AddCoffScreenState extends State<AddCoffScreen> {
                       ),
                       child: ListTile(
                         leading: Text(type ?? gatePasstype.toString(),
-                            style: TextStyle(fontSize: 15.0)),
+                            style: const TextStyle(fontSize: 15.0)),
                         trailing:
                             isTypecontainerselected // ✅ Changed from isGatepasscontainerselected
                                 ? IconButton(
-                                    icon: Icon(Icons.keyboard_arrow_up),
+                                    icon: const Icon(Icons.keyboard_arrow_up),
                                     onPressed: () {
                                       setState(() {
                                         isTypecontainerselected = false;
@@ -532,7 +543,7 @@ class _AddCoffScreenState extends State<AddCoffScreen> {
                                     },
                                   )
                                 : IconButton(
-                                    icon: Icon(Icons.keyboard_arrow_down),
+                                    icon: const Icon(Icons.keyboard_arrow_down),
                                     onPressed: () {
                                       setState(() {
                                         isTypecontainerselected = true;
@@ -549,9 +560,9 @@ class _AddCoffScreenState extends State<AddCoffScreen> {
                         child: Container(
                           height: 90.0,
                           width: double.maxFinite,
-                          margin: EdgeInsets.only(left: 20.0, right: 20.0),
+                          margin: const EdgeInsets.only(left: 20.0, right: 20.0),
                           child: ListView.builder(
-                            itemCount: typeList!.length,
+                            itemCount: typeList.length,
                             itemBuilder: (BuildContext context, int index) {
                               return Padding(
                                   padding: const EdgeInsets.all(8.0),
@@ -577,24 +588,26 @@ class _AddCoffScreenState extends State<AddCoffScreen> {
                                         //event
                                       }
                                       String selectedGatepassType =
-                                          typeList![index].toString();
-                                      print("type : " + type);
+                                          typeList[index].toString();
+                                      if (kDebugMode) {
+                                        print("type : $type");
+                                      }
                                     },
                                     child: SizedBox(
                                       height: 20.0,
                                       width: 10.0,
-                                      child: Text(typeList![index].toString()),
+                                      child: Text(typeList[index].toString()),
                                     ),
                                   ));
                             },
                           ),
                         ),
                       )
-                    : SizedBox(),
-                Align(
+                    : const SizedBox(),
+                const Align(
                     alignment: Alignment.centerLeft,
                     child: Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
+                      padding: EdgeInsets.only(bottom: 8),
                       child: Row(
                         children: [
                           Text(
@@ -602,7 +615,7 @@ class _AddCoffScreenState extends State<AddCoffScreen> {
                             style: TextStyle(fontSize: 18),
                           ),
                           Padding(
-                            padding: const EdgeInsets.only(left: 3.0),
+                            padding: EdgeInsets.only(left: 3.0),
                             child: Text("*",
                                 style: TextStyle(
                                     fontSize: 18,
@@ -614,7 +627,7 @@ class _AddCoffScreenState extends State<AddCoffScreen> {
                 TextField(
                   controller: _staffCodecontroller,
                   enabled: false, // to trigger disabledBorder
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     filled: true,
                     fillColor: MyColors.textFieldBackgroundColorCode,
                     focusedBorder: OutlineInputBorder(
@@ -1160,9 +1173,9 @@ class _AddCoffScreenState extends State<AddCoffScreen> {
                         child: Container(
                           height: 150.0,
                           width: double.infinity,
-                          margin: EdgeInsets.only(left: 20.0, right: 20.0),
+                          margin: const EdgeInsets.only(left: 20.0, right: 20.0),
                           child: ListView.builder(
-                            itemCount: reasonsList!.length,
+                            itemCount: reasonsList.length,
                             itemBuilder: (BuildContext context, int index) {
                               return Padding(
                                   padding: const EdgeInsets.all(8.0),
@@ -1175,28 +1188,30 @@ class _AddCoffScreenState extends State<AddCoffScreen> {
                                       });
 
                                       String selectedGatepassType =
-                                          reasonsList![index].toString();
-                                      print("reason : " + reason);
+                                          reasonsList[index].toString();
+                                      if (kDebugMode) {
+                                        print("reason : $reason");
+                                      }
                                     },
                                     child: SizedBox(
                                       height: 40.0,
                                       width: 50.0,
                                       child:
-                                          Text(reasonsList![index].toString()),
+                                          Text(reasonsList[index].toString()),
                                     ),
                                   ));
                             },
                           ),
                         ),
                       )
-                    : SizedBox(),
+                    : const SizedBox(),
                 Align(
                     alignment: Alignment.topCenter,
                     child: Padding(
                         padding: const EdgeInsets.only(bottom: 8, left: 25),
                         child: CheckboxListTile(
                           title:
-                              Text("Please Check Mark To Enter Other Details",
+                              const Text("Please Check Mark To Enter Other Details",
                                   style: TextStyle(
                                     fontSize: 17.0,
                                   )),

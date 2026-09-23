@@ -6,6 +6,7 @@ import 'package:attendance_system_ios/model/VisitReport/VisitDetailedRecordsResp
     as visitValues;
 import 'package:attendance_system_ios/screen/Splash%20Screen/splash_screen.dart';
 import 'package:attendance_system_ios/service/log_file_manager.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -155,9 +156,13 @@ class _VisitOutsideState extends State<VisitOutside> {
         _selectedAddress = result['pickedAddress'];
         _currentAddress = result['currentAddress'];
         location = "$_selectedAddress";
-        print(
+        if (kDebugMode) {
+          print(
             "Selected Location: lat - ${_selectedLocation!.latitude} long - ${_selectedLocation!.longitude}");
-        print("Picked Location Address: $_selectedAddress");
+        }
+        if (kDebugMode) {
+          print("Picked Location Address: $_selectedAddress");
+        }
       });
     }
   }
@@ -213,7 +218,7 @@ class _VisitOutsideState extends State<VisitOutside> {
     }
 
     // ✅ Check if visit name is empty
-    if (nameOfVisit == null || nameOfVisit!.trim().isEmpty) {
+    if (nameOfVisit == null || nameOfVisit.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Enter Visit Name!!")),
       );
@@ -310,7 +315,9 @@ class _VisitOutsideState extends State<VisitOutside> {
           }),
         );
 
-        print('create visit ${response.statusCode}');
+        if (kDebugMode) {
+          print('create visit ${response.statusCode}');
+        }
         if (response.statusCode == 200) {
           final result = response.body;
           // print('create visit response body: $result');
@@ -329,16 +336,16 @@ class _VisitOutsideState extends State<VisitOutside> {
         } else if (response.statusCode == 401) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('UnAuthorized. Kindly Login Again!!'),
+              content: const Text('UnAuthorized. Kindly Login Again!!'),
               action: SnackBarAction(
                 label: 'Login Again',
                 onPressed: () {
                   isloggedIn = true;
                   Navigator.push(context,
-                      MaterialPageRoute(builder: (context) => SplashScreen()));
+                      MaterialPageRoute(builder: (context) => const SplashScreen()));
                 },
               ),
-              duration: Duration(days: 365), // Make it sticky
+              duration: const Duration(days: 365), // Make it sticky
             ),
           );
         } else {
@@ -575,7 +582,7 @@ class _VisitOutsideState extends State<VisitOutside> {
       return;
     }
     // Check if nameOfVisit contains only numbers
-    if (RegExp(r'^\d+$').hasMatch(nameOfVisit!.trim())) {
+    if (RegExp(r'^\d+$').hasMatch(nameOfVisit.trim())) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Visit Name must include letters!!")),
       );
@@ -687,10 +694,14 @@ class _VisitOutsideState extends State<VisitOutside> {
           "visitDate": visitDate
         }),
       );
-      print(
-          "resquest body: ${selectedVisitt!.srNo}, ${staffcode}, ${formatedSelectedDate},"
+      if (kDebugMode) {
+        print(
+          "request body: ${selectedVisitt!.srNo}, ${staffcode}, ${formatedSelectedDate},"
           "${startTime.format(context)},${endTime.format(context)},${nameController.text}, ${_currentAddress},${location},${visitDate}");
-      print("response code: ${response.statusCode}");
+      }
+      if (kDebugMode) {
+        print("response code: ${response.statusCode}");
+      }
       if (response.statusCode == 200) {
         _fetchVisits(); // Refresh visit list
         setState(() {
@@ -921,7 +932,7 @@ class _VisitOutsideState extends State<VisitOutside> {
                         child: TextFormField(
                           controller: nameController,
                           inputFormatters: [
-                            // Ronly letters and spaces
+                            // Only letters and spaces
                             FilteringTextInputFormatter.allow(
                                 RegExp(r'[a-zA-Z0-9\s]')),
                           ],

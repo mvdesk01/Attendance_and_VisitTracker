@@ -1,6 +1,7 @@
 import 'package:attendance_system_ios/screen/Leave/apply_leave.dart';
 import 'package:attendance_system_ios/service/WebService.dart';
 import 'package:attendance_system_ios/util/MyColor.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -56,7 +57,10 @@ class _AddLeavePageState extends State<AddLeavePage> {
 
   @override
   void initState() {
-    print("Received Flag: ${widget.flag}");
+    super.initState();
+    if (kDebugMode) {
+      print("Received Flag: ${widget.flag}");
+    }
     mainBloc = BlocProvider.of(context);
 
     getData();

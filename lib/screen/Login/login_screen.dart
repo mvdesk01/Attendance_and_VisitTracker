@@ -51,7 +51,9 @@ class _LoginScreenState extends State<LoginScreen> {
   LocalAuthentication auth = LocalAuthentication();
 
   @override
-  void activate() {}
+  void activate() {
+    super.activate();
+  }
 
   final ButtonStyle raisedButtonStyle = ElevatedButton.styleFrom(
     foregroundColor: Colors.white, backgroundColor: MyColors.lightBlue,

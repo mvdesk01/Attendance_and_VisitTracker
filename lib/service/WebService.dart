@@ -37,6 +37,7 @@ import 'package:attendance_system_ios/model/VisitReport/VisitRecordsResponse.dar
 import 'package:attendance_system_ios/screen/Splash%20Screen/splash_screen.dart';
 import 'package:attendance_system_ios/service/log_file_manager.dart';
 import 'package:attendance_system_ios/util/Constant.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
@@ -206,6 +207,7 @@ class WebService {
       print('Error in getStaffDetails: $e');
       return null;
     }
+    return null;
   }
 
   Future<GatePassResponse?> getPendingGatepass(
@@ -372,6 +374,7 @@ class WebService {
       LogFileManager.writeLog('Error in cancleGatePass: $e');
       print('Error in cancleGatePass: $e');
     }
+    return null;
   }
 
 //Visit History
@@ -432,6 +435,7 @@ class WebService {
       LogFileManager.writeLog("Error in getAllVisits: $e");
       print("Error in getAllVisits: $e");
     }
+    return null;
   }
 
   Future<VisitLatLongListResponse?> GetVisiLatLongList(
@@ -492,6 +496,7 @@ class WebService {
       LogFileManager.writeLog("Error in GetVisitLatLongList: $e");
       print("Error in GetVisitLatLongList: $e");
     }
+    return null;
   }
 
   ///searchbystaffcode
@@ -584,6 +589,7 @@ class WebService {
     } catch (e) {
       LogFileManager.writeLog('Error in GetAllUsers: $e');
     }
+    return null;
   }
 
   ///clientlist
@@ -760,26 +766,21 @@ class WebService {
       LogFileManager.writeLog('Error in GetVisitByFromDatetoDate: $e');
       print('Error in GetVisitByFromDatetoDate: $e');
     }
+    return null;
   }
 
   //GetVisitRecords
   Future<VisitDetailedRecordsResponse?> GetVisitRecords(String StaffCode,
       String FromDate, String ToDate, String SrNoVal, String token) async {
     try {
-      print("GetVisitRecords : " + Constant.getVisitRecords);
-      print("UserId--->" + StaffCode);
-      print("pageNumber --->" + FromDate.toString());
-      print("pageSize --->" + ToDate.toString());
-      print("fromDate --->" + SrNoVal);
-      print(Constant.getVisitRecords +
-          "StaffCode=" +
-          StaffCode +
-          "&FromDate=" +
-          FromDate.toString() +
-          "&ToDate=" +
-          ToDate.toString() +
-          "&SrNoVal=" +
-          SrNoVal);
+      if (kDebugMode) {
+        print("GetVisitRecords : ${Constant.getVisitRecords}");
+        print("UserId--->$StaffCode");
+        print("pageNumber --->$FromDate");
+        print("pageSize --->$ToDate");
+        print("fromDate --->$SrNoVal");
+        print("${Constant.getVisitRecords}StaffCode=$StaffCode&FromDate=$FromDate&ToDate=$ToDate&SrNoVal=$SrNoVal");
+      }
 
       final response = await http.get(
         Uri.parse(Constant.getVisitRecords +
@@ -823,6 +824,7 @@ class WebService {
       LogFileManager.writeLog("Error in GetVisitRecords: $e");
       print("Error in GetVisitRecords: $e");
     }
+    return null;
   }
 
 //-----------leave----------------

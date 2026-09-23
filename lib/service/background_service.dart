@@ -4,7 +4,6 @@ import 'dart:io';
 import 'dart:ui';
 import 'package:attendance_system_ios/main.dart';
 import 'package:battery_plus/battery_plus.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';

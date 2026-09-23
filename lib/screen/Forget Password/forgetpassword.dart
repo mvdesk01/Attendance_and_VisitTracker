@@ -4,9 +4,7 @@ import 'dart:math';
 
 import 'package:attendance_system_ios/screen/Login/login_screen.dart';
 import 'package:attendance_system_ios/util/MyColor.dart';
-import 'package:bcrypt/bcrypt.dart';
 import 'package:flutter/material.dart';
-// import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;

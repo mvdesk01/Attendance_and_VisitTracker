@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:attendance_system_ios/model/VisitData/fetch_visit_details_by_srno.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -203,8 +204,10 @@ class _LiveTrackVisitState extends State<LiveTrackVisit> {
   }
 
   Future<void> GetVisitInfoBySrNo()async {
-    if (widget.srno == null || widget.srno!.isEmpty) {
-      print("Error: widget.srno is null or empty");
+    if (widget.srno == null || widget.srno.isEmpty) {
+      if (kDebugMode) {
+        print("Error: widget.srno is null or empty");
+      }
       return;
     }
     try{

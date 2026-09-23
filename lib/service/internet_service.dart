@@ -3,14 +3,11 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:intl/intl.dart';
 
 import '../database/database_helper.dart';
-import '../main.dart';
 import '../util/MyColor.dart';
-import 'package:http/http.dart' as http;
 
 import 'log_file_manager.dart';
 

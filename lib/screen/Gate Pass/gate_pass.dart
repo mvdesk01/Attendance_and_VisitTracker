@@ -6,7 +6,6 @@ import 'package:attendance_system_ios/model/GatePass/GatePassResponse.dart';
 import 'package:attendance_system_ios/screen/Gate%20Pass/AddGatePass.dart';
 import 'package:attendance_system_ios/screen/Home/home.dart';
 import 'package:attendance_system_ios/service/WebService.dart';
-import 'package:attendance_system_ios/util/NoDataDialogue.dart';
 import 'package:attendance_system_ios/util/custome_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -43,6 +42,7 @@ class _GatePassState extends State<GatePass> {
 
   @override
   void initState() {
+    super.initState();
     mainBloc=BlocProvider.of(context);
     getData();
   }
