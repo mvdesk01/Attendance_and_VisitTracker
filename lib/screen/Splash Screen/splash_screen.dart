@@ -35,25 +35,31 @@ class _SplashScreenState extends State<SplashScreen> {
   MainBloc? _mainBloc;
   bool _isLoading = false;
   bool isAdminLogin = false;
+  Timer? _timer;
 
   @override
   void initState() {
     super.initState();
 
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      // optional small delay for smoother UI
-      await Future.delayed(const Duration(milliseconds: 300));
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _timer = Timer(const Duration(milliseconds: 300), () async {
+        if (!mounted) return;
 
-      if (!mounted) return;
+        await AppUpdateService.checkAndUpdate(context);
 
-      await AppUpdateService.checkAndUpdate(context);
+        if (!mounted) return;
 
-      if (!mounted) return;
-
-      await _initializeApp();
+        await _initializeApp();
+      });
     });
 
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
   }
 
   Future<void> _initializeApp() async {

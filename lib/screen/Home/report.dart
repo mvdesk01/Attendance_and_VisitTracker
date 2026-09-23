@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:attendance_system_ios/screen/Home/home.dart';
 import 'package:attendance_system_ios/service/log_file_manager.dart';
 import 'package:attendance_system_ios/util/MyColor.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -113,8 +114,10 @@ class _AttendanceReportState extends State<AttendanceReport> {
           )
           .timeout(const Duration(seconds: 15));
 
-      print("inout details statuscode: ${response.statusCode}");
-      print("inout details body: ${response.body}");
+      if(kDebugMode){
+        print("inout details statuscode: ${response.statusCode}");
+        print("inout details body: ${response.body}");
+      }
       if (response.statusCode == 201 || response.statusCode == 200) {
         final Map<String, dynamic> decoded = jsonDecode(response.body);
 
@@ -225,7 +228,9 @@ class _AttendanceReportState extends State<AttendanceReport> {
 
   // Fetch data for today by default
   Future<void> _fetchTodayData() async {
-    print('first');
+    if (kDebugMode) {
+      print('first');
+    }
     DateTime today = DateTime.now();
     setState(() {
       fromDate = today;
@@ -583,7 +588,7 @@ class _AttendanceReportState extends State<AttendanceReport> {
             .toLocal()
         : null;
 
-    Duration totalDuration = Duration();
+    Duration totalDuration = const Duration();
     if (firstPunch != null && lastPunch != null) {
       totalDuration = lastPunch.difference(firstPunch);
     }
@@ -608,7 +613,7 @@ class _AttendanceReportState extends State<AttendanceReport> {
             "Attendance Details - ${DateFormat('dd MMM yyyy').format(day)}",
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
-          Divider(),
+          const Divider(),
           //Scroll
           ListView.builder(
             shrinkWrap: true,
@@ -626,10 +631,10 @@ class _AttendanceReportState extends State<AttendanceReport> {
               );
             },
           ),
-          Divider(),
+          const Divider(),
           Text(
             "Total Hours: ${totalDuration.inHours}h ${totalDuration.inMinutes.remainder(60)}m",
-            style: TextStyle(
+            style: const TextStyle(
                 fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue),
           ),
         ],
@@ -646,7 +651,7 @@ class _AttendanceReportState extends State<AttendanceReport> {
         child: Center(
           child: Text(
             '${day.day}',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
           ),
         ),
       ),
@@ -785,7 +790,7 @@ class _AttendanceReportState extends State<AttendanceReport> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(
+                  const Text(
                     'From: ',
                     style: TextStyle(fontSize: 16),
                   ),
@@ -802,26 +807,26 @@ class _AttendanceReportState extends State<AttendanceReport> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  Text(
+                  const Text(
                     '  To: ',
                     style: TextStyle(fontSize: 16),
                   ),
                   Text(
                     '${DateFormat('dd/MM/yyyy').format(toDate!)}',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ],
               )),
         Expanded(
           child: isLoading
-              ? Center(child: CircularProgressIndicator())
+              ? const Center(child: CircularProgressIndicator())
               : groupedInOutDetails.isEmpty
-                  ? Center(child: Text("No Data Available"))
+                  ? const Center(child: Text("No Data Available"))
                   : isGridView
                       ? GridView.builder(
                           padding: const EdgeInsets.all(8),
                           gridDelegate:
-                              SliverGridDelegateWithFixedCrossAxisCount(
+                          const SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount: 2,
                             crossAxisSpacing: 8,
                             mainAxisSpacing: 8,
@@ -847,7 +852,7 @@ class _AttendanceReportState extends State<AttendanceReport> {
                                   children: [
                                     Text(
                                       "Date: $date",
-                                      style: TextStyle(
+                                      style: const TextStyle(
                                         fontSize: 18,
                                         fontWeight: FontWeight.bold,
                                         color: MyColors.fontBlue,
@@ -875,7 +880,7 @@ class _AttendanceReportState extends State<AttendanceReport> {
                                                 fontSize: 16,
                                               ),
                                             ),
-                                            SizedBox(height: 6),
+                                            const SizedBox(height: 6),
                                             Text(
                                                 "Transaction Time: ${detail.transactionTime}"),
                                             Row(
@@ -883,7 +888,7 @@ class _AttendanceReportState extends State<AttendanceReport> {
                                                 const Text("In/Out: "),
                                                 Text(
                                                   "${detail.inOut}",
-                                                  style: TextStyle(
+                                                  style: const TextStyle(
                                                       fontWeight:
                                                           FontWeight.bold),
                                                 ),
@@ -988,7 +993,7 @@ class _AttendanceReportState extends State<AttendanceReport> {
                                               Expanded(
                                                 child: Text(
                                                   "${detail.staffCode}",
-                                                  style: TextStyle(
+                                                  style: const TextStyle(
                                                       fontWeight:
                                                           FontWeight.bold,
                                                       color: Colors.black87),
@@ -996,16 +1001,16 @@ class _AttendanceReportState extends State<AttendanceReport> {
                                               ),
                                             ],
                                           ),
-                                          SizedBox(height: 6),
+                                          const SizedBox(height: 6),
                                           Row(
                                             children: [
                                               Icon(Icons.access_time,
                                                   size: 18,
                                                   color: Colors.grey.shade600),
-                                              SizedBox(width: 5),
+                                              const SizedBox(width: 5),
                                               Text(
                                                 "Transaction Time: ${detail.transactionTime}",
-                                                style: TextStyle(
+                                                style: const TextStyle(
                                                     color: Colors.black87),
                                               ),
                                             ],
@@ -1025,7 +1030,7 @@ class _AttendanceReportState extends State<AttendanceReport> {
                                                   maxLines: 2,
                                                   overflow:
                                                       TextOverflow.ellipsis,
-                                                  style: TextStyle(
+                                                  style: const TextStyle(
                                                       color: Colors.black87),
                                                 ),
                                               ),

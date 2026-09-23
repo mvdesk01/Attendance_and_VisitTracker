@@ -539,20 +539,28 @@ class DiscussionPointRowState extends ConsumerState<DiscussionPointRow> {
                 items: (filter, infiniteScrollProps) async {
                   print(
                     "Dropdown Items: "
-                    "${responsibilityState.responsibility.length}",
+                        "${responsibilityState.responsibility.length}",
                   );
+
                   final customer = Responsibility(
                     userCode: widget.customerCode,
                     userName: "CUSTOMER",
                   );
-                  return [customer, ...responsibilityState.responsibility];
+
+                  return [
+                    customer,
+                    ...responsibilityState.responsibility,
+                  ];
                 },
                 selectedItems: selectedMembers,
                 itemAsString: (Responsibility item) => item.userName,
                 compareFn: (a, b) => a.userCode == b.userCode,
-                popupProps: PopupPropsMultiSelection.modalBottomSheet(
+                popupProps: PopupPropsMultiSelection.bottomSheet(
                   showSearchBox: true,
                   showSelectedItems: true,
+                  bottomSheetProps: const BottomSheetProps(
+                    backgroundColor: Colors.white,
+                  ),
                   searchFieldProps: const TextFieldProps(
                     decoration: InputDecoration(
                       hintText: "Search Responsibility",
@@ -587,6 +595,61 @@ class DiscussionPointRowState extends ConsumerState<DiscussionPointRow> {
                 },
               ),
             ),
+
+            // cell(
+            //   width: 260,
+            //   child: DropdownSearch<Responsibility>.multiSelection(
+            //     items: (filter, infiniteScrollProps) async {
+            //       print(
+            //         "Dropdown Items: "
+            //         "${responsibilityState.responsibility.length}",
+            //       );
+            //       final customer = Responsibility(
+            //         userCode: widget.customerCode,
+            //         userName: "CUSTOMER",
+            //       );
+            //       return [customer, ...responsibilityState.responsibility];
+            //     },
+            //     selectedItems: selectedMembers,
+            //     itemAsString: (Responsibility item) => item.userName,
+            //     compareFn: (a, b) => a.userCode == b.userCode,
+            //     popupProps: PopupPropsMultiSelection.modalBottomSheet(
+            //       showSearchBox: true,
+            //       showSelectedItems: true,
+            //       searchFieldProps: const TextFieldProps(
+            //         decoration: InputDecoration(
+            //           hintText: "Search Responsibility",
+            //           prefixIcon: Icon(Icons.search),
+            //         ),
+            //       ),
+            //     ),
+            //     dropdownBuilder: (context, selectedItems) {
+            //       return Text(
+            //         selectedItems.isEmpty
+            //             ? "Select Responsibility"
+            //             : selectedItems.map((e) => e.userName).join(", "),
+            //         maxLines: 4,
+            //         overflow: TextOverflow.ellipsis,
+            //       );
+            //     },
+            //     decoratorProps: DropDownDecoratorProps(
+            //       decoration: InputDecoration(
+            //         contentPadding: const EdgeInsets.symmetric(
+            //           horizontal: 10,
+            //           vertical: 8,
+            //         ),
+            //         border: OutlineInputBorder(
+            //           borderRadius: BorderRadius.circular(6),
+            //         ),
+            //       ),
+            //     ),
+            //     onChanged: (values) {
+            //       setState(() {
+            //         selectedMembers = values;
+            //       });
+            //     },
+            //   ),
+            // ),
             // ==================================================
             // TARGET DATE
             // ==================================================

@@ -419,7 +419,7 @@ class MainBloc extends Bloc<MainEvent, MainState> {
               await webService.userinfo(event.Staffcode, event.token);
           yield GetUserinfoLoadedState(profileuserinfo: userinfo);
         } on ApiException catch (e) {
-          emit(GetUserinfoErrorState(msg: e.message));
+          yield (GetUserinfoErrorState(msg: e.message));
         } catch (e) {
           yield GetUserinfoErrorState(msg: e.toString());
         }
