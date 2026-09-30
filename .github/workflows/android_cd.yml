@@ -30,6 +30,14 @@ jobs:
       - name: Flutter dependencies
         run: flutter pub get
 
+      - name: Verify app version
+        run: |
+          grep '^version:' pubspec.yaml
+          echo "Flutter version:"
+          flutter --version
+          echo "Generated Flutter version properties:"
+          grep 'flutter.version' android/local.properties || true
+
       - name: Restore Android keystore
         run: |
           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/upload-keystore.jks
