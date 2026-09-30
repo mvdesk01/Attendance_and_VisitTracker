@@ -1,0 +1,53 @@
+name: iOS CD
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - auto_development
+
+jobs:
+  ios-cd:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.41.4'
+          channel: stable
+          cache: true
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+
+      - name: Flutter dependencies
+        run: flutter pub get
+
+      - name: Install CocoaPods dependencies
+        working-directory: ios
+        run: pod install
+
+      - name: Create App Store Connect API key
+        run: |
+          echo '${{ secrets.APP_STORE_CONNECT_API_KEY }}' > ios/app_store_connect_api_key.p8
+
+      - name: Deploy to TestFlight
+        working-directory: ios
+        env:
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_PATH: ${{ github.workspace }}/ios/app_store_connect_api_key.p8
+        run: |
+          bundle exec fastlane ios beta
+
+      - name: Cleanup secrets
+        if: always()
+        run: |
+          rm -f ios/app_store_connect_api_key.p8
