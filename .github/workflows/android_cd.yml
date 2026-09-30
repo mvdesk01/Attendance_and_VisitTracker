@@ -32,17 +32,15 @@ jobs:
 
       - name: Prepare Android version
         run: |
-          VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //')
+          VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //; s/[[:space:]]*$//')
           VERSION_NAME=${VERSION%%+*}
           VERSION_CODE=${VERSION##*+}
-
+          
           echo "Version name: $VERSION_NAME"
           echo "Version code: $VERSION_CODE"
-
-          flutter build appbundle --build-name="$VERSION_NAME" --build-number="$VERSION_CODE" --debug
-
-          echo "Generated Flutter version properties:"
-          grep 'flutter.version' android/local.properties || true
+          
+          echo "FLUTTER_VERSION_NAME=$VERSION_NAME" >> "$GITHUB_ENV"
+          echo "FLUTTER_VERSION_CODE=$VERSION_CODE" >> "$GITHUB_ENV"
 
       - name: Restore Android keystore
         run: |
@@ -65,6 +63,8 @@ jobs:
         working-directory: android
         env:
           SUPPLY_JSON_KEY: ${{ github.workspace }}/google-play.json
+          FLUTTER_VERSION_NAME: ${{ env.FLUTTER_VERSION_NAME }}
+          FLUTTER_VERSION_CODE: ${{ env.FLUTTER_VERSION_CODE }}
         run: |
           bundle exec fastlane android deploy_internal
 

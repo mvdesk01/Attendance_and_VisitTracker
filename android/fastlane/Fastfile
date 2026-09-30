@@ -105,6 +105,10 @@ platform :android do
     gradle(
       task: "bundle",
       build_type: "Release"
+         properties: {
+            "flutter.versionName" => ENV["FLUTTER_VERSION_NAME"],
+            "flutter.versionCode" => ENV["FLUTTER_VERSION_CODE"]
+          }
     )
   end
 
