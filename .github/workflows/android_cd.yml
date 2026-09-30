@@ -62,7 +62,7 @@ jobs:
       - name: Deploy to Google Play Internal Testing
         working-directory: android
         env:
-          SUPPLY_JSON_KEY: ${{ github.workspace }}/google-play.json
+          GOOGLE_PLAY_JSON_KEY: ${{ github.workspace }}/google-play.json
           FLUTTER_VERSION_NAME: ${{ env.FLUTTER_VERSION_NAME }}
           FLUTTER_VERSION_CODE: ${{ env.FLUTTER_VERSION_CODE }}
         run: |
