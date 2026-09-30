@@ -50,7 +50,7 @@ jobs:
       - name: Deploy to Google Play Internal Testing
         working-directory: android
         env:
-          SUPPLY_JSON_KEY: ${{ github.workspace }}/google-play.json        // set the environment variable to the temporary JSON file created on the GitHub runner. it does not use the use local .env credential
+          SUPPLY_JSON_KEY: ${{ github.workspace }}/google-play.json
         run: |
           bundle exec fastlane android deploy_internal
 
@@ -60,3 +60,10 @@ jobs:
           rm -f android/app/upload-keystore.jks
           rm -f android/key.properties
           rm -f google-play.json
+          
+          
+          
+          
+          
+
+#  // set the environment variable to the temporary JSON file created on the GitHub runner. it does not use the use local .env credential
