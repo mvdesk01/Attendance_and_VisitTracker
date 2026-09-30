@@ -79,5 +79,5 @@ jobs:
           
           
           
-
-#  // set the environment variable to the temporary JSON file created on the GitHub runner. it does not use the use local .env credential
+# explicitly generate the android build version and assign it to version name
+# set the environment variable to the temporary JSON file created on the GitHub runner. it does not use the use local .env credential
