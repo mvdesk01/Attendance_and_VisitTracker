@@ -45,3 +45,5 @@ app.*.map.json
 # flutter analyzer output
 analyze.txt
 analyze_output.txt
+
+.env

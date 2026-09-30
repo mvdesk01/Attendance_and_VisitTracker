@@ -1,0 +1,62 @@
+name: Android CD
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - auto_development
+
+jobs:
+  android-cd:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.41.4'
+          channel: stable
+          cache: true
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+
+      - name: Flutter dependencies
+        run: flutter pub get
+
+      - name: Restore Android keystore
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/upload-keystore.jks
+
+      - name: Create key.properties
+        run: |
+          cat > android/key.properties <<EOF
+          storePassword=${{ secrets.KEYSTORE_PASSWORD }}
+          keyPassword=${{ secrets.KEY_PASSWORD }}
+          keyAlias=${{ secrets.KEY_ALIAS }}
+          storeFile=upload-keystore.jks
+          EOF
+
+      - name: Configure Google Play credentials
+        run: |
+          echo '${{ secrets.GOOGLE_PLAY_JSON_KEY }}' > google-play.json
+
+      - name: Deploy to Google Play Internal Testing
+        working-directory: android
+        env:
+          SUPPLY_JSON_KEY: ${{ github.workspace }}/google-play.json        // set the environment variable to the temporary JSON file created on the GitHub runner. it does not use the use local .env credential
+        run: |
+          bundle exec fastlane android deploy_internal
+
+      - name: Cleanup secrets
+        if: always()
+        run: |
+          rm -f android/app/upload-keystore.jks
+          rm -f android/key.properties
+          rm -f google-play.json

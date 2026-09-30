@@ -54,6 +54,39 @@
 
 
 
+# default_platform(:android)
+#
+# platform :android do
+#
+#   desc "Run Android tests"
+#   lane :test do
+#     gradle(
+#       task: "test"
+#     )
+#   end
+#
+#   desc "Build a signed Android App Bundle and deploy it to play store internals"
+#   lane :deploy_internal do
+#     gradle(
+#       task: "clean"
+#     )
+#
+#     gradle(
+#       task: "bundle",
+#       build_type: "Release"
+#     )
+#
+#   upload_to_play_store(
+#     track: "internal",
+#     aab: "../build/app/outputs/bundle/release/app-release.aab"
+#   )
+#   end
+#
+# end
+
+
+
+
 default_platform(:android)
 
 platform :android do
@@ -67,13 +100,24 @@ platform :android do
 
   desc "Build a signed Android App Bundle"
   lane :build do
-    gradle(
-      task: "clean"
-    )
+    gradle(task: "clean")
 
     gradle(
       task: "bundle",
       build_type: "Release"
+    )
+  end
+
+  desc "Build and deploy to Google Play Internal Testing"
+  lane :deploy_internal do
+    build
+
+    upload_to_play_store(
+      track: "internal",
+      aab: "../build/app/outputs/bundle/release/app-release.aab",
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
     )
   end
 

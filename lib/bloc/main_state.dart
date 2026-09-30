@@ -53,19 +53,19 @@ class MainState extends Equatable{
   }
 
   @override
-  // TODO: implement props
+  
   List<Object?> get props => throw UnimplementedError();
 }
 
 class MainInitialState extends MainState {
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
 class LoginLoadingState extends MainState {
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -75,7 +75,7 @@ class LoginLoadedState extends MainState {
   LoginLoadedState({required this.loginResponse});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -85,13 +85,13 @@ class LoginErrorState extends MainState {
   LoginErrorState({required this.msg});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
 class GetStaffDetailsLoadingState extends MainState {
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -101,7 +101,7 @@ class GetStaffDetailsLoadedState extends MainState {
   GetStaffDetailsLoadedState({required this.staffDetailsResponse});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -111,7 +111,7 @@ class GetStaffDetailsErrorState extends MainState {
   GetStaffDetailsErrorState({required this.msg});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -126,7 +126,7 @@ class RequestDataDeletionLoadedState extends MainState {
   RequestDataDeletionLoadedState({required this.result});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -136,13 +136,13 @@ class RequestDataDeletionErrorState extends MainState {
   RequestDataDeletionErrorState({required this.msg});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
 class GetPendingGatePassLoadingState extends MainState {
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -152,7 +152,7 @@ class GetPendingGatePassLoadedState extends MainState {
   GetPendingGatePassLoadedState({required this.gatePassResponse});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -162,14 +162,14 @@ class GetPendingGatePassErrorState extends MainState {
   GetPendingGatePassErrorState({required this.msg});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
 //Add GatePass
 class AddGatePassLoadingState extends MainState {
   @override
-// TODO: implement props
+
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -179,7 +179,7 @@ class AddGatePassLoadedState extends MainState {
   AddGatePassLoadedState({required this.cancelGatepassResponse});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -189,34 +189,34 @@ class AddGatePassErrorState extends MainState {
   AddGatePassErrorState({required this.msg});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
 //Cancel GatePass
 class CancelGatePassLoadingState extends MainState {
   @override
-// TODO: implement props
+
   List<Object> get props => throw UnimplementedError();
 }
 
 class CancelGatePassLoadedState extends MainState {
-  CancelGatepassResponse? cancelGatePassResponse;
+ final CancelGatepassResponse? cancelGatePassResponse;
 
   CancelGatePassLoadedState({required this.cancelGatePassResponse});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
 class CancelGatePassErrorState extends MainState {
-  String msg;
+  final String msg;
 
   CancelGatePassErrorState({required this.msg});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 //Add Staff
@@ -224,27 +224,27 @@ class CancelGatePassErrorState extends MainState {
 //Add GatePass
 class AddStaffEntryLoadingState extends MainState {
   @override
-// TODO: implement props
+
   List<Object> get props => throw UnimplementedError();
 }
 
 class AddStaffEntryLoadedState extends MainState {
-  CancelGatepassResponse cancelGatepassResponse;
+  final CancelGatepassResponse cancelGatepassResponse;
 
   AddStaffEntryLoadedState({required this.cancelGatepassResponse});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
 class AddStaffEntryErrorState extends MainState {
-  String msg;
+  final String msg;
 
   AddStaffEntryErrorState({required this.msg});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -252,17 +252,17 @@ class AddStaffEntryErrorState extends MainState {
 
 class DeleteStaffEntryLoadingState extends MainState {
   @override
-// TODO: implement props
+
   List<Object> get props => throw UnimplementedError();
 }
 
 class DeleteStaffEntryLoadedState extends MainState {
-  CancelGatepassResponse cancelGatepassResponse;
+  final CancelGatepassResponse cancelGatepassResponse;
 
   DeleteStaffEntryLoadedState({required this.cancelGatepassResponse});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -272,7 +272,7 @@ class DeleteStaffEntryErrorState extends MainState {
   DeleteStaffEntryErrorState({required this.msg});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -280,7 +280,7 @@ class DeleteStaffEntryErrorState extends MainState {
 
 class GetStaffDetailsForCoffLoadingState extends MainState {
   @override
-// TODO: implement props
+
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -291,7 +291,7 @@ class GetStaffDetailsForCoffLoadedState extends MainState {
       {required this.getStaffDetailsForCoffResponse});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -301,7 +301,7 @@ class GetStaffDetailsForCoffErrorState extends MainState {
   GetStaffDetailsForCoffErrorState({required this.msg});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -309,7 +309,7 @@ class GetStaffDetailsForCoffErrorState extends MainState {
 
 class SubmitCoffEventsLoadingState extends MainState {
   @override
-// TODO: implement props
+
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -319,7 +319,7 @@ class SubmitCoffEventsLoadedState extends MainState {
   SubmitCoffEventsLoadedState({required this.cancelGatepassResponse});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -329,7 +329,7 @@ class SubmitCoffEventsErrorState extends MainState {
   SubmitCoffEventsErrorState({required this.msg});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -337,28 +337,28 @@ class SubmitCoffEventsErrorState extends MainState {
 
 class FetchCoffTransactionsLoadingState extends MainState {
   @override
-// TODO: implement props
+
   List<Object> get props => throw UnimplementedError();
 }
 
 class FetchCoffTransactionsLoadedState extends MainState {
-  FetchCoffTransactionsResponse fetchCoffTransactionsResponse;
+  final FetchCoffTransactionsResponse fetchCoffTransactionsResponse;
 
   FetchCoffTransactionsLoadedState(
       {required this.fetchCoffTransactionsResponse});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
 class FetchCoffTransactionsErrorState extends MainState {
-  String msg;
+  final String msg;
 
   FetchCoffTransactionsErrorState({required this.msg});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -366,7 +366,7 @@ class FetchCoffTransactionsErrorState extends MainState {
 
 class CancelCoffOTHWOFFLoadingState extends MainState {
   @override
-// TODO: implement props
+
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -376,7 +376,7 @@ class CancelCoffOTHWOFFLoadedState extends MainState {
   CancelCoffOTHWOFFLoadedState({required this.cancelGatepassResponse});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -386,14 +386,14 @@ class CancelCoffOTHWOFFErrorState extends MainState {
   CancelCoffOTHWOFFErrorState({required this.msg});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 //GetCoffsTransactions
 
 class GetCoffsTransactionsLoadingState extends MainState {
   @override
-// TODO: implement props
+
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -403,24 +403,24 @@ class GetCoffsTransactionsLoadedState extends MainState {
   GetCoffsTransactionsLoadedState({required this.getCoffsTransactionsResponse});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
 class GetCoffsTransactionsErrorState extends MainState {
-  String msg;
+  final String msg;
 
   GetCoffsTransactionsErrorState({required this.msg});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 //CancelCoffLoadingState
 
 class CancelCoffLoadingState extends MainState {
   @override
-// TODO: implement props
+
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -430,7 +430,7 @@ class CancelCoffLoadedState extends MainState {
   CancelCoffLoadedState({required this.cancelGatepassResponse});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -440,14 +440,14 @@ class CancelCoffErrorState extends MainState {
   CancelCoffErrorState({required this.msg});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 //SubmitCoffDebitLoadingState
 
 class SubmitCoffDebitLoadingState extends MainState {
   @override
-// TODO: implement props
+
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -457,7 +457,7 @@ class SubmitCoffDebitLoadedState extends MainState {
   SubmitCoffDebitLoadedState({required this.cancelGatepassResponse});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -467,14 +467,14 @@ class SubmitCoffDebitErrorState extends MainState {
   SubmitCoffDebitErrorState({required this.msg});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 //InsertMMRowsData
 
 class InsertMMRowsDataLoadingState extends MainState {
   @override
-// TODO: implement props
+
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -484,51 +484,51 @@ class InsertMMRowsDataLoadedState extends MainState {
   InsertMMRowsDataLoadedState({required this.cancelGatepassResponse});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
 class InsertMMRowsDataErrorState extends MainState {
-  String msg;
+  final String msg;
 
   InsertMMRowsDataErrorState({required this.msg});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 //InsertMMAllData
 
 class InsertMMAllDataLoadingState extends MainState {
   @override
-// TODO: implement props
+
   List<Object> get props => throw UnimplementedError();
 }
 
 class InsertMMAllDataLoadedState extends MainState {
-  String cancelGatepassResponse;
+  final String cancelGatepassResponse;
 
   InsertMMAllDataLoadedState({required this.cancelGatepassResponse});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
 class InsertMMAllDataErrorState extends MainState {
-  String msg;
+  final String msg;
 
   InsertMMAllDataErrorState({required this.msg});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
 //UpdateMeetingFormNoLoadingState
 class UpdateMeetingFormNoLoadingState extends MainState {
   @override
-// TODO: implement props
+
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -538,35 +538,35 @@ class UpdateMeetingFormNoLoadedState extends MainState {
   UpdateMeetingFormNoLoadedState({required this.cancelGatepassResponse});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
 class UpdateMeetingFormNoErrorState extends MainState {
-  String msg;
+  final String msg;
 
   UpdateMeetingFormNoErrorState({required this.msg});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 //GetMinutesOfMeetingFormNoLoadingState
 
 class GetMinutesOfMeetingFormNoLoadingState extends MainState {
   @override
-// TODO: implement props
+
   List<Object> get props => throw UnimplementedError();
 }
 
 class GetMinutesOfMeetingFormNoLoadedState extends MainState {
-  GetMinutesOfMeetingFormNoResponse getMinutesOfMeetingFormNoResponse;
+  final GetMinutesOfMeetingFormNoResponse getMinutesOfMeetingFormNoResponse;
 
   GetMinutesOfMeetingFormNoLoadedState(
       {required this.getMinutesOfMeetingFormNoResponse});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -576,36 +576,36 @@ class GetMinutesOfMeetingFormNoErrorState extends MainState {
   GetMinutesOfMeetingFormNoErrorState({required this.msg});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
 //GetMinutesOfTheMeetingAllDataByVisitSrNoLoadingState
 class GetMinutesOfTheMeetingAllDataByVisitSrNoLoadingState extends MainState {
   @override
-// TODO: implement props
+
   List<Object> get props => throw UnimplementedError();
 }
 
 class GetMinutesOfTheMeetingAllDataByVisitSrNoLoadedState extends MainState {
-  GetMinutesOfTheMeetingAllDataByVisitSrNoResponse
+  final GetMinutesOfTheMeetingAllDataByVisitSrNoResponse
       getMinutesOfTheMeetingAllDataByVisitSrNoResponse;
 
   GetMinutesOfTheMeetingAllDataByVisitSrNoLoadedState(
       {required this.getMinutesOfTheMeetingAllDataByVisitSrNoResponse});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
 class GetMinutesOfTheMeetingAllDataByVisitSrNoErrorState extends MainState {
-  String msg;
+  final String msg;
 
   GetMinutesOfTheMeetingAllDataByVisitSrNoErrorState({required this.msg});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -613,29 +613,29 @@ class GetMinutesOfTheMeetingAllDataByVisitSrNoErrorState extends MainState {
 
 class GetMinutesOfTheMeetingDataByVisitSrNoLoadingState extends MainState {
   @override
-// TODO: implement props
+
   List<Object> get props => throw UnimplementedError();
 }
 
 class GetMinutesOfTheMeetingDataByVisitSrNoLoadedState extends MainState {
-  GetMinutesOfTheMeetingDataByVisitSrNoResponse
+  final GetMinutesOfTheMeetingDataByVisitSrNoResponse
       getMinutesOfTheMeetingDataByVisitSrNoResponse;
 
   GetMinutesOfTheMeetingDataByVisitSrNoLoadedState(
       {required this.getMinutesOfTheMeetingDataByVisitSrNoResponse});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
 class GetMinutesOfTheMeetingDataByVisitSrNoErrorState extends MainState {
-  String msg;
+  final String msg;
 
   GetMinutesOfTheMeetingDataByVisitSrNoErrorState({required this.msg});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -643,27 +643,27 @@ class GetMinutesOfTheMeetingDataByVisitSrNoErrorState extends MainState {
 
 class VisitHistoryLoadingState extends MainState {
   @override
-// TODO: implement props
+
   List<Object> get props => throw UnimplementedError();
 }
 
 class VisitHistoryLoadedState extends MainState {
-  VisitDataResponse? visitDataResponse;
+  final VisitDataResponse? visitDataResponse;
 
   VisitHistoryLoadedState({required this.visitDataResponse});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
 class VisitHistoryErrorState extends MainState {
-  String msg;
+  final String msg;
 
   VisitHistoryErrorState({required this.msg});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -671,27 +671,27 @@ class VisitHistoryErrorState extends MainState {
 
 class VisitlatLongListLoadingState extends MainState {
   @override
-// TODO: implement props
+
   List<Object> get props => throw UnimplementedError();
 }
 
 class VisitlatLongListLoadedState extends MainState {
-  VisitLatLongListResponse? visitLatLongListResponse;
+  final VisitLatLongListResponse? visitLatLongListResponse;
 
   VisitlatLongListLoadedState({required this.visitLatLongListResponse});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
 class VisitlatLongListErrorState extends MainState {
-  String msg;
+  final String msg;
 
   VisitlatLongListErrorState({required this.msg});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -699,45 +699,45 @@ class VisitlatLongListErrorState extends MainState {
 
 class GetVisitByFromDateToDateLoadingState extends MainState {
   @override
-// TODO: implement props
+
   List<Object> get props => throw UnimplementedError();
 }
 
 class GetVisitByFromDateToDateLoadedState extends MainState {
-  VisitRecordsResponse? visitRecordsResponse;
+  final VisitRecordsResponse? visitRecordsResponse;
 
   GetVisitByFromDateToDateLoadedState({required this.visitRecordsResponse});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
 class GetVisitByFromDateToDateErrorState extends MainState {
-  String msg;
+  final String msg;
 
   GetVisitByFromDateToDateErrorState({required this.msg});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 //GetVisitDetailedRecordsLoadingState
 
 class GetVisitDetailedRecordsLoadingState extends MainState {
   @override
-// TODO: implement props
+
   List<Object> get props => throw UnimplementedError();
 }
 
 class GetVisitDetailedRecordsLoadedState extends MainState {
-  VisitDetailedRecordsResponse? visitDetailedRecordsResponse;
+  final VisitDetailedRecordsResponse? visitDetailedRecordsResponse;
 
   GetVisitDetailedRecordsLoadedState(
       {required this.visitDetailedRecordsResponse});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -747,149 +747,149 @@ class GetVisitDetailedRecordsErrorState extends MainState {
   GetVisitDetailedRecordsErrorState({required this.msg});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
 class GetLeaveStaffDetailsLoadingtstate extends MainState {
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
 class GetLeaveStaffDetailsLoadedtstate extends MainState {
-  Staffdetails staffdetails;
+  final Staffdetails staffdetails;
 
   GetLeaveStaffDetailsLoadedtstate({required this.staffdetails});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
 class GetLeaveStaffDetailsErrorState extends MainState {
-  String msg;
+  final String msg;
 
   GetLeaveStaffDetailsErrorState({required this.msg});
 }
 
 class GetPendingLeaveLoadingStatae extends MainState {
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
 class GetPendingLeaveLoadedState extends MainState {
-  LeavePendingResponse leavependingresponse;
+  final LeavePendingResponse leavependingresponse;
 
   GetPendingLeaveLoadedState({required this.leavependingresponse});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
 class GetPendingLeaveErrorState extends MainState {
-  String msg;
+  final String msg;
 
   GetPendingLeaveErrorState({required this.msg});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
 class GetLeaveTypeLoadingState extends MainState {
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
 class GetLeaveTypeLoadedState extends MainState {
-  LeaveDetails leavedetails;
+  final LeaveDetails leavedetails;
 
   GetLeaveTypeLoadedState({required this.leavedetails});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
 class GetLeaveTypeErrorState extends MainState {
-  String msg;
+  final String msg;
 
   GetLeaveTypeErrorState({required this.msg});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
 class GetSubmitLeaveLoadingState extends MainState {
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
 class GetSubmitLeaveLoadedState extends MainState {
-  SubmitLeaveDetails submitLeaveDetails;
+  final SubmitLeaveDetails submitLeaveDetails;
 
   GetSubmitLeaveLoadedState({required this.submitLeaveDetails});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
 class GetSubmitLeaveErrorState extends MainState {
-  String msg;
+  final String msg;
 
   GetSubmitLeaveErrorState({required this.msg});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
 class GetCancelLeaveLoadingState extends MainState {
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
 class GetCancelLeaveLoadedState extends MainState {
-  CancelLeaveBody cancelleavebodyy;
+  final CancelLeaveBody cancelleavebodyy;
 
   GetCancelLeaveLoadedState({required this.cancelleavebodyy});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
 class GetCancelLeaveErrorState extends MainState {
-  String msg;
+  final String msg;
 
   GetCancelLeaveErrorState({required this.msg});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
 class GetUserinfoLoadingState extends MainState {
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
 class GetUserinfoLoadedState extends MainState {
-  ProfileResponse profileuserinfo;
+  final ProfileResponse profileuserinfo;
 
   GetUserinfoLoadedState({required this.profileuserinfo});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -904,33 +904,33 @@ class GetUserinfoErrorState extends MainState {
 
 class UpdateUserinfoLoadingState extends MainState {
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
 class UpdateUserinfoLoadedState extends MainState {
-  CancelGatepassResponse updateuserinfo;
+  final CancelGatepassResponse updateuserinfo;
 
   UpdateUserinfoLoadedState({required this.updateuserinfo});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
 class UpdateUserinfoErrorState extends MainState {
-  String msg;
+  final String msg;
 
   UpdateUserinfoErrorState({required this.msg});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
 class ApproveSanctionLoadingState extends MainState {
   @override
-// TODO: implement props
+
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -940,23 +940,23 @@ class ApproveSanctionLoadedState extends MainState {
   ApproveSanctionLoadedState({required this.approvedsanctionrecords});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
 class ApproveSanctionErrorState extends MainState {
-  String msg;
+  final String msg;
 
   ApproveSanctionErrorState({required this.msg});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
 class SubmitApprovesanctionLoadingState extends MainState {
   @override
-// TODO: implement props
+
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -966,24 +966,21 @@ class SubmitApprovesanctionLoadedState extends MainState {
   SubmitApprovesanctionLoadedState({this.sanctionrequestmodels});
 
   @override
-  // TODO: implement props
   List<Object> get props => throw UnimplementedError();
 }
 
 class SubmitApproveSanctionErrorState extends MainState {
-  String msg;
+  final String msg;
 
   SubmitApproveSanctionErrorState({required this.msg});
 
   @override
-  // TODO: implement props
   List<Object> get props => throw UnimplementedError();
 }
 
 //OTCancellation
 class FetchCancellationDetailsLoadingState extends MainState {
   @override
-// TODO: implement props
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -993,23 +990,20 @@ class FetchCancellationDetailsLoadedState extends MainState {
   FetchCancellationDetailsLoadedState({required this.cancellationRequest});
 
   @override
-  // TODO: implement props
   List<Object> get props => throw UnimplementedError();
 }
 
 class FetCancellationDetailsErrorState extends MainState {
-  String msg;
+  final String msg;
 
   FetCancellationDetailsErrorState({required this.msg});
 
   @override
-  // TODO: implement props
   List<Object> get props => throw UnimplementedError();
 }
 
 class submitOTLoadingState extends MainState {
   @override
-// TODO: implement props
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -1019,24 +1013,21 @@ class submitOTLoadedState extends MainState {
   submitOTLoadedState({required this.otcancellationsubmit});
 
   @override
-  // TODO: implement props
   List<Object> get props => throw UnimplementedError();
 }
 
 class submitOTErrorState extends MainState {
-  String msg;
+  final String msg;
 
   submitOTErrorState({required this.msg});
 
   @override
-  // TODO: implement props
   List<Object> get props => throw UnimplementedError();
 }
 
 //LeaveCancellation
 class FetchLeaveCancellationLoadingState extends MainState {
   @override
-// TODO: implement props
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -1046,23 +1037,20 @@ class FetchLeaveCancellationLoadedState extends MainState {
   FetchLeaveCancellationLoadedState({required this.cancelleaverequest});
 
   @override
-  // TODO: implement props
   List<Object> get props => throw UnimplementedError();
 }
 
 class FetchLeaveCancellationErrorState extends MainState {
-  String msg;
+  final String msg;
 
   FetchLeaveCancellationErrorState({required this.msg});
 
   @override
-  // TODO: implement props
   List<Object> get props => throw UnimplementedError();
 }
 
 class SubmitLeaveCancellationLoadingState extends MainState {
   @override
-// TODO: implement props
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -1072,24 +1060,21 @@ class SubmitLeaveCancellationLoadedState extends MainState {
   SubmitLeaveCancellationLoadedState({required this.leavecancellationsubmit});
 
   @override
-  // TODO: implement props
   List<Object> get props => throw UnimplementedError();
 }
 
 class SubmitLeaveCancellationErrorState extends MainState {
-  String msg;
+  final String msg;
 
   SubmitLeaveCancellationErrorState({required this.msg});
 
   @override
-  // TODO: implement props
   List<Object> get props => throw UnimplementedError();
 }
 
 //GatePassCancellation
 class FetchGatepassCancellationLoadingState extends MainState {
   @override
-// TODO: implement props
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -1099,51 +1084,43 @@ class FetchGatepassCancellationLoadedState extends MainState {
   FetchGatepassCancellationLoadedState({required this.cancelgatepassrequest});
 
   @override
-  // TODO: implement props
   List<Object> get props => throw UnimplementedError();
 }
 
 class FetchGatePassCancellationErrorstate extends MainState {
-  String msg;
-
+  final String msg;
   FetchGatePassCancellationErrorstate({required this.msg});
 
   @override
-  // TODO: implement props
   List<Object> get props => throw UnimplementedError();
 }
 
 class SubmitgatepassCancellationLoadingState extends MainState {
   @override
-// TODO: implement props
   List<Object> get props => throw UnimplementedError();
 }
 
 class SubmitgatepassCancellationLoadedState extends MainState {
   final List<GatepassCancellationDetail> gatepasscancellationsubmit;
 
-  SubmitgatepassCancellationLoadedState(
-      {required this.gatepasscancellationsubmit});
+  SubmitgatepassCancellationLoadedState({required this.gatepasscancellationsubmit});
 
   @override
-  // TODO: implement props
   List<Object> get props => throw UnimplementedError();
 }
 
 class SubmitGatepassCancellationErrorState extends MainState {
-  String msg;
+  final String msg;
 
   SubmitGatepassCancellationErrorState({required this.msg});
-
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
 //Coff
 class FetchCoffCancellationLoadingState extends MainState {
   @override
-// TODO: implement props
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -1153,23 +1130,21 @@ class FetchCoffCancellationLoadedState extends MainState {
   FetchCoffCancellationLoadedState({required this.cancelcoffrequest});
 
   @override
-  // TODO: implement props
   List<Object> get props => throw UnimplementedError();
 }
 
 class FetchCoffCancellationErrorState extends MainState {
-  String msg;
+  final String msg;
 
   FetchCoffCancellationErrorState({required this.msg});
 
   @override
-  // TODO: implement props
   List<Object> get props => throw UnimplementedError();
 }
 
 class SubmitCoffCancellationLoadingState extends MainState {
   @override
-// TODO: implement props
+
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -1179,7 +1154,7 @@ class SubmitCoffCancellationLoadedState extends MainState {
   SubmitCoffCancellationLoadedState({required this.coffcancellationsubmit});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -1189,14 +1164,14 @@ class SubmitCoffCancellationerrorState extends MainState {
   SubmitCoffCancellationerrorState({required this.msg});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
 //CDebit
 class FetchCDebitCancellationLoadingState extends MainState {
   @override
-// TODO: implement props
+
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -1206,7 +1181,7 @@ class FetchCDebitCancellationLoadedState extends MainState {
   FetchCDebitCancellationLoadedState({required this.cancelcdebitrequest});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -1216,13 +1191,13 @@ class FetchCDebitCancellationErrorState extends MainState {
   FetchCDebitCancellationErrorState({required this.msg});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
 class SubmitCdebitCancellationLoadingState extends MainState {
   @override
-// TODO: implement props
+
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -1232,7 +1207,7 @@ class SubmitCdebitCancellationLoadedState extends MainState {
   SubmitCdebitCancellationLoadedState({required this.cdebitcancellationsubmit});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -1242,14 +1217,14 @@ class SubmitCdebitCancellationErrorState extends MainState {
   SubmitCdebitCancellationErrorState({required this.msg});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
 //Tour
 class FetchTourLoadingState extends MainState {
   @override
-// TODO: implement props
+
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -1259,7 +1234,7 @@ class FetchTourLoadedState extends MainState {
   FetchTourLoadedState({required this.canceltourrequest});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -1269,13 +1244,13 @@ class FetchTourErrorState extends MainState {
   FetchTourErrorState({required this.msg});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
 class SubmitTourCancellationLoadingState extends MainState {
   @override
-// TODO: implement props
+
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -1285,7 +1260,7 @@ class SubmitTourCancellationLoadedState extends MainState {
   SubmitTourCancellationLoadedState({required this.tourcancellationsubmit});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -1295,13 +1270,13 @@ class SubmitTourCancellationErrorState extends MainState {
   SubmitTourCancellationErrorState({required this.msg});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
 class SubmitexpenseLoadingState extends MainState {
   @override
-// TODO: implement props
+
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -1311,7 +1286,7 @@ class SubmitexpenseLoadedState extends MainState {
   SubmitexpenseLoadedState({required this.cancelGatepassResponse});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -1321,13 +1296,13 @@ class SubmitexpenseErrorstate extends MainState {
   SubmitexpenseErrorstate({required this.msg});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
 class GetTourstaffdetailLoadingState extends MainState {
   @override
-// TODO: implement props
+
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -1337,7 +1312,7 @@ class GetTourstaffdetailsLoadedState extends MainState {
   GetTourstaffdetailsLoadedState({required this.staffdetails});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -1347,13 +1322,13 @@ class GetTourstaffdetailsErrorState extends MainState {
   GetTourstaffdetailsErrorState({required this.msg});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
 class SubmittourdetailsLoadingState extends MainState {
   @override
-// TODO: implement props
+
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -1363,7 +1338,7 @@ class SubmitTourdetailsLoadedState extends MainState {
   SubmitTourdetailsLoadedState({required this.toursubmission});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -1373,13 +1348,13 @@ class SubmitTourdetailsErrorState extends MainState {
   SubmitTourdetailsErrorState({required this.msg});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
 class FetchappliedTourLoadingState extends MainState {
   @override
-// TODO: implement props
+
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -1389,7 +1364,7 @@ class FetchappliedTourLoadedState extends MainState {
   FetchappliedTourLoadedState({required this.appliedtourdetails});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -1399,13 +1374,13 @@ class FetchappliedTourErrorstate extends MainState {
   FetchappliedTourErrorstate({required this.msg});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
 class CancelappliedtourLoadingState extends MainState {
   @override
-// TODO: implement props
+
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -1421,13 +1396,13 @@ class CancelappliedtourErrorState extends MainState {
   CancelappliedtourErrorState({required this.msg});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
 class showexpensedetailsadminLoadingState extends MainState {
   @override
-// TODO: implement props
+
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -1443,13 +1418,13 @@ class showexpensedetailsadminErrorState extends MainState {
   showexpensedetailsadminErrorState({required this.msg});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
 class remotelocationLoadingState extends MainState {
   @override
-// TODO: implement props
+
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -1461,7 +1436,7 @@ class remotelocationLoadedState extends MainState {
   // SubmitTourDetails toursubmission;
   // SubmitTourdetailsLoadedState({required this.toursubmission});
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -1471,13 +1446,13 @@ class remotelocationErrorState extends MainState {
   remotelocationErrorState({required this.msg});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
 class acceptrequestLoadingState extends MainState {
   @override
-// TODO: implement props
+
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -1487,7 +1462,7 @@ class acceptrequestLoadedState extends MainState {
   acceptrequestLoadedState({required this.cancelGatepassResponse});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -1497,13 +1472,13 @@ class acceptrequestErrorState extends MainState {
   acceptrequestErrorState({required this.msg});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
 class showremotelocationLoadingState extends MainState {
   @override
-// TODO: implement props
+
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -1513,7 +1488,7 @@ class showremotelocationLoadedState extends MainState {
   showremotelocationLoadedState({required this.cancelGatepassResponse});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -1523,13 +1498,13 @@ class showremotelocationErrorState extends MainState {
   showremotelocationErrorState({required this.msg});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
 class nondistancecheckLoadingState extends MainState {
   @override
-// TODO: implement props
+
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -1539,7 +1514,7 @@ class nondistancecheckLoadedState extends MainState {
   nondistancecheckLoadedState({required this.cancelGatepassResponse});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -1549,13 +1524,13 @@ class nondistancecheckErrorState extends MainState {
   nondistancecheckErrorState({required this.msg});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
 class updateUUIDLoadingState extends MainState {
   @override
-// TODO: implement props
+
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -1565,7 +1540,7 @@ class updateUUIDLoadedState extends MainState {
   updateUUIDLoadedState({required this.apiresponsee});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -1575,13 +1550,13 @@ class updateUUIDErrorState extends MainState {
   updateUUIDErrorState({required this.msg});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
 class updateUserAtsFlagLoadingState extends MainState {
   @override
-// TODO: implement props
+
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -1591,7 +1566,7 @@ class updateUserAtsFlagLoadedState extends MainState {
   updateUserAtsFlagLoadedState({required this.apiresponsee});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -1601,13 +1576,13 @@ class updateUserAtsFlagErrorState extends MainState {
   updateUserAtsFlagErrorState({required this.msg});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
 class UpdateMMALlDataLoadingState extends MainState {
   @override
-// TODO: implement props
+
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -1617,7 +1592,7 @@ class UpdateMMAllDataLoadedState extends MainState {
   UpdateMMAllDataLoadedState({required this.cancelGatepassResponse});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -1627,14 +1602,14 @@ class UpdateMMAllDataErrorState extends MainState {
   UpdateMMAllDataErrorState({required this.msg});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
 //ipdate minutesofmeeting tablerecods
 class UpdateMMDataLoadingState extends MainState {
   @override
-// TODO: implement props
+
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -1646,7 +1621,7 @@ class UpdateMMDataLoadedState extends MainState {
   UpdateMMDataLoadedState({required this.cancelGatepassResponse});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -1656,7 +1631,7 @@ class UpdateMMDataErrorState extends MainState {
   UpdateMMDataErrorState({required this.msg});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -1688,7 +1663,7 @@ class SearchbyStaffcodeErrorPage extends MainState {
 
 class GetAllUsersListLoadingState extends MainState {
   @override
-// TODO: implement props
+
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -1698,7 +1673,7 @@ class GetAllUsersListLoadedState extends MainState {
   GetAllUsersListLoadedState({required this.getAllusersListResponse});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
@@ -1708,13 +1683,13 @@ class GetAllUsersListErrorState extends MainState {
   GetAllUsersListErrorState({required this.msg});
 
   @override
-  // TODO: implement props
+  
   List<Object> get props => throw UnimplementedError();
 }
 
 class GetAllClientLoadingState extends MainState {
   @override
-// TODO: implement props
+
   List<Object> get props => throw UnimplementedError();
 }
 
