@@ -1,65 +1,65 @@
-name: Flutter CI
-
-on:
-  push:
-    branches:
-      - auto_development
-      - main
-
-  pull_request:
-    branches:
-      - auto_development
-      - main
-
-jobs:
-  flutter-ci:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.41.4'
-          channel: stable
-          cache: true
-
-      - name: Flutter version
-        run: flutter --version
-
-      - name: Install dependencies
-        run: flutter pub get
-
-      - name: Analyze
-        run: flutter analyze --no-fatal-infos --no-fatal-warnings
-
-      - name: Run tests
-        run: flutter test
-
-      - name: Decode Android keystore
-        run: |
-          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/upload-keystore.jks
-
-      - name: Create key.properties
-        run: |
-          echo "storePassword=${{ secrets.KEYSTORE_PASSWORD }}" > android/key.properties
-          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
-          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
-          echo "storeFile=upload-keystore.jks" >> android/key.properties
-
-      - name: Build Android App Bundle
-        run: flutter build appbundle --release
-
-      - name: Upload Android App Bundle
-        uses: actions/upload-artifact@v4
-        with:
-          name: android-release-aab
-          path: build/app/outputs/bundle/release/app-release.aab
-
-      - name: Cleanup signing files
-        if: always()
-        run: |
-          rm -f android/app/upload-keystore.jks
-          rm -f android/key.properties
+#name: Flutter CI
+#
+#on:
+#  push:
+#    branches:
+#      - auto_development
+#      - main
+#
+#  pull_request:
+#    branches:
+#      - auto_development
+#      - main
+#
+#jobs:
+#  flutter-ci:
+#    runs-on: ubuntu-latest
+#
+#    steps:
+#      - name: Checkout repository
+#        uses: actions/checkout@v4
+#
+#      - name: Setup Flutter
+#        uses: subosito/flutter-action@v2
+#        with:
+#          flutter-version: '3.41.4'
+#          channel: stable
+#          cache: true
+#
+#      - name: Flutter version
+#        run: flutter --version
+#
+#      - name: Install dependencies
+#        run: flutter pub get
+#
+#      - name: Analyze
+#        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+#
+#      - name: Run tests
+#        run: flutter test
+#
+#      - name: Decode Android keystore
+#        run: |
+#          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/upload-keystore.jks
+#
+#      - name: Create key.properties
+#        run: |
+#          echo "storePassword=${{ secrets.KEYSTORE_PASSWORD }}" > android/key.properties
+#          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
+#          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
+#          echo "storeFile=upload-keystore.jks" >> android/key.properties
+#
+#      - name: Build Android App Bundle
+#        run: flutter build appbundle --release
+#
+#      - name: Upload Android App Bundle
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: android-release-aab
+#          path: build/app/outputs/bundle/release/app-release.aab
+#
+#      - name: Cleanup signing files
+#        if: always()
+#        run: |
+#          rm -f android/app/upload-keystore.jks
+#          rm -f android/key.properties
