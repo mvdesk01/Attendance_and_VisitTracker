@@ -30,9 +30,6 @@ jobs:
       - name: Flutter dependencies
         run: flutter pub get
 
-      - name: Flutter dependencies
-        run: flutter pub get
-
       - name: Prepare Android version
         run: |
           VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //')
@@ -42,10 +39,7 @@ jobs:
           echo "Version name: $VERSION_NAME"
           echo "Version code: $VERSION_CODE"
 
-          flutter build appbundle \
-            --build-name="$VERSION_NAME" \
-            --build-number="$VERSION_CODE" \
-            --debug
+          flutter build appbundle --build-name="$VERSION_NAME" --build-number="$VERSION_CODE" --debug
 
           echo "Generated Flutter version properties:"
           grep 'flutter.version' android/local.properties || true
