@@ -26,6 +26,14 @@ jobs:
         with:
           ruby-version: '3.3'
           bundler-cache: true
+          bundler: default
+          working-directory: ios
+
+      - name: Install iOS Fastlane dependencies
+        working-directory: ios
+        run: |
+          bundle install
+          bundle exec fastlane --version
 
       - name: Flutter dependencies
         run: flutter pub get
