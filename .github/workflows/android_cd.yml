@@ -1,83 +1,83 @@
-#name: Android CD
-#
-#on:
-#  workflow_dispatch:
-#  push:
-#    branches:
-#      - auto_development
-#
-#jobs:
-#  android-cd:
-#    runs-on: ubuntu-latest
-#
-#    steps:
-#      - name: Checkout
-#        uses: actions/checkout@v4
-#
-#      - name: Setup Flutter
-#        uses: subosito/flutter-action@v2
-#        with:
-#          flutter-version: '3.41.4'
-#          channel: stable
-#          cache: true
-#
-#      - name: Setup Ruby
-#        uses: ruby/setup-ruby@v1
-#        with:
-#          ruby-version: '3.2'
-#          bundler-cache: true
-#
-#      - name: Flutter dependencies
-#        run: flutter pub get
-#
-#      - name: Prepare Android version
-#        run: |
-#          VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //; s/[[:space:]]*$//')
-#          VERSION_NAME=${VERSION%%+*}
-#          VERSION_CODE=${VERSION##*+}
-#
-#          echo "Version name: $VERSION_NAME"
-#          echo "Version code: $VERSION_CODE"
-#
-#          echo "FLUTTER_VERSION_NAME=$VERSION_NAME" >> "$GITHUB_ENV"
-#          echo "FLUTTER_VERSION_CODE=$VERSION_CODE" >> "$GITHUB_ENV"
-#
-#      - name: Restore Android keystore
-#        run: |
-#          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/upload-keystore.jks
-#
-#      - name: Create key.properties
-#        run: |
-#          cat > android/key.properties <<EOF
-#          storePassword=${{ secrets.KEYSTORE_PASSWORD }}
-#          keyPassword=${{ secrets.KEY_PASSWORD }}
-#          keyAlias=${{ secrets.KEY_ALIAS }}
-#          storeFile=upload-keystore.jks
-#          EOF
-#
-#      - name: Configure Google Play credentials
-#        run: |
-#          echo '${{ secrets.GOOGLE_PLAY_JSON_KEY }}' > google-play.json
-#
-#      - name: Deploy to Google Play Internal Testing
-#        working-directory: android
-#        env:
-#          GOOGLE_PLAY_JSON_KEY: ${{ github.workspace }}/google-play.json
-#          FLUTTER_VERSION_NAME: ${{ env.FLUTTER_VERSION_NAME }}
-#          FLUTTER_VERSION_CODE: ${{ env.FLUTTER_VERSION_CODE }}
-#        run: |
-#          bundle exec fastlane android deploy_internal
-#
-#      - name: Cleanup secrets
-#        if: always()
-#        run: |
-#          rm -f android/app/upload-keystore.jks
-#          rm -f android/key.properties
-#          rm -f google-play.json
-#
-#
-#
-#
-#
-## explicitly generate the android build version and assign it to version name
-## set the environment variable to the temporary JSON file created on the GitHub runner. it does not use the use local .env credential
+name: Android CD
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - auto_development
+
+jobs:
+  android-cd:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.41.4'
+          channel: stable
+          cache: true
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+
+      - name: Flutter dependencies
+        run: flutter pub get
+
+      - name: Prepare Android version
+        run: |
+          VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //; s/[[:space:]]*$//')
+          VERSION_NAME=${VERSION%%+*}
+          VERSION_CODE=${VERSION##*+}
+
+          echo "Version name: $VERSION_NAME"
+          echo "Version code: $VERSION_CODE"
+
+          echo "FLUTTER_VERSION_NAME=$VERSION_NAME" >> "$GITHUB_ENV"
+          echo "FLUTTER_VERSION_CODE=$VERSION_CODE" >> "$GITHUB_ENV"
+
+      - name: Restore Android keystore
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/upload-keystore.jks
+
+      - name: Create key.properties
+        run: |
+          cat > android/key.properties <<EOF
+          storePassword=${{ secrets.KEYSTORE_PASSWORD }}
+          keyPassword=${{ secrets.KEY_PASSWORD }}
+          keyAlias=${{ secrets.KEY_ALIAS }}
+          storeFile=upload-keystore.jks
+          EOF
+
+      - name: Configure Google Play credentials
+        run: |
+          echo '${{ secrets.GOOGLE_PLAY_JSON_KEY }}' > google-play.json
+
+      - name: Deploy to Google Play Internal Testing
+        working-directory: android
+        env:
+          GOOGLE_PLAY_JSON_KEY: ${{ github.workspace }}/google-play.json
+          FLUTTER_VERSION_NAME: ${{ env.FLUTTER_VERSION_NAME }}
+          FLUTTER_VERSION_CODE: ${{ env.FLUTTER_VERSION_CODE }}
+        run: |
+          bundle exec fastlane android deploy_internal
+
+      - name: Cleanup secrets
+        if: always()
+        run: |
+          rm -f android/app/upload-keystore.jks
+          rm -f android/key.properties
+          rm -f google-play.json
+
+
+
+
+
+# explicitly generate the android build version and assign it to version name
+# set the environment variable to the temporary JSON file created on the GitHub runner. it does not use the use local .env credential
