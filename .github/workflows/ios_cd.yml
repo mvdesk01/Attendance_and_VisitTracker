@@ -8,10 +8,12 @@ on:
 
 jobs:
   ios-cd:
+
     runs-on: macos-latest
 
     steps:
-      - name: Checkout
+
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Setup Flutter
@@ -25,15 +27,8 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: '3.3'
-          bundler-cache: true
-          bundler: default
           working-directory: ios
-
-      - name: Install iOS Fastlane dependencies
-        working-directory: ios
-        run: |
-          bundle install
-          bundle exec fastlane --version
+          bundler-cache: true
 
       - name: Flutter dependencies
         run: flutter pub get
@@ -42,16 +37,40 @@ jobs:
         working-directory: ios
         run: pod install
 
+      - name: Configure SSH for Match
+        env:
+          MATCH_GIT_SSH_PRIVATE_KEY: ${{ secrets.MATCH_GIT_SSH_PRIVATE_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+
+          echo "$MATCH_GIT_SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+
       - name: Create App Store Connect API key
         run: |
           echo '${{ secrets.APP_STORE_CONNECT_API_KEY }}' > ios/app_store_connect_api_key.p8
+          chmod 600 ios/app_store_connect_api_key.p8
+
+      - name: Install iOS Fastlane dependencies
+        working-directory: ios
+        run: |
+          bundle install
+          bundle exec fastlane --version
 
       - name: Deploy to TestFlight
         working-directory: ios
         env:
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+
           APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
           APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+
           APP_STORE_CONNECT_API_KEY_PATH: ${{ github.workspace }}/ios/app_store_connect_api_key.p8
+
         run: |
           bundle exec fastlane ios beta
 
@@ -59,3 +78,4 @@ jobs:
         if: always()
         run: |
           rm -f ios/app_store_connect_api_key.p8
+          rm -f ~/.ssh/id_ed25519
