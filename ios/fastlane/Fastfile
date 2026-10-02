@@ -46,39 +46,40 @@
 #   end
 # end
 
+lane :beta do
 
+  api_key = app_store_connect_api_key(
+    key_id: ENV["APP_STORE_CONNECT_KEY_ID"],
+    issuer_id: ENV["APP_STORE_CONNECT_ISSUER_ID"],
+    key_filepath: ENV["APP_STORE_CONNECT_API_KEY_PATH"]
+  )
 
-default_platform(:ios)
+  create_keychain(
+    name: "ci_signing",
+    password: ENV["MATCH_KEYCHAIN_PASSWORD"],
+    default_keychain: true,
+    unlock: true,
+    timeout: 3600,
+    lock_when_sleeps: false
+  )
 
-platform :ios do
+  match(
+    type: "appstore",
+    readonly: true,
+    api_key: api_key,
+    keychain_name: "ci_signing",
+    keychain_password: ENV["MATCH_KEYCHAIN_PASSWORD"]
+  )
 
-  desc "Build and upload iOS app to TestFlight"
+  build_app(
+    workspace: "Runner.xcworkspace",
+    scheme: "Runner",
+    export_method: "app-store"
+  )
 
-  lane :beta do
-
-    api_key = app_store_connect_api_key(
-      key_id: ENV["APP_STORE_CONNECT_KEY_ID"],
-      issuer_id: ENV["APP_STORE_CONNECT_ISSUER_ID"],
-      key_filepath: ENV["APP_STORE_CONNECT_API_KEY_PATH"]
-    )
-
-    match(
-      type: "appstore",
-      readonly: true,
-      api_key: api_key
-    )
-
-    build_app(
-      workspace: "Runner.xcworkspace",
-      scheme: "Runner",
-      export_method: "app-store"
-    )
-
-    upload_to_testflight(
-      api_key: api_key
-    )
-
-  end
+  upload_to_testflight(
+    api_key: api_key
+  )
 
 end
 
