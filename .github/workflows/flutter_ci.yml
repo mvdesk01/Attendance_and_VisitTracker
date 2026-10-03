@@ -38,28 +38,32 @@ jobs:
       - name: Run tests
         run: flutter test
 
-      - name: Decode Android keystore
-        run: |
-          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/upload-keystore.jks
+#      - name: Decode Android keystore
+#        run: |
+#          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/upload-keystore.jks
+#
+#      - name: Create key.properties
+#        run: |
+#          echo "storePassword=${{ secrets.KEYSTORE_PASSWORD }}" > android/key.properties
+#          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
+#          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
+#          echo "storeFile=upload-keystore.jks" >> android/key.properties
+#
+#      - name: Build Android App Bundle
+#        run: flutter build appbundle --release
+#
+#      - name: Upload Android App Bundle
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: android-release-aab
+#          path: build/app/outputs/bundle/release/app-release.aab
+#
+#      - name: Cleanup signing files
+#        if: always()
+#        run: |
+#          rm -f android/app/upload-keystore.jks
+#          rm -f android/key.properties
 
-      - name: Create key.properties
-        run: |
-          echo "storePassword=${{ secrets.KEYSTORE_PASSWORD }}" > android/key.properties
-          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
-          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
-          echo "storeFile=upload-keystore.jks" >> android/key.properties
 
-      - name: Build Android App Bundle
-        run: flutter build appbundle --release
 
-      - name: Upload Android App Bundle
-        uses: actions/upload-artifact@v4
-        with:
-          name: android-release-aab
-          path: build/app/outputs/bundle/release/app-release.aab
-
-      - name: Cleanup signing files
-        if: always()
-        run: |
-          rm -f android/app/upload-keystore.jks
-          rm -f android/key.properties
+# Make the CI workflow lightweight by do the build process during CD/release
