@@ -1,16 +1,31 @@
-# attendance_system_ios
+## CI/CD
 
-Attendance system flutter project for iOS
+### Development
 
-## Getting Started
+Push to `auto_development`:
 
-This project is a starting point for a Flutter application.
+    git push origin auto_development
 
-A few resources to get you started if this is your first Flutter project:
+This runs Flutter CI:
+- Flutter analyze
+- Flutter tests
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+### Release
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+1. Update version in pubspec.yaml
+
+    version: 1.0.32+32
+
+2. Commit and push changes.
+
+3. Create release tag:
+
+    git tag v1.0.32
+
+4. Push tag:
+
+    git push origin v1.0.32
+
+The release tag triggers:
+- Android CD → Google Play Internal Testing
+- iOS CD → TestFlight
