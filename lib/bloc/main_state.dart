@@ -571,7 +571,7 @@ class GetMinutesOfMeetingFormNoLoadedState extends MainState {
 }
 
 class GetMinutesOfMeetingFormNoErrorState extends MainState {
-  String msg;
+  final String msg;
 
   GetMinutesOfMeetingFormNoErrorState({required this.msg});
 

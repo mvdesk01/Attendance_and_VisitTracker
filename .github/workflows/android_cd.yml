@@ -3,6 +3,8 @@ name: Android CD
 on:
   workflow_dispatch:
   push:
+    tags:
+      - 'v*'
     branches:
       - auto_development
 
