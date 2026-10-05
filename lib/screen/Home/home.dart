@@ -18,6 +18,7 @@ import 'package:attendance_system_ios/service/LocationHandler.dart';
 import 'package:attendance_system_ios/service/WebService.dart';
 import 'package:attendance_system_ios/service/log_file_manager.dart';
 import 'package:attendance_system_ios/util/MyColor.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -404,7 +405,9 @@ class _HomeScreenState extends State<HomeScreen> {
       isLoading = true;
     });
     try {
-      print("inout statuscode try");
+      if (kDebugMode) {
+        print("inout statuscode try");
+      }
 
       // Format the date to 'dd/MM/yyyy' format as required by the API
       String formattedFromDate =
@@ -698,7 +701,7 @@ class _HomeScreenState extends State<HomeScreen> {
           color: Colors.white,
           size: 28,
         ),
-        title: const Text("Attendance"),
+        title: const Text("AttendanceKD"),
         backgroundColor: MyColors.darkBlue,
         centerTitle: true,
         titleTextStyle: GoogleFonts.roboto(
@@ -718,7 +721,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Column(children: [
                   const Padding(padding: EdgeInsets.symmetric(vertical: 8)),
                   const Text(
-                    "Attendance",
+                    "AttendanceKD",
                     style: TextStyle(
                         color: Colors.white,
                         fontSize: 20.0,
@@ -1052,7 +1055,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildPopupDialogforLogout(BuildContext context) {
     return new AlertDialog(
       // title: const Text('Popup example'),
-      content: new Column(
+      content: const Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -1067,7 +1070,7 @@ class _HomeScreenState extends State<HomeScreen> {
             height: 20,
           ),
           Text(
-            "Are you sure you want to Logout Attendance App?",
+            "Are you sure you want to Logout AttendanceKD App?",
             style: TextStyle(fontSize: 18),
           ),
         ],

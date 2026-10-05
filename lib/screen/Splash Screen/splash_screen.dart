@@ -68,9 +68,9 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _initializeApp() async {
+    await _loadVersion();
     await requestPermissions();
     await clearKeychainValues();
-    _loadVersion();
 
 
     bool hasInternet = await InternetService().hasInternetAccess();
@@ -193,39 +193,29 @@ class _SplashScreenState extends State<SplashScreen> {
 
   Future<void> _logoutAndGoToLogin() async {
     try {
-      // Clear remembered login credentials
       await storage.delete(key: 'username');
       await storage.delete(key: 'password');
-
-      // Clear authentication/session data as well
       await storage.delete(key: 'Auth_Token');
       await storage.delete(key: 'Staff_Code');
       await storage.delete(key: 'Staff_Name');
 
       final prefs = await SharedPreferences.getInstance();
-
-      // Clear stored token from SharedPreferences
       await prefs.remove('Auth_TokenVal');
 
-      if (!mounted) return;
-
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(
-          builder: (_) => BlocProvider(
-            create: (_) => MainBloc(webService: WebService()),
-            child: const LoginScreen(),
-          ),
-        ),
-        (route) => false,
-      );
+      await _goToLogin();
     } catch (e) {
       LogFileManager.writeLog(
         "Error while logging out from splash: $e",
       );
+
+      // Important: don't leave the user stuck on splash
+      if (mounted) {
+        await _goToLogin();
+      }
     }
   }
 
-/*  Future<void> _checkRememberMe() async {
+  Future<void> _checkRememberMe() async {
     String storedUsername = 'Null';
     String storedPassword = 'Null';
     try {
@@ -236,10 +226,32 @@ class _SplashScreenState extends State<SplashScreen> {
     }
 
     if (storedUsername != 'Null' && storedPassword != 'Null') {
-      isAdminLogin =
-          (storedUsername == "mzdl002" && storedPassword == "Admin@123\$");
-      _mainBloc?.add(
-          LoginEvents(username: storedUsername, password: storedPassword));
+      isAdminLogin = (storedUsername == "mzdl002" && storedPassword == "Admin@123\$");
+      _mainBloc?.add(LoginEvents(username: storedUsername, password: storedPassword));
+
+      // if(isAdminLogin){
+      //   Navigator.pushReplacement(
+      //     context,
+      //     MaterialPageRoute(
+      //       builder: (_) => BlocProvider(
+      //         create: (context) {
+      //           return MainBloc(webService: WebService());
+      //         },
+      //         child: const AdminHomeScreen(),
+      //       ),
+      //     ),
+      //   );
+      // } else {
+      //   Navigator.pushReplacement(
+      //     context,
+      //     MaterialPageRoute(
+      //       builder: (_) => BlocProvider(
+      //         create: (context) => MainBloc(webService: WebService()),
+      //         child: const HomeScreen(),
+      //       ),
+      //     ),
+      //   );
+      // }
     } else {
       await Future.delayed(const Duration(seconds: 3));
       if (!mounted) return;
@@ -253,8 +265,9 @@ class _SplashScreenState extends State<SplashScreen> {
         ),
       );
     }
-  }*/
+  }
 
+/*
   Future<void> _checkRememberMe() async {
     String? storedUsername;
     String? storedPassword;
@@ -311,6 +324,56 @@ class _SplashScreenState extends State<SplashScreen> {
       ),
     );
   }
+*/
+  // Future<void> _checkRememberMe() async {
+  //   try {
+  //     final storedUsername = await storage.read(key: 'username');
+  //     final storedPassword = await storage.read(key: 'password');
+  //
+  //     // No remembered credentials
+  //     if (storedUsername == null ||
+  //         storedUsername.isEmpty ||
+  //         storedPassword == null ||
+  //         storedPassword.isEmpty) {
+  //       await _goToLogin();
+  //       return;
+  //     }
+  //
+  //     isAdminLogin =
+  //         storedUsername == "mzdl002" &&
+  //             storedPassword == "Admin@123\$";
+  //
+  //     if (!mounted) return;
+  //
+  //     context.read<MainBloc>().add(
+  //       LoginEvents(
+  //         username: storedUsername,
+  //         password: storedPassword,
+  //       ),
+  //     );
+  //   } catch (e) {
+  //     LogFileManager.writeLog(
+  //       "Remembered login error: $e",
+  //     );
+  //
+  //     await _logoutAndGoToLogin();
+  //   }
+  // }
+
+  Future<void> _goToLogin() async {
+    if (!mounted) return;
+
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (_) => BlocProvider(
+          create: (_) => MainBloc(
+            webService: WebService(),
+          ),
+          child: const LoginScreen(),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -353,24 +416,40 @@ class _SplashScreenState extends State<SplashScreen> {
 
                 await _logoutAndGoToLogin();
               }
-            } else if (state is LoginErrorState) {
+            }
+            else if (state is LoginErrorState) {
               if (!mounted) return;
+
               setState(() => _isLoading = false);
+
               LogFileManager.writeLog(
-                "Automatic login failed with LoginErrorState.",
+                "Remembered login failed. Clearing old credentials.",
               );
 
+              // if(state.msg.toString()=="Invalid Credentials, Password changed"){
+              //   await _logoutAndGoToLogin();
+              // }
+
               await _logoutAndGoToLogin();
-              // Navigator.pushReplacement(
-              //   context,
-              //   MaterialPageRoute(
-              //     builder: (_) => BlocProvider(
-              //       create: (context) => MainBloc(webService: WebService()),
-              //       child: const LoginScreen(),
-              //     ),
-              //   ),
-              // );
             }
+            // else if (state is LoginErrorState) {
+            //   if (!mounted) return;
+            //   setState(() => _isLoading = false);
+            //   LogFileManager.writeLog(
+            //     "Automatic login failed with LoginErrorState.",
+            //   );
+            //
+            //   await _logoutAndGoToLogin();
+            //   // Navigator.pushReplacement(
+            //   //   context,
+            //   //   MaterialPageRoute(
+            //   //     builder: (_) => BlocProvider(
+            //   //       create: (context) => MainBloc(webService: WebService()),
+            //   //       child: const LoginScreen(),
+            //   //     ),
+            //   //   ),
+            //   // );
+            // }
             // else if (state is LoginErrorState) {
             //   setState(() => _isLoading = false);
             //   Navigator.pushReplacement(
@@ -409,7 +488,7 @@ class _SplashScreenState extends State<SplashScreen> {
                   ),
                   const SizedBox(height: 24),
                   const Text(
-                    "Attendance System",
+                    "Attendance System-KD",
                     style: TextStyle(
                       fontSize: 32,
                       color: MyColors.appDefaultColorCode,
@@ -442,7 +521,7 @@ class _SplashScreenState extends State<SplashScreen> {
                     const SizedBox(height: 24),
                     Text("AppVersion: $appVersion"),
                     const Text(
-                      "@ 2025 M-Tech Innovations Ltd Pune\nAttendance System",
+                      "@ 2025 M-Tech Innovations Ltd Pune\nAttendance System-kd",
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 12,
@@ -460,3 +539,4 @@ class _SplashScreenState extends State<SplashScreen> {
     );
   }
 }
+
