@@ -1,15 +1,20 @@
+import 'dart:async';
+
 import 'package:attendance_system_ios/cleanarchitecture/feature/MOM/presentation/provider/responsibility/responsibilityprovider.dart';
+import 'package:attendance_system_ios/screen/MOM/textinputformatter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
+import '../../cleanarchitecture/core/storage/mom_draft_service.dart';
 import '../../cleanarchitecture/feature/MOM/domain/enteties/customer.dart';
 import '../../cleanarchitecture/feature/MOM/domain/enteties/meeting.dart';
 import '../../cleanarchitecture/feature/MOM/domain/enteties/meetinghistory_group.dart';
 import '../../cleanarchitecture/feature/MOM/domain/enteties/meetingpoints.dart';
 import '../../cleanarchitecture/feature/MOM/domain/enteties/submitmeeting_request.dart';
+import '../../cleanarchitecture/feature/MOM/presentation/provider/customerprovider.dart';
 import '../../cleanarchitecture/feature/MOM/presentation/provider/decision/decisionprovider.dart';
 import '../../cleanarchitecture/feature/MOM/presentation/provider/submeeting/submitmeetingprovider.dart';
 import '../../cleanarchitecture/feature/MOM/presentation/provider/submeeting/submitmeetingstate.dart';
@@ -36,6 +41,7 @@ class AddMeetingScreen extends ConsumerStatefulWidget {
   @override
   ConsumerState<AddMeetingScreen> createState() => _AddMeetingScreenState();
 }
+//test
 
 ///test
 class _AddMeetingScreenState extends ConsumerState<AddMeetingScreen> {
@@ -44,6 +50,7 @@ class _AddMeetingScreenState extends ConsumerState<AddMeetingScreen> {
 
   String? _staffName;
   bool _isLoadingStaff = true;
+  Timer? _draftTimer;
 
   late DateTime selectedDate;
   late TimeOfDay selectedTime;
@@ -78,12 +85,18 @@ class _AddMeetingScreenState extends ConsumerState<AddMeetingScreen> {
     _loadStaffName();
     Future.microtask(() async {
       print("Calling Decision");
-      await ref.read(decisionNotifierProvider.notifier).loadDecisions();
+      await ref
+          .read(decisionNotifierProvider.notifier)
+          .loadDecisions(forceRefresh: true);
 
       print("Calling Responsibility");
       await ref
           .read(responsibilityNotifierProvider.notifier)
-          .loadResponsibility();
+          .loadResponsibility(forceRefresh: true);
+
+      if (!widget.isEditing) {
+        await _checkForDraft();
+      }
     });
 
     selectedDate = widget.selectedMeetingDate ?? DateTime.now();
@@ -137,14 +150,6 @@ class _AddMeetingScreenState extends ConsumerState<AddMeetingScreen> {
               "targetDate": e.targetDate,
             })
         .toList();
-
-    // rowKeys.clear();
-    //
-    // for (int i = 0; i < initialDiscussionPoints.length; i++) {
-    //   rowKeys.add(
-    //     GlobalKey<DiscussionPointRowState>(),
-    //   );
-    // }
     rowKeys.clear();
     rowIsExisting.clear();
 
@@ -160,6 +165,117 @@ class _AddMeetingScreenState extends ConsumerState<AddMeetingScreen> {
     //  initialDiscussionPoints.clear();
   }
 
+  Future<void> _checkForDraft() async {
+    if (widget.isEditing) return;
+
+    final draft = await MomDraftService.getDraft(
+      customerCode: widget.customer.customerCode,
+    );
+
+    if (draft == null || !mounted) return;
+
+    final draftData = draft['draftData'] as Map<String, dynamic>;
+
+    final continueDraft = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Draft Found"),
+          content: const Text(
+            "A previous unfinished MOM was found for this customer. "
+            "Do you want to continue it?",
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context, false);
+              },
+              child: const Text("Start New"),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context, true);
+              },
+              child: const Text("Continue Draft"),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (!mounted) return;
+
+    if (continueDraft == true) {
+      await _restoreDraft(draftData);
+    } else if (continueDraft == false) {
+      await MomDraftService.deleteDraft(
+        customerCode: widget.customer.customerCode,
+      );
+    }
+  }
+
+  Map<String, dynamic> _buildDraftData() {
+    final discussionPoints = <Map<String, dynamic>>[];
+
+    for (final key in rowKeys) {
+      final rowState = key.currentState;
+
+      if (rowState != null) {
+        discussionPoints.add(
+          rowState.getDraftData(),
+        );
+      }
+    }
+
+    return {
+      "meetingDate": dateController.text,
+      "meetingTime": timeController.text,
+      "presentMembers": List<String>.from(
+        dynamicPresentMembers,
+      ),
+      "absentMembers": List<String>.from(
+        dynamicAbsentMembers,
+      ),
+      "discussionPoints": discussionPoints,
+    };
+  }
+
+  Future<void> _saveDraft() async {
+    if (!mounted) return;
+
+    final customerState = ref.read(customerNotifierProvider);
+
+    final customer = customerState.selectedCustomer;
+
+    if (customer == null) {
+      return;
+    }
+
+    final draftData = _buildDraftData();
+
+    await MomDraftService.saveDraft(
+      customerCode: customer.customerCode,
+      customerName: customer.customerName,
+      draftData: draftData,
+    );
+
+    print(
+      "MOM DRAFT SAVED: ${customer.customerCode}",
+    );
+  }
+
+  void _scheduleDraftSave() {
+    _draftTimer?.cancel();
+
+    _draftTimer = Timer(
+      const Duration(milliseconds: 800),
+      () async {
+        await _saveDraft();
+      },
+    );
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -172,6 +288,81 @@ class _AddMeetingScreenState extends ConsumerState<AddMeetingScreen> {
 
       _timeInitialized = true;
     }
+  }
+
+  Future<Map<String, dynamic>?> _loadDraft() async {
+    final draft = await MomDraftService.getDraft(
+      customerCode: widget.customer.customerCode,
+    );
+
+    return draft?['draftData'] as Map<String, dynamic>?;
+  }
+
+  Future<void> _restoreDraft(Map<String, dynamic> draftData) async {
+    if (!mounted) return;
+
+    setState(() {
+      dateController.text = draftData['meetingDate']?.toString() ?? '';
+
+      timeController.text = draftData['meetingTime']?.toString() ?? '';
+
+      dynamicPresentMembers =
+          List<String>.from(draftData['presentMembers'] ?? []);
+
+      dynamicAbsentMembers =
+          List<String>.from(draftData['absentMembers'] ?? []);
+
+      presentInputController.text = dynamicPresentMembers.join(",");
+
+      absentInputController.text = dynamicAbsentMembers.join(",");
+
+      final discussionPoints = List<Map<String, dynamic>>.from(
+        (draftData['discussionPoints'] ?? []).map(
+          (e) => Map<String, dynamic>.from(e),
+        ),
+      );
+
+      rowKeys.clear();
+      rowIsExisting.clear();
+      initialDiscussionPoints.clear();
+
+      for (final point in discussionPoints) {
+        rowKeys.add(
+          GlobalKey<DiscussionPointRowState>(),
+        );
+
+        rowIsExisting.add(false);
+
+        initialDiscussionPoints.add({
+          "point": point['point']?.toString() ?? '',
+          "discussedWith": point['discussedWith']?.toString() ?? '',
+          "decisionTaken": point['decision']?.toString() ?? '',
+          "decisionCode": point['decisionCode']?.toString() ?? '',
+          "otherDecisionText": point['otherDecisionText']?.toString() ?? '',
+          "responsibility": point['responsibilityNames']?.toString() ?? '',
+          "responsibilityCodes": point['responsibilityCodes']?.toString() ?? '',
+          "targetDate": point['targetDate']?.toString() ?? '',
+        });
+      }
+
+      if (rowKeys.isEmpty) {
+        rowKeys.add(
+          GlobalKey<DiscussionPointRowState>(),
+        );
+
+        rowIsExisting.add(false);
+        initialDiscussionPoints.add({});
+      }
+
+      _rebuildDiscussionRows();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        for (final key in rowKeys) {
+          key.currentState?.restoreResponsibilities();
+        }
+      });
+    });
+
+    print("MOM DRAFT RESTORED");
   }
 
   /// Fetches staff name from FlutterSecureStorage
@@ -203,6 +394,7 @@ class _AddMeetingScreenState extends ConsumerState<AddMeetingScreen> {
         dynamicAbsentMembers = parsed;
       }
     });
+    _scheduleDraftSave();
   }
 
   Future<bool> _confirmBack() async {
@@ -301,6 +493,7 @@ class _AddMeetingScreenState extends ConsumerState<AddMeetingScreen> {
 
       _rebuildDiscussionRows();
     });
+    // _scheduleDraftSave();
   }
 
   void _rebuildDiscussionRows([Map<String, String>? initialData]) {
@@ -323,6 +516,9 @@ class _AddMeetingScreenState extends ConsumerState<AddMeetingScreen> {
           onDelete: () {
             deleteDiscussionRow(index);
           },
+          onDraftChanged: () {
+            _scheduleDraftSave();
+          },
         );
       },
     );
@@ -342,6 +538,7 @@ class _AddMeetingScreenState extends ConsumerState<AddMeetingScreen> {
 
       _rebuildDiscussionRows();
     });
+    _scheduleDraftSave();
   }
 
   Future<void> _selectDate(BuildContext context) async {
@@ -357,6 +554,7 @@ class _AddMeetingScreenState extends ConsumerState<AddMeetingScreen> {
         dateController.text = DateFormat('dd/MM/yyyy').format(picked);
       });
     }
+    _scheduleDraftSave();
   }
 
   Future<void> _selectTime(BuildContext context) async {
@@ -380,6 +578,7 @@ class _AddMeetingScreenState extends ConsumerState<AddMeetingScreen> {
             "${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}";
       });
     }
+    _scheduleDraftSave();
   }
 
   @override
@@ -498,6 +697,9 @@ class _AddMeetingScreenState extends ConsumerState<AddMeetingScreen> {
             controller: TextEditingController(
               text: widget.customer.customerName,
             ),
+            onChanged: (_) {
+              _scheduleDraftSave();
+            },
             style: GoogleFonts.inter(
                 fontSize: 14, fontWeight: FontWeight.w600, color: textPrimary),
             decoration: InputDecoration(
@@ -526,6 +728,9 @@ class _AddMeetingScreenState extends ConsumerState<AddMeetingScreen> {
                     const SizedBox(height: 8),
                     TextField(
                       controller: dateController,
+                      onChanged: (_) {
+                        _scheduleDraftSave();
+                      },
                       readOnly: true,
                       onTap: () => _selectDate(context),
                       style:
@@ -602,6 +807,9 @@ class _AddMeetingScreenState extends ConsumerState<AddMeetingScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     TextField(
+                      inputFormatters: [
+                        TitleCaseTextFormatter(),
+                      ],
                       controller: presentInputController,
                       style: GoogleFonts.inter(fontSize: 14),
                       onChanged: (val) => _updateMembersFromInput(val, true),
@@ -685,6 +893,9 @@ class _AddMeetingScreenState extends ConsumerState<AddMeetingScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               TextField(
+                inputFormatters: [
+                  TitleCaseTextFormatter(),
+                ],
                 controller: absentInputController,
                 style: GoogleFonts.inter(fontSize: 14),
                 onChanged: (val) => _updateMembersFromInput(val, false),
@@ -807,210 +1018,6 @@ class _AddMeetingScreenState extends ConsumerState<AddMeetingScreen> {
     );
   }
 
-/*  Widget _buildBottomActionBar(MeetingSubmitState submitState) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: cardBorderColor, width: 1)),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: OutlinedButton(
-              onPressed: () => Navigator.pop(context),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: textSecondary,
-                side: const BorderSide(color: cardBorderColor),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                padding: const EdgeInsets.symmetric(vertical: 14),
-              ),
-              child: Text(
-                widget.isEditing ? "Cancel" : "Cancel",
-                style: GoogleFonts.inter(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            flex: 2,
-            child: ElevatedButton.icon(
-              onPressed: submitState.isLoading
-                  ? null
-                  : () async {
-                      if (!validateForm()) {
-                        return;
-                      }
-
-                      final staffCode = await storage.read(
-                        key: "Staff_Code",
-                      );
-
-                      /// Present Members
-                      final allPresent = <String>[
-                        if (_staffName != null) _staffName!,
-                        ...dynamicPresentMembers,
-                      ].toSet().toList();
-
-                      /// Meeting Entity
-                      final meeting = Meeting(
-                        meetingId: widget.isEditing
-                            ? widget.meetingHistory!.meetingId
-                            : "",
-                        customerCode: widget.customer.customerCode,
-                        memberPresent: allPresent.join(","),
-                        memberAbsent: dynamicAbsentMembers.join(","),
-                        meetingDateTime:
-                            "${dateController.text} ${timeController.text}",
-                        nextMeetingDate: dateController.text,
-                        entryBy: staffCode!,
-                        flag: widget.isEditing ? "U" : "I",
-                      );
-
-                      /// Discussion Points
-                      final List<DiscussionPoint> points = [];
-
-                      // for (final key in rowKeys) {
-                      //   print("Rows = ${rowKeys.length}");
-                      //   print("Points = ${points.length}");
-                      //   final row = key.currentState;
-                      //
-                      //   if (row != null) {
-                      //     points.add(
-                      //       row.getDiscussionPoint(
-                      //         entryBy: staffCode,
-                      //       ),
-                      //     );
-                      //   }
-                      // }
-                      for (int i = 0; i < rowKeys.length; i++) {
-                        print("Rows = ${rowKeys.length}");
-                        print("Points = ${points.length}");
-
-                        final row = rowKeys[i].currentState;
-
-                        if (row != null) {
-                          final isLast = i == rowKeys.length - 1;
-
-                          points.add(
-                            row.getDiscussionPoint(
-                              entryBy: staffCode,
-                              last: isLast ? "Y" : "N",
-                            ),
-                          );
-                        }
-                      }
-
-                      final request = SubmitMeetingRequest(
-                        meeting: meeting,
-                        discussionPoints: points,
-                      );
-
-                      await ref
-                          .read(meetingSubmitNotifierProvider.notifier)
-                          .submitMeeting(request);
-
-                      if (!mounted) return;
-
-                      final state = ref.read(meetingSubmitNotifierProvider);
-
-                      if (state.error != null) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(state.error!),
-                            backgroundColor: Colors.red,
-                          ),
-                        );
-                        return;
-                      }
-
-                      final result = state.result;
-
-                      if (result == null) return;
-
-                      if (result.meetingSaved && result.pointsSaved) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(result.meetingMessage),
-                            backgroundColor: Colors.green,
-                          ),
-                        );
-
-                        Navigator.pop(context, true);
-                      } else {
-                        showDialog(
-                          context: context,
-                          builder: (_) => AlertDialog(
-                            title: const Text("Submission Result"),
-                            content: SingleChildScrollView(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(result.meetingMessage),
-                                  const SizedBox(height: 12),
-                                  ...result.pointMessages.map(
-                                    (e) => Text("• $e"),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.pop(context),
-                                child: const Text("OK"),
-                              )
-                            ],
-                          ),
-                        );
-                      }
-                    },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: primaryColor,
-                foregroundColor: Colors.white,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                padding: const EdgeInsets.symmetric(vertical: 14),
-              ),
-              icon: submitState.isLoading
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                  : const Icon(
-                      Icons.check_circle_outline_rounded,
-                      size: 18,
-                    ),
-              label: Text(
-                submitState.isLoading
-                    ? "Submitting..."
-                    : widget.isEditing
-                        ? "Update Meeting"
-                        : "Save Meeting",
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ),
-          // ElevatedButton(onPressed: () {
-          //   Navigator.push(context, MaterialPageRoute(builder: (context) => MOMListScreen()));
-          // }, child: Text('MOM List')),
-        ],
-      ),
-    );
-  }*/
   Widget _buildBottomActionBar(
     MeetingSubmitState submitState,
   ) {
@@ -1128,11 +1135,13 @@ class _AddMeetingScreenState extends ConsumerState<AddMeetingScreen> {
                             );
                           }
                         }
+                        print("result$points");
 
                         final request = SubmitMeetingRequest(
                           meeting: meeting,
                           discussionPoints: points,
                         );
+                        print("result$request");
 
                         await ref
                             .read(meetingSubmitNotifierProvider.notifier)
@@ -1156,15 +1165,32 @@ class _AddMeetingScreenState extends ConsumerState<AddMeetingScreen> {
 
                         if (result == null) return;
 
+                        // if (result.meetingSaved && result.pointsSaved) {
+                        //   ScaffoldMessenger.of(context).showSnackBar(
+                        //     SnackBar(
+                        //       content: Text(result.meetingMessage),
+                        //       backgroundColor: Colors.green,
+                        //     ),
+                        //   );
+                        //
+                        //   Navigator.pop(context, true);
+                        // }
                         if (result.meetingSaved && result.pointsSaved) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(result.meetingMessage),
-                              backgroundColor: Colors.green,
-                            ),
-                          );
+                          final customerState =
+                              ref.read(customerNotifierProvider);
 
-                          Navigator.pop(context, true);
+                          final customer = customerState.selectedCustomer;
+
+                          if (customer != null) {
+                            await MomDraftService.deleteDraft(
+                              customerCode: customer.customerCode,
+                            );
+                          }
+
+                          // Existing success code
+                          if (mounted) {
+                            Navigator.pop(context, true);
+                          }
                         } else {
                           showDialog(
                             context: context,

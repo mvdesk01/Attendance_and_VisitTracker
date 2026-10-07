@@ -106,6 +106,27 @@ class MomRepositoryImpl implements MomRepository {
   }
 
   ///decision
+  // @override
+  // Future<List<Decision>> getDecisions({
+  //   required String userName,
+  //   bool forceRefresh = false,
+  // }) async {
+  //   if (!forceRefresh) {
+  //     final cachedDecisions = await localDatasource.getCachedDecisions();
+  //
+  //     if (cachedDecisions.isNotEmpty) {
+  //       return cachedDecisions;
+  //     }
+  //   }
+  //
+  //   final decisions = await remoteDatasource.getDecisions(
+  //     userName: userName,
+  //   );
+  //
+  //   await localDatasource.cacheDecisions(decisions);
+  //
+  //   return decisions;
+  // }
   @override
   Future<List<Decision>> getDecisions({
     required String userName,
@@ -119,13 +140,26 @@ class MomRepositoryImpl implements MomRepository {
       }
     }
 
-    final decisions = await remoteDatasource.getDecisions(
-      userName: userName,
-    );
+    try {
+      final decisions = await remoteDatasource.getDecisions(
+        userName: userName,
+      );
 
-    await localDatasource.cacheDecisions(decisions);
+      // Replace the old cache with the latest API list.
+      await localDatasource.cacheDecisions(decisions);
 
-    return decisions;
+      return decisions;
+    } catch (e) {
+      // API unavailable → use cached data.
+      final cachedDecisions = await localDatasource.getCachedDecisions();
+
+      if (cachedDecisions.isNotEmpty) {
+        return cachedDecisions;
+      }
+
+      // No cache available either.
+      rethrow;
+    }
   }
 
   @override
