@@ -12,3 +12,9 @@ void main() {
 }
 // The test finishes almost immediately. Flutter disposes the widget tree, but the timer created by SplashScreen is still alive.
 //  Flutter’s test framework is detecting a real lifecycle issue. ( resolve the issue by cancelling the timer in dispose )
+
+
+
+
+/// Mockito
+// if we do not mock the api, the test will depend on internet, api response, credentials, authentication etc

@@ -85,9 +85,10 @@ lane :beta do
     export_method: "app-store"
   )
 
-  upload_to_testflight(
-    api_key: api_key
-  )
+upload_to_testflight(
+  api_key: api_key,
+  skip_waiting_for_build_processing: true
+)
 
     end
 end
@@ -95,3 +96,6 @@ end
 
 # match: This tells CI:
 # Download the distribution certificate and App Store provisioning profile from Match and install them on this temporary macOS runner.
+
+#   skip_waiting_for_build_processing: true
+# to avoid waiting for App Store Connect processing.

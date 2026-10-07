@@ -67,3 +67,4 @@ jobs:
 
 
 # Make the CI workflow lightweight by do the build process during CD/release
+#  Catch code quality and test failures before code reaches the release pipeline

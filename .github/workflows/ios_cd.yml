@@ -79,3 +79,8 @@ jobs:
         run: |
           rm -f ios/app_store_connect_api_key.p8
           rm -f ~/.ssh/id_ed25519
+          
+          
+
+#         on:
+#  workflow_dispatch: This means you can manually start the workflow from GitHub Actions.
