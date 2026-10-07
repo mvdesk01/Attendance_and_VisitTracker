@@ -1,5 +1,6 @@
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
@@ -15,6 +16,7 @@ class DiscussionPointRow extends ConsumerStatefulWidget {
   final Map<String, String>? initialData;
   final bool isExisting;
   final String customerCode;
+  final VoidCallback? onDraftChanged;
 
   const DiscussionPointRow({
     super.key,
@@ -23,6 +25,7 @@ class DiscussionPointRow extends ConsumerStatefulWidget {
     this.initialData,
     required this.customerCode,
     this.isExisting = false,
+    this.onDraftChanged,
   });
 
   @override
@@ -33,6 +36,8 @@ class DiscussionPointRowState extends ConsumerState<DiscussionPointRow> {
   final pointController = TextEditingController();
   final discussedController = TextEditingController();
   final targetDateController = TextEditingController();
+  final TextEditingController otherDecisionController = TextEditingController();
+  String? otherDecisionText;
 
   String? decision;
   String? selectedDecisionCode;
@@ -60,6 +65,12 @@ class DiscussionPointRowState extends ConsumerState<DiscussionPointRow> {
       }
 
       decision = widget.initialData!["decisionTaken"];
+      selectedDecisionCode = widget.initialData!["decisionCode"];
+
+      otherDecisionText = widget.initialData!["otherDecisionText"];
+
+      otherDecisionController.text =
+          widget.initialData!["otherDecisionText"] ?? "";
 
       selectedMemberNames = (widget.initialData?["responsibility"] ?? "")
           .split(",")
@@ -74,7 +85,45 @@ class DiscussionPointRowState extends ConsumerState<DiscussionPointRow> {
     pointController.dispose();
     discussedController.dispose();
     targetDateController.dispose();
+    otherDecisionController.dispose();
     super.dispose();
+  }
+
+  void restoreResponsibilities() {
+    final savedCodes = (widget.initialData?["responsibilityCodes"] ?? "")
+        .split(",")
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .toList();
+
+    if (savedCodes.isEmpty) return;
+
+    final responsibilityState = ref.read(responsibilityNotifierProvider);
+
+    // CUSTOMER is not part of the API list.
+    // It is created separately in the dropdown.
+    final customer = Responsibility(
+      userCode: widget.customerCode,
+      userName: "CUSTOMER",
+    );
+
+    final allResponsibilities = [
+      customer,
+      ...responsibilityState.responsibility,
+    ];
+
+    final restoredMembers = allResponsibilities
+        .where(
+          (member) => savedCodes.contains(member.userCode),
+        )
+        .toList();
+
+    setState(() {
+      selectedMembers = restoredMembers;
+
+      selectedMemberNames =
+          restoredMembers.map((member) => member.userName).toList();
+    });
   }
 
   Future<void> pickDate() async {
@@ -90,6 +139,7 @@ class DiscussionPointRowState extends ConsumerState<DiscussionPointRow> {
 
       setState(() {});
     }
+    _notifyDraftChanged();
   }
 
   DiscussionPoint getDiscussionPoint({
@@ -100,6 +150,7 @@ class DiscussionPointRowState extends ConsumerState<DiscussionPointRow> {
       point: pointController.text.trim(),
       discussedWith: discussedController.text.trim(),
       decisionCode: selectedDecisionCode ?? "",
+      decision: otherDecisionController.text.trim(),
       responsibilityCodes: selectedMembers.map((e) => e.userCode).join(","),
       responsibilityNames: selectedMembers.map((e) => e.userName).join(","),
       targetDate: targetDateController.text.trim(),
@@ -107,6 +158,23 @@ class DiscussionPointRowState extends ConsumerState<DiscussionPointRow> {
       flag: widget.isExisting ? "U" : "I",
       last: last,
     );
+  }
+
+  void _notifyDraftChanged() {
+    widget.onDraftChanged?.call();
+  }
+
+  Map<String, dynamic> getDraftData() {
+    return {
+      "point": pointController.text.trim(),
+      "discussedWith": discussedController.text.trim(),
+      "decision": decision,
+      "decisionCode": selectedDecisionCode ?? "",
+      "otherDecisionText": otherDecisionController.text.trim(),
+      "responsibilityCodes": selectedMembers.map((e) => e.userCode).join(","),
+      "responsibilityNames": selectedMembers.map((e) => e.userName).join(","),
+      "targetDate": targetDateController.text.trim(),
+    };
   }
 
   Widget cell({
@@ -259,7 +327,7 @@ class DiscussionPointRowState extends ConsumerState<DiscussionPointRow> {
         const Duration(milliseconds: 300),
       );
 
-      controller.dispose();
+      //  controller.dispose();
       if (!mounted || decisionName == null) {
         return;
       }
@@ -303,7 +371,7 @@ class DiscussionPointRowState extends ConsumerState<DiscussionPointRow> {
         decision = addedDecision!.decisionName;
         selectedDecisionCode = addedDecision!.decisionCode;
       });
-
+      _notifyDraftChanged();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -405,6 +473,9 @@ class DiscussionPointRowState extends ConsumerState<DiscussionPointRow> {
               width: 320,
               child: TextFormField(
                 controller: pointController,
+                onChanged: (_) {
+                  _notifyDraftChanged();
+                },
                 minLines: 4,
                 maxLines: null,
                 spellCheckConfiguration: const SpellCheckConfiguration(),
@@ -427,6 +498,9 @@ class DiscussionPointRowState extends ConsumerState<DiscussionPointRow> {
               child: SizedBox.expand(
                 child: TextFormField(
                   controller: discussedController,
+                  onChanged: (_) {
+                    _notifyDraftChanged();
+                  },
                   expands: true,
                   minLines: null,
                   maxLines: null,
@@ -440,99 +514,232 @@ class DiscussionPointRowState extends ConsumerState<DiscussionPointRow> {
                 ),
               ),
             ),
-            cell(
-              width: 200,
-              child: SizedBox.expand(
-                child: DropdownButtonFormField<String>(
-                  value: decision != null &&
-                          decisionState.decisions.any(
-                            (e) => e.decisionName == decision,
-                          )
-                      ? decision
-                      : null,
-                  isExpanded: true,
-                  decoration: InputDecoration(
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 10,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                  ),
-                  items: [
-                    // Existing decisions
-                    ...decisionState.decisions.map(
-                      (decisionItem) {
-                        return DropdownMenuItem<String>(
-                          value: decisionItem.decisionName,
-                          child: Text(
-                            decisionItem.decisionName,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        );
-                      },
-                    ),
-                    // Custom decision option
-                    const DropdownMenuItem<String>(
-                      value: addCustomDecisionValue,
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.add_circle_outline,
-                            size: 18,
-                            color: Colors.blue,
-                          ),
-                          SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              "Add Custom Decision",
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                color: Colors.blue,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                  onChanged: (value) {
-                    if (value == null) {
-                      return;
-                    }
-                    if (value == addCustomDecisionValue) {
-                      // IMPORTANT:
-                      // Do not open the dialog directly from the dropdown callback.
-                      // Let the dropdown overlay finish closing first.
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                        if (!mounted) return;
-
-                        _showAddCustomDecisionDialog();
-                      });
-                      return;
-                    }
-                    // Normal decision
-                    final selected = decisionState.decisions
-                        .where(
-                          (item) => item.decisionName == value,
-                        )
-                        .firstOrNull;
-                    if (selected == null) {
-                      return;
-                    }
-                    setState(() {
-                      decision = selected.decisionName;
-                      selectedDecisionCode = selected.decisionCode;
-                    });
-                  },
-                ),
-              ),
-            ),
+            // cell(
+            //   width: 200,
+            //   child: SizedBox.expand(
+            //     child: DropdownButtonFormField<String>(
+            //       value: decision != null &&
+            //               decisionState.decisions.any(
+            //                 (e) => e.decisionName == decision,
+            //               )
+            //           ? decision
+            //           : null,
+            //       isExpanded: true,
+            //       decoration: InputDecoration(
+            //         contentPadding: const EdgeInsets.symmetric(
+            //           horizontal: 10,
+            //           vertical: 10,
+            //         ),
+            //         border: OutlineInputBorder(
+            //           borderRadius: BorderRadius.circular(6),
+            //         ),
+            //       ),
+            //       items: [
+            //         // Existing decisions
+            //         ...decisionState.decisions.map(
+            //           (decisionItem) {
+            //             return DropdownMenuItem<String>(
+            //               value: decisionItem.decisionName,
+            //               child: Text(
+            //                 decisionItem.decisionName,
+            //                 overflow: TextOverflow.ellipsis,
+            //               ),
+            //             );
+            //           },
+            //         ),
+            //         // Custom decision option
+            //         const DropdownMenuItem<String>(
+            //           value: addCustomDecisionValue,
+            //           child: Row(
+            //             children: [
+            //               Icon(
+            //                 Icons.add_circle_outline,
+            //                 size: 18,
+            //                 color: Colors.blue,
+            //               ),
+            //               SizedBox(width: 8),
+            //               Expanded(
+            //                 child: Text(
+            //                   "Add Custom Decision",
+            //                   overflow: TextOverflow.ellipsis,
+            //                   style: TextStyle(
+            //                     color: Colors.blue,
+            //                     fontWeight: FontWeight.w600,
+            //                   ),
+            //                 ),
+            //               ),
+            //             ],
+            //           ),
+            //         ),
+            //       ],
+            //       onChanged: (value) {
+            //         if (value == null) {
+            //           return;
+            //         }
+            //         if (value == addCustomDecisionValue) {
+            //           // IMPORTANT:
+            //           // Do not open the dialog directly from the dropdown callback.
+            //           // Let the dropdown overlay finish closing first.
+            //           WidgetsBinding.instance.addPostFrameCallback((_) {
+            //             if (!mounted) return;
+            //
+            //             _showAddCustomDecisionDialog();
+            //           });
+            //           return;
+            //         }
+            //         // Normal decision
+            //         final selected = decisionState.decisions
+            //             .where(
+            //               (item) => item.decisionName == value,
+            //             )
+            //             .firstOrNull;
+            //         if (selected == null) {
+            //           return;
+            //         }
+            //         setState(() {
+            //           decision = selected.decisionName;
+            //           selectedDecisionCode = selected.decisionCode;
+            //         });
+            //       },
+            //     ),
+            //   ),
+            // ),
             // ==================================================
             // RESPONSIBILITY
             // ==================================================
+            cell(
+              width: 200,
+              child: SizedBox.expand(
+                child: decision?.toLowerCase() == "other"
+                    ? TextFormField(
+                        controller: otherDecisionController,
+                        maxLines: 5,
+                        minLines: 3,
+                        //keyboardType: TextInputType.multiline,
+                        textInputAction: TextInputAction.newline,
+                        inputFormatters: [
+                          TextInputFormatter.withFunction(
+                            (oldValue, newValue) {
+                              final words = newValue.text
+                                  .trim()
+                                  .split(RegExp(r'\s+'))
+                                  .where((word) => word.isNotEmpty)
+                                  .toList();
+
+                              if (words.length <= 500) {
+                                return newValue;
+                              }
+
+                              return oldValue;
+                            },
+                          ),
+                        ],
+                        decoration: InputDecoration(
+                          hintText: "Enter decision",
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 10,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          alignLabelWithHint: true,
+                        ),
+                        onChanged: (value) {
+                          setState(() {
+                            otherDecisionText = value;
+                          });
+                          _notifyDraftChanged();
+                        },
+                      )
+                    : DropdownButtonFormField<String>(
+                        value: decision != null &&
+                                decisionState.decisions.any(
+                                  (e) => e.decisionName == decision,
+                                )
+                            ? decision
+                            : null,
+                        isExpanded: true,
+                        decoration: InputDecoration(
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 10,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                        ),
+                        items: [
+                          ...decisionState.decisions.map(
+                            (decisionItem) {
+                              return DropdownMenuItem<String>(
+                                value: decisionItem.decisionName,
+                                child: Text(
+                                  decisionItem.decisionName,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              );
+                            },
+                          ),
+                          const DropdownMenuItem<String>(
+                            value: addCustomDecisionValue,
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.add_circle_outline,
+                                  size: 18,
+                                  color: Colors.blue,
+                                ),
+                                SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    "Add Custom Decision",
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      color: Colors.blue,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                        onChanged: (value) {
+                          if (value == null) {
+                            return;
+                          }
+
+                          if (value == addCustomDecisionValue) {
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              if (!mounted) return;
+
+                              _showAddCustomDecisionDialog();
+                            });
+                            return;
+                          }
+
+                          final selected = decisionState.decisions
+                              .where(
+                                (item) => item.decisionName == value,
+                              )
+                              .firstOrNull;
+
+                          if (selected == null) {
+                            return;
+                          }
+
+                          setState(() {
+                            decision = selected.decisionName;
+                            selectedDecisionCode = selected.decisionCode;
+
+                            otherDecisionController.clear();
+                            otherDecisionText = null;
+                          });
+                        },
+                      ),
+              ),
+            ),
             cell(
               width: 260,
               child: DropdownSearch<Responsibility>.multiSelection(
@@ -541,18 +748,26 @@ class DiscussionPointRowState extends ConsumerState<DiscussionPointRow> {
                     "Dropdown Items: "
                     "${responsibilityState.responsibility.length}",
                   );
+
                   final customer = Responsibility(
                     userCode: widget.customerCode,
                     userName: "CUSTOMER",
                   );
-                  return [customer, ...responsibilityState.responsibility];
+
+                  return [
+                    customer,
+                    ...responsibilityState.responsibility,
+                  ];
                 },
                 selectedItems: selectedMembers,
                 itemAsString: (Responsibility item) => item.userName,
                 compareFn: (a, b) => a.userCode == b.userCode,
-                popupProps: PopupPropsMultiSelection.modalBottomSheet(
+                popupProps: PopupPropsMultiSelection.bottomSheet(
                   showSearchBox: true,
                   showSelectedItems: true,
+                  bottomSheetProps: const BottomSheetProps(
+                    backgroundColor: Colors.white,
+                  ),
                   searchFieldProps: const TextFieldProps(
                     decoration: InputDecoration(
                       hintText: "Search Responsibility",
@@ -584,9 +799,64 @@ class DiscussionPointRowState extends ConsumerState<DiscussionPointRow> {
                   setState(() {
                     selectedMembers = values;
                   });
+                  _notifyDraftChanged();
                 },
               ),
             ),
+            // cell(
+            //   width: 260,
+            //   child: DropdownSearch<Responsibility>.multiSelection(
+            //     items: (filter, infiniteScrollProps) async {
+            //       print(
+            //         "Dropdown Items: "
+            //         "${responsibilityState.responsibility.length}",
+            //       );
+            //       final customer = Responsibility(
+            //         userCode: widget.customerCode,
+            //         userName: "CUSTOMER",
+            //       );
+            //       return [customer, ...responsibilityState.responsibility];
+            //     },
+            //     selectedItems: selectedMembers,
+            //     itemAsString: (Responsibility item) => item.userName,
+            //     compareFn: (a, b) => a.userCode == b.userCode,
+            //     popupProps: PopupPropsMultiSelection.modalBottomSheet(
+            //       showSearchBox: true,
+            //       showSelectedItems: true,
+            //       searchFieldProps: const TextFieldProps(
+            //         decoration: InputDecoration(
+            //           hintText: "Search Responsibility",
+            //           prefixIcon: Icon(Icons.search),
+            //         ),
+            //       ),
+            //     ),
+            //     dropdownBuilder: (context, selectedItems) {
+            //       return Text(
+            //         selectedItems.isEmpty
+            //             ? "Select Responsibility"
+            //             : selectedItems.map((e) => e.userName).join(", "),
+            //         maxLines: 4,
+            //         overflow: TextOverflow.ellipsis,
+            //       );
+            //     },
+            //     decoratorProps: DropDownDecoratorProps(
+            //       decoration: InputDecoration(
+            //         contentPadding: const EdgeInsets.symmetric(
+            //           horizontal: 10,
+            //           vertical: 8,
+            //         ),
+            //         border: OutlineInputBorder(
+            //           borderRadius: BorderRadius.circular(6),
+            //         ),
+            //       ),
+            //     ),
+            //     onChanged: (values) {
+            //       setState(() {
+            //         selectedMembers = values;
+            //       });
+            //     },
+            //   ),
+            // ),
             // ==================================================
             // TARGET DATE
             // ==================================================
