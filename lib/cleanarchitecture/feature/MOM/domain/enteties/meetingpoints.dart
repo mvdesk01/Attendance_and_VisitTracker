@@ -2,6 +2,7 @@ class DiscussionPoint {
   final String point;
   final String discussedWith;
   final String decisionCode;
+  final String decision;
 
   /// comma separated codes
   final String responsibilityCodes;
@@ -18,6 +19,7 @@ class DiscussionPoint {
     required this.point,
     required this.discussedWith,
     required this.decisionCode,
+    required this.decision,
     required this.responsibilityCodes,
     required this.responsibilityNames,
     required this.targetDate,

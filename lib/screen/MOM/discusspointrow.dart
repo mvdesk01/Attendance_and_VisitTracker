@@ -1,5 +1,6 @@
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
@@ -15,6 +16,7 @@ class DiscussionPointRow extends ConsumerStatefulWidget {
   final Map<String, String>? initialData;
   final bool isExisting;
   final String customerCode;
+  final VoidCallback? onDraftChanged;
 
   const DiscussionPointRow({
     super.key,
@@ -23,6 +25,7 @@ class DiscussionPointRow extends ConsumerStatefulWidget {
     this.initialData,
     required this.customerCode,
     this.isExisting = false,
+    this.onDraftChanged,
   });
 
   @override
@@ -33,6 +36,8 @@ class DiscussionPointRowState extends ConsumerState<DiscussionPointRow> {
   final pointController = TextEditingController();
   final discussedController = TextEditingController();
   final targetDateController = TextEditingController();
+  final TextEditingController otherDecisionController = TextEditingController();
+  String? otherDecisionText;
 
   String? decision;
   String? selectedDecisionCode;
@@ -60,6 +65,12 @@ class DiscussionPointRowState extends ConsumerState<DiscussionPointRow> {
       }
 
       decision = widget.initialData!["decisionTaken"];
+      selectedDecisionCode = widget.initialData!["decisionCode"];
+
+      otherDecisionText = widget.initialData!["otherDecisionText"];
+
+      otherDecisionController.text =
+          widget.initialData!["otherDecisionText"] ?? "";
 
       selectedMemberNames = (widget.initialData?["responsibility"] ?? "")
           .split(",")
@@ -74,7 +85,45 @@ class DiscussionPointRowState extends ConsumerState<DiscussionPointRow> {
     pointController.dispose();
     discussedController.dispose();
     targetDateController.dispose();
+    otherDecisionController.dispose();
     super.dispose();
+  }
+
+  void restoreResponsibilities() {
+    final savedCodes = (widget.initialData?["responsibilityCodes"] ?? "")
+        .split(",")
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .toList();
+
+    if (savedCodes.isEmpty) return;
+
+    final responsibilityState = ref.read(responsibilityNotifierProvider);
+
+    // CUSTOMER is not part of the API list.
+    // It is created separately in the dropdown.
+    final customer = Responsibility(
+      userCode: widget.customerCode,
+      userName: "CUSTOMER",
+    );
+
+    final allResponsibilities = [
+      customer,
+      ...responsibilityState.responsibility,
+    ];
+
+    final restoredMembers = allResponsibilities
+        .where(
+          (member) => savedCodes.contains(member.userCode),
+    )
+        .toList();
+
+    setState(() {
+      selectedMembers = restoredMembers;
+
+      selectedMemberNames =
+          restoredMembers.map((member) => member.userName).toList();
+    });
   }
 
   Future<void> pickDate() async {
@@ -90,6 +139,7 @@ class DiscussionPointRowState extends ConsumerState<DiscussionPointRow> {
 
       setState(() {});
     }
+    _notifyDraftChanged();
   }
 
   DiscussionPoint getDiscussionPoint({
@@ -100,6 +150,7 @@ class DiscussionPointRowState extends ConsumerState<DiscussionPointRow> {
       point: pointController.text.trim(),
       discussedWith: discussedController.text.trim(),
       decisionCode: selectedDecisionCode ?? "",
+      decision: otherDecisionController.text.trim(),
       responsibilityCodes: selectedMembers.map((e) => e.userCode).join(","),
       responsibilityNames: selectedMembers.map((e) => e.userName).join(","),
       targetDate: targetDateController.text.trim(),
@@ -107,6 +158,23 @@ class DiscussionPointRowState extends ConsumerState<DiscussionPointRow> {
       flag: widget.isExisting ? "U" : "I",
       last: last,
     );
+  }
+
+  void _notifyDraftChanged() {
+    widget.onDraftChanged?.call();
+  }
+
+  Map<String, dynamic> getDraftData() {
+    return {
+      "point": pointController.text.trim(),
+      "discussedWith": discussedController.text.trim(),
+      "decision": decision,
+      "decisionCode": selectedDecisionCode ?? "",
+      "otherDecisionText": otherDecisionController.text.trim(),
+      "responsibilityCodes": selectedMembers.map((e) => e.userCode).join(","),
+      "responsibilityNames": selectedMembers.map((e) => e.userName).join(","),
+      "targetDate": targetDateController.text.trim(),
+    };
   }
 
   Widget cell({
@@ -194,59 +262,59 @@ class DiscussionPointRowState extends ConsumerState<DiscussionPointRow> {
                     onPressed: isAdding
                         ? null
                         : () {
-                            Navigator.of(dialogContext).pop();
-                          },
+                      Navigator.of(dialogContext).pop();
+                    },
                     child: const Text("Cancel"),
                   ),
                   FilledButton(
                     onPressed: isAdding
                         ? null
                         : () async {
-                            final value = controller.text.trim();
+                      final value = controller.text.trim();
 
-                            if (value.isEmpty) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    "Please enter decision name",
-                                  ),
-                                ),
-                              );
-                              return;
-                            }
+                      if (value.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              "Please enter decision name",
+                            ),
+                          ),
+                        );
+                        return;
+                      }
 
-                            setDialogState(() {
-                              isAdding = true;
-                            });
+                      setDialogState(() {
+                        isAdding = true;
+                      });
 
-                            final success = await ref
-                                .read(
-                                  decisionNotifierProvider.notifier,
-                                )
-                                .addCustomDecision(
-                                  decisionName: value,
-                                );
+                      final success = await ref
+                          .read(
+                        decisionNotifierProvider.notifier,
+                      )
+                          .addCustomDecision(
+                        decisionName: value,
+                      );
 
-                            if (!context.mounted) {
-                              return;
-                            }
+                      if (!context.mounted) {
+                        return;
+                      }
 
-                            if (success) {
-                              Navigator.of(dialogContext).pop(value);
-                            } else {
-                              setDialogState(() {
-                                isAdding = false;
-                              });
-                            }
-                          },
+                      if (success) {
+                        Navigator.of(dialogContext).pop(value);
+                      } else {
+                        setDialogState(() {
+                          isAdding = false;
+                        });
+                      }
+                    },
                     child: isAdding
                         ? const SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                            ),
-                          )
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                      ),
+                    )
                         : const Text("Add"),
                   ),
                 ],
@@ -259,7 +327,7 @@ class DiscussionPointRowState extends ConsumerState<DiscussionPointRow> {
         const Duration(milliseconds: 300),
       );
 
-      controller.dispose();
+      //  controller.dispose();
       if (!mounted || decisionName == null) {
         return;
       }
@@ -303,7 +371,7 @@ class DiscussionPointRowState extends ConsumerState<DiscussionPointRow> {
         decision = addedDecision!.decisionName;
         selectedDecisionCode = addedDecision!.decisionCode;
       });
-
+      _notifyDraftChanged();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -331,8 +399,8 @@ class DiscussionPointRowState extends ConsumerState<DiscussionPointRow> {
         decision != null &&
         decisionState.decisions.isNotEmpty) {
       final match = decisionState.decisions.where(
-        (e) =>
-            e.decisionName.trim().toLowerCase() ==
+            (e) =>
+        e.decisionName.trim().toLowerCase() ==
             decision!.trim().toLowerCase(),
       );
 
@@ -374,8 +442,8 @@ class DiscussionPointRowState extends ConsumerState<DiscussionPointRow> {
 
         selectedMembers = allResponsibilities.where((e) {
           return selectedMemberNames.any(
-            (name) =>
-                name.trim().toLowerCase() == e.userName.trim().toLowerCase(),
+                (name) =>
+            name.trim().toLowerCase() == e.userName.trim().toLowerCase(),
           );
         }).toList();
       }
@@ -405,8 +473,12 @@ class DiscussionPointRowState extends ConsumerState<DiscussionPointRow> {
               width: 320,
               child: TextFormField(
                 controller: pointController,
+                onChanged: (_) {
+                  _notifyDraftChanged();
+                },
                 minLines: 4,
                 maxLines: null,
+                spellCheckConfiguration: const SpellCheckConfiguration(),
                 // keyboardType: TextInputType.multiline,
                 decoration: InputDecoration(
                   isDense: true,
@@ -426,6 +498,9 @@ class DiscussionPointRowState extends ConsumerState<DiscussionPointRow> {
               child: SizedBox.expand(
                 child: TextFormField(
                   controller: discussedController,
+                  onChanged: (_) {
+                    _notifyDraftChanged();
+                  },
                   expands: true,
                   minLines: null,
                   maxLines: null,
@@ -439,14 +514,149 @@ class DiscussionPointRowState extends ConsumerState<DiscussionPointRow> {
                 ),
               ),
             ),
+            // cell(
+            //   width: 200,
+            //   child: SizedBox.expand(
+            //     child: DropdownButtonFormField<String>(
+            //       value: decision != null &&
+            //               decisionState.decisions.any(
+            //                 (e) => e.decisionName == decision,
+            //               )
+            //           ? decision
+            //           : null,
+            //       isExpanded: true,
+            //       decoration: InputDecoration(
+            //         contentPadding: const EdgeInsets.symmetric(
+            //           horizontal: 10,
+            //           vertical: 10,
+            //         ),
+            //         border: OutlineInputBorder(
+            //           borderRadius: BorderRadius.circular(6),
+            //         ),
+            //       ),
+            //       items: [
+            //         // Existing decisions
+            //         ...decisionState.decisions.map(
+            //           (decisionItem) {
+            //             return DropdownMenuItem<String>(
+            //               value: decisionItem.decisionName,
+            //               child: Text(
+            //                 decisionItem.decisionName,
+            //                 overflow: TextOverflow.ellipsis,
+            //               ),
+            //             );
+            //           },
+            //         ),
+            //         // Custom decision option
+            //         const DropdownMenuItem<String>(
+            //           value: addCustomDecisionValue,
+            //           child: Row(
+            //             children: [
+            //               Icon(
+            //                 Icons.add_circle_outline,
+            //                 size: 18,
+            //                 color: Colors.blue,
+            //               ),
+            //               SizedBox(width: 8),
+            //               Expanded(
+            //                 child: Text(
+            //                   "Add Custom Decision",
+            //                   overflow: TextOverflow.ellipsis,
+            //                   style: TextStyle(
+            //                     color: Colors.blue,
+            //                     fontWeight: FontWeight.w600,
+            //                   ),
+            //                 ),
+            //               ),
+            //             ],
+            //           ),
+            //         ),
+            //       ],
+            //       onChanged: (value) {
+            //         if (value == null) {
+            //           return;
+            //         }
+            //         if (value == addCustomDecisionValue) {
+            //           // IMPORTANT:
+            //           // Do not open the dialog directly from the dropdown callback.
+            //           // Let the dropdown overlay finish closing first.
+            //           WidgetsBinding.instance.addPostFrameCallback((_) {
+            //             if (!mounted) return;
+            //
+            //             _showAddCustomDecisionDialog();
+            //           });
+            //           return;
+            //         }
+            //         // Normal decision
+            //         final selected = decisionState.decisions
+            //             .where(
+            //               (item) => item.decisionName == value,
+            //             )
+            //             .firstOrNull;
+            //         if (selected == null) {
+            //           return;
+            //         }
+            //         setState(() {
+            //           decision = selected.decisionName;
+            //           selectedDecisionCode = selected.decisionCode;
+            //         });
+            //       },
+            //     ),
+            //   ),
+            // ),
+            // ==================================================
+            // RESPONSIBILITY
+            // ==================================================
             cell(
               width: 200,
               child: SizedBox.expand(
-                child: DropdownButtonFormField<String>(
+                child: decision?.toLowerCase() == "other"
+                    ? TextFormField(
+                  controller: otherDecisionController,
+                  maxLines: 5,
+                  minLines: 3,
+                  //keyboardType: TextInputType.multiline,
+                  textInputAction: TextInputAction.newline,
+                  inputFormatters: [
+                    TextInputFormatter.withFunction(
+                          (oldValue, newValue) {
+                        final words = newValue.text
+                            .trim()
+                            .split(RegExp(r'\s+'))
+                            .where((word) => word.isNotEmpty)
+                            .toList();
+
+                        if (words.length <= 500) {
+                          return newValue;
+                        }
+
+                        return oldValue;
+                      },
+                    ),
+                  ],
+                  decoration: InputDecoration(
+                    hintText: "Enter decision",
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 10,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    alignLabelWithHint: true,
+                  ),
+                  onChanged: (value) {
+                    setState(() {
+                      otherDecisionText = value;
+                    });
+                    _notifyDraftChanged();
+                  },
+                )
+                    : DropdownButtonFormField<String>(
                   value: decision != null &&
-                          decisionState.decisions.any(
+                      decisionState.decisions.any(
                             (e) => e.decisionName == decision,
-                          )
+                      )
                       ? decision
                       : null,
                   isExpanded: true,
@@ -460,9 +670,8 @@ class DiscussionPointRowState extends ConsumerState<DiscussionPointRow> {
                     ),
                   ),
                   items: [
-                    // Existing decisions
                     ...decisionState.decisions.map(
-                      (decisionItem) {
+                          (decisionItem) {
                         return DropdownMenuItem<String>(
                           value: decisionItem.decisionName,
                           child: Text(
@@ -472,7 +681,6 @@ class DiscussionPointRowState extends ConsumerState<DiscussionPointRow> {
                         );
                       },
                     ),
-                    // Custom decision option
                     const DropdownMenuItem<String>(
                       value: addCustomDecisionValue,
                       child: Row(
@@ -501,10 +709,8 @@ class DiscussionPointRowState extends ConsumerState<DiscussionPointRow> {
                     if (value == null) {
                       return;
                     }
+
                     if (value == addCustomDecisionValue) {
-                      // IMPORTANT:
-                      // Do not open the dialog directly from the dropdown callback.
-                      // Let the dropdown overlay finish closing first.
                       WidgetsBinding.instance.addPostFrameCallback((_) {
                         if (!mounted) return;
 
@@ -512,46 +718,56 @@ class DiscussionPointRowState extends ConsumerState<DiscussionPointRow> {
                       });
                       return;
                     }
-                    // Normal decision
+
                     final selected = decisionState.decisions
                         .where(
                           (item) => item.decisionName == value,
-                        )
+                    )
                         .firstOrNull;
+
                     if (selected == null) {
                       return;
                     }
+
                     setState(() {
                       decision = selected.decisionName;
                       selectedDecisionCode = selected.decisionCode;
+
+                      otherDecisionController.clear();
+                      otherDecisionText = null;
                     });
                   },
                 ),
               ),
             ),
-            // ==================================================
-            // RESPONSIBILITY
-            // ==================================================
             cell(
               width: 260,
               child: DropdownSearch<Responsibility>.multiSelection(
                 items: (filter, infiniteScrollProps) async {
                   print(
                     "Dropdown Items: "
-                    "${responsibilityState.responsibility.length}",
+                        "${responsibilityState.responsibility.length}",
                   );
+
                   final customer = Responsibility(
                     userCode: widget.customerCode,
                     userName: "CUSTOMER",
                   );
-                  return [customer, ...responsibilityState.responsibility];
+
+                  return [
+                    customer,
+                    ...responsibilityState.responsibility,
+                  ];
                 },
                 selectedItems: selectedMembers,
                 itemAsString: (Responsibility item) => item.userName,
                 compareFn: (a, b) => a.userCode == b.userCode,
-                popupProps: PopupPropsMultiSelection.modalBottomSheet(
+                popupProps: PopupPropsMultiSelection.bottomSheet(
                   showSearchBox: true,
                   showSelectedItems: true,
+                  bottomSheetProps: const BottomSheetProps(
+                    backgroundColor: Colors.white,
+                  ),
                   searchFieldProps: const TextFieldProps(
                     decoration: InputDecoration(
                       hintText: "Search Responsibility",
@@ -583,9 +799,64 @@ class DiscussionPointRowState extends ConsumerState<DiscussionPointRow> {
                   setState(() {
                     selectedMembers = values;
                   });
+                  _notifyDraftChanged();
                 },
               ),
             ),
+            // cell(
+            //   width: 260,
+            //   child: DropdownSearch<Responsibility>.multiSelection(
+            //     items: (filter, infiniteScrollProps) async {
+            //       print(
+            //         "Dropdown Items: "
+            //         "${responsibilityState.responsibility.length}",
+            //       );
+            //       final customer = Responsibility(
+            //         userCode: widget.customerCode,
+            //         userName: "CUSTOMER",
+            //       );
+            //       return [customer, ...responsibilityState.responsibility];
+            //     },
+            //     selectedItems: selectedMembers,
+            //     itemAsString: (Responsibility item) => item.userName,
+            //     compareFn: (a, b) => a.userCode == b.userCode,
+            //     popupProps: PopupPropsMultiSelection.modalBottomSheet(
+            //       showSearchBox: true,
+            //       showSelectedItems: true,
+            //       searchFieldProps: const TextFieldProps(
+            //         decoration: InputDecoration(
+            //           hintText: "Search Responsibility",
+            //           prefixIcon: Icon(Icons.search),
+            //         ),
+            //       ),
+            //     ),
+            //     dropdownBuilder: (context, selectedItems) {
+            //       return Text(
+            //         selectedItems.isEmpty
+            //             ? "Select Responsibility"
+            //             : selectedItems.map((e) => e.userName).join(", "),
+            //         maxLines: 4,
+            //         overflow: TextOverflow.ellipsis,
+            //       );
+            //     },
+            //     decoratorProps: DropDownDecoratorProps(
+            //       decoration: InputDecoration(
+            //         contentPadding: const EdgeInsets.symmetric(
+            //           horizontal: 10,
+            //           vertical: 8,
+            //         ),
+            //         border: OutlineInputBorder(
+            //           borderRadius: BorderRadius.circular(6),
+            //         ),
+            //       ),
+            //     ),
+            //     onChanged: (values) {
+            //       setState(() {
+            //         selectedMembers = values;
+            //       });
+            //     },
+            //   ),
+            // ),
             // ==================================================
             // TARGET DATE
             // ==================================================
