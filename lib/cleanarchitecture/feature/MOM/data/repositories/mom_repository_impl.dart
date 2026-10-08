@@ -28,10 +28,32 @@ class MomRepositoryImpl implements MomRepository {
 
   ///customer
   @override
+  // Future<List<Customer>> getCustomers({
+  //   required String userName,
+  //   bool forceRefresh = false,
+  // }) async {
+  //   if (!forceRefresh) {
+  //     final cachedCustomers = await localDatasource.getCachedCustomers();
+  //
+  //     if (cachedCustomers.isNotEmpty) {
+  //       return cachedCustomers;
+  //     }
+  //   }
+  //
+  //   final customers = await remoteDatasource.getCustomers(
+  //     userName: userName,
+  //   );
+  //
+  //   await localDatasource.cacheCustomers(customers);
+  //
+  //   return customers;
+  // }
+  @override
   Future<List<Customer>> getCustomers({
     required String userName,
     bool forceRefresh = false,
   }) async {
+    // If not forcing refresh, first try cached data
     if (!forceRefresh) {
       final cachedCustomers = await localDatasource.getCachedCustomers();
 
@@ -40,13 +62,35 @@ class MomRepositoryImpl implements MomRepository {
       }
     }
 
-    final customers = await remoteDatasource.getCustomers(
-      userName: userName,
-    );
+    try {
+      // Always try API when:
+      // 1. forceRefresh == true
+      // 2. cache is empty
+      final customers = await remoteDatasource.getCustomers(
+        userName: userName,
+      );
 
-    await localDatasource.cacheCustomers(customers);
+      // IMPORTANT:
+      // Replace old cache with the latest API list
+      await localDatasource.cacheCustomers(customers);
 
-    return customers;
+      return customers;
+    } catch (e) {
+      // API unavailable → fall back to cached data
+      final cachedCustomers = await localDatasource.getCachedCustomers();
+
+      if (cachedCustomers.isNotEmpty) {
+        print(
+          "Customer API failed. Using cached customers: "
+              "${cachedCustomers.length}",
+        );
+
+        return cachedCustomers;
+      }
+
+      // Nothing cached either, so let the original error reach notifier
+      rethrow;
+    }
   }
 
   @override
@@ -62,6 +106,27 @@ class MomRepositoryImpl implements MomRepository {
   }
 
   ///decision
+  // @override
+  // Future<List<Decision>> getDecisions({
+  //   required String userName,
+  //   bool forceRefresh = false,
+  // }) async {
+  //   if (!forceRefresh) {
+  //     final cachedDecisions = await localDatasource.getCachedDecisions();
+  //
+  //     if (cachedDecisions.isNotEmpty) {
+  //       return cachedDecisions;
+  //     }
+  //   }
+  //
+  //   final decisions = await remoteDatasource.getDecisions(
+  //     userName: userName,
+  //   );
+  //
+  //   await localDatasource.cacheDecisions(decisions);
+  //
+  //   return decisions;
+  // }
   @override
   Future<List<Decision>> getDecisions({
     required String userName,
@@ -75,13 +140,26 @@ class MomRepositoryImpl implements MomRepository {
       }
     }
 
-    final decisions = await remoteDatasource.getDecisions(
-      userName: userName,
-    );
+    try {
+      final decisions = await remoteDatasource.getDecisions(
+        userName: userName,
+      );
 
-    await localDatasource.cacheDecisions(decisions);
+      // Replace the old cache with the latest API list.
+      await localDatasource.cacheDecisions(decisions);
 
-    return decisions;
+      return decisions;
+    } catch (e) {
+      // API unavailable → use cached data.
+      final cachedDecisions = await localDatasource.getCachedDecisions();
+
+      if (cachedDecisions.isNotEmpty) {
+        return cachedDecisions;
+      }
+
+      // No cache available either.
+      rethrow;
+    }
   }
 
   @override
@@ -105,7 +183,7 @@ class MomRepositoryImpl implements MomRepository {
   }) async {
     if (!forceRefresh) {
       final cachedResponsibility =
-          await localDatasource.getcachedResponsibility();
+      await localDatasource.getcachedResponsibility();
 
       if (cachedResponsibility.isNotEmpty) {
         return cachedResponsibility;
@@ -137,8 +215,8 @@ class MomRepositoryImpl implements MomRepository {
 
   @override
   Future<SubmitMeetingResult> submitMeeting(
-    SubmitMeetingRequest request,
-  ) async {
+      SubmitMeetingRequest request,
+      ) async {
     bool meetingSaved = false;
     bool pointsSaved = true;
 
@@ -158,6 +236,14 @@ class MomRepositoryImpl implements MomRepository {
       );
 
       meetingSaved = meetingMessage.toLowerCase().contains("success");
+      if (!meetingSaved) {
+        return SubmitMeetingResult(
+          meetingSaved: false,
+          pointsSaved: false,
+          meetingMessage: meetingMessage,
+          pointMessages: pointMessages,
+        );
+      }
 
       /// -------------------------
       /// Save Discussion Points
