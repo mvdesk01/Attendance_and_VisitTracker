@@ -43,8 +43,7 @@ class _VisitOutsideState extends State<VisitOutside> {
   TimeOfDay endTime = TimeOfDay.now();
   String location = 'Select Location';
   String nameOfVisit = '';
-  String? staffcode =
-      ""; // Example EmpCode, replace with dynamic value if needed
+  String? staffcode = "";  // Example EmpCode, replace with dynamic value if needed
   String? token = '';
   bool isEditing = false;
   Data? selectedVisitt;
