@@ -169,48 +169,6 @@ class MomRemoteDatasourceImpl implements MomRemoteDatasource {
     return list;
   }
 
-  // @override
-  // Future<String> addCustomDecision(
-  //   DecisionMasterRequest request,
-  // ) async {
-  //   final Response response =
-  //       await dio.post("DecisionMaster", data: jsonEncode(request.toJson()));
-  //
-  //   if (response.statusCode == 200 || response.statusCode == 201) {
-  //     final json = jsonDecode(response.data);
-  //     final result = DecisionMasterResponse.fromJson(json);
-  //     return result.outMsg;
-  //   }
-  //   throw Exception(
-  //     'Failed to add decision. '
-  //     'Status code: ${response.statusCode}',
-  //   );
-  // }
-  /*@override
-  Future<String> addCustomDecision(
-    DecisionMasterRequest request,
-  ) async {
-    final Response response = await dio.post(
-      "DecisionMaster",
-      data: request.toJson(),
-    );
-
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      final data =
-          response.data is String ? jsonDecode(response.data) : response.data;
-
-      final result = DecisionMasterResponse.fromJson(
-        Map<String, dynamic>.from(data),
-      );
-
-      return result.outMsg;
-    }
-
-    throw Exception(
-      'Failed to add decision. '
-      'Status code: ${response.statusCode}',
-    );
-  }*/
   @override
   Future<String> addCustomDecision(
     DecisionMasterRequest request,
