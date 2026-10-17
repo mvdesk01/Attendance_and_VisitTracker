@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:attendance_system_ios/main.dart';
 
-// A small smoke test that verifies, your can at least load/construct its root widget
+// A small smoke test that verifies, your can at least load/construct its root widget sdfg
 // what is smoke test? A quick, basic test that verify the core functionality of app, and that the app does not crash upon launch
 void main() {
   testWidgets('MyApp smoke test', (WidgetTester tester) async {
