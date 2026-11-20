@@ -18,6 +18,7 @@ import 'package:attendance_system_ios/service/LocationHandler.dart';
 import 'package:attendance_system_ios/service/WebService.dart';
 import 'package:attendance_system_ios/service/log_file_manager.dart';
 import 'package:attendance_system_ios/util/MyColor.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -310,8 +311,13 @@ class _HomeScreenState extends State<HomeScreen> {
         'shiftDate': DateFormat('dd/MM/yyyy').format(transactionDateTime),
         'shiftType': null,
       };
-    } catch (e) {
+    } catch (e, stack) {
       print("Error restoring latest punch from server: $e");
+      await FirebaseCrashlytics.instance.recordError(
+        e,
+        stack,
+        reason: 'Error restoring latest punch from server,home',
+      );
       return null;
     }
   }
@@ -527,7 +533,7 @@ class _HomeScreenState extends State<HomeScreen> {
       });
 
       _showRetryBanner();
-    } catch (e) {
+    } catch (e, stack) {
       setState(() {
         isLoading = false;
       });
@@ -547,6 +553,11 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
           backgroundColor: Colors.red.shade700,
         ),
+      );
+      await FirebaseCrashlytics.instance.recordError(
+        e,
+        stack,
+        reason: 'Error restoring latest punch from server,home',
       );
 
       setState(() {
@@ -610,12 +621,6 @@ class _HomeScreenState extends State<HomeScreen> {
         borderRadius: BorderRadius.circular(8),
       ),
     );
-
-    // ScaffoldMessenger.of(context).showSnackBar(snackBar);
-    // ✅ Always hide previous snackbar before showing new one
-    /*  ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(snackBar);*/
   }
 
   void _showRetryBanner() {
@@ -765,7 +770,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                 ])),
-
             ListTile(
               leading: const Icon(Icons.home_outlined),
               title: const Text('Home'),
@@ -824,7 +828,6 @@ class _HomeScreenState extends State<HomeScreen> {
                             child: CoffDebitscreen())));
               },
             ),
-
             ListTile(
               leading: const Icon(Icons.money_off_outlined),
               title: const Text('Expense Management'),
@@ -946,21 +949,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 );
               },
             ),
-            // ListTile(
-            //   leading: const Icon(Icons.admin_panel_settings),
-            //   title: const Text('Admin'),
-            //   onTap: () {
-            //     Navigator.push(
-            //       context,
-            //       MaterialPageRoute(
-            //         builder: (_) => BlocProvider(
-            //           create: (context) => MainBloc(webService: WebService()),
-            //           child: AdminHomeScreen(),
-            //         ),
-            //       ),
-            //     );
-            //   },
-            // ),
             ListTile(
               leading: const Icon(
                 Icons.logout_sharp,
@@ -978,7 +966,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         _buildPopupDialogforLogout(context));
               },
             ),
-
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 10),
               child: Column(
@@ -2194,7 +2181,7 @@ class _HomeScreenState extends State<HomeScreen> {
           );
           LogFileManager.writeLog("punch in flag Y try else ");
         }
-      } catch (e) {
+      } catch (e, stack) {
         print("Error: $e");
 
         // If there is an error, show a SnackBar with the error message
@@ -2209,6 +2196,11 @@ class _HomeScreenState extends State<HomeScreen> {
         print(staffCode);
         print("actual location flag N catch $e");
         LogFileManager.writeLog("actual location flag N catch $e");
+        await FirebaseCrashlytics.instance.recordError(
+          e,
+          stack,
+          reason: 'Punch-in failed! Please try again.',
+        );
       } finally {
         setState(() {
           isLoading = false;
@@ -2315,7 +2307,7 @@ class _HomeScreenState extends State<HomeScreen> {
               );
             }
             LogFileManager.writeLog("punch in flag N else if else");
-          } catch (e) {
+          } catch (e, stack) {
             print("Error: $e");
 
             // If there is an error, show a SnackBar with the error message
@@ -2325,6 +2317,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   duration: const Duration(seconds: 3)),
             );
             LogFileManager.writeLog("punch in flag N else catch Error: $e");
+            await FirebaseCrashlytics.instance.recordError(
+              e,
+              stack,
+              reason: 'Punch-in failed! Please try againn.',
+            );
           } finally {
             setState(() {
               isLoading = false;
@@ -2488,7 +2485,7 @@ class _HomeScreenState extends State<HomeScreen> {
           );
           LogFileManager.writeLog("punch out actual location try else");
         }
-      } catch (e) {
+      } catch (e, stack) {
         print("Error: $e");
 
         // If there is an error, show a SnackBar with the error message
@@ -2498,6 +2495,11 @@ class _HomeScreenState extends State<HomeScreen> {
               duration: const Duration(seconds: 3)),
         );
         LogFileManager.writeLog("punch out actual location catch: $e");
+        await FirebaseCrashlytics.instance.recordError(
+          e,
+          stack,
+          reason: 'Punch-out failed! Please try again.',
+        );
       } finally {
         setState(() {
           isLoading = false;
@@ -2616,7 +2618,7 @@ class _HomeScreenState extends State<HomeScreen> {
               LogFileManager.writeLog(
                   "punch out remote location fllag N else else");
             }
-          } catch (e) {
+          } catch (e, stack) {
             print("Error: $e");
 
             // If there is an error, show a SnackBar with the error message
@@ -2627,6 +2629,11 @@ class _HomeScreenState extends State<HomeScreen> {
             );
             LogFileManager.writeLog(
                 "punch out remote location flagN else  catch: $e");
+            await FirebaseCrashlytics.instance.recordError(
+              e,
+              stack,
+              reason: 'Punch-out failed! Please try againn.',
+            );
           } finally {
             setState(() {
               isLoading = false;
@@ -2715,9 +2722,14 @@ class _HomeScreenState extends State<HomeScreen> {
             "Failed to fetch last Punch-in entry ${response.statusCode}, ${response.body}");
         return false;
       }
-    } catch (e) {
+    } catch (e, stack) {
       LogFileManager.writeLog("Error in getInEntryFrom Database: $e");
       print("Error in getInEntryFrom Database: $e");
+      await FirebaseCrashlytics.instance.recordError(
+        e,
+        stack,
+        reason: 'Error in getInEntryFrom Database.$e',
+      );
       return false;
     }
   }

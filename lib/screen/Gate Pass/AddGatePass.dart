@@ -1380,49 +1380,6 @@ class _AddGatePassState extends State<AddGatePass> {
     }
   }
 
-  // Future<void> _selectDate(BuildContext context) async {
-  // //  DateTime dateBefore45Days = selectedDate.subtract(Duration(days: 45));
-  //   final DateTime? picked = await showDatePicker(
-  //       context: context,
-  //       initialDate: selectedDate,
-  //      // firstDate: DateTime.now(),
-  //       // firstDate: DateTime(2015, 8),
-  //       // firstDate: DateTime.now().subtract(Duration(days: 1)),
-  //       firstDate: selectedDate.subtract(Duration(days:40)),
-  //       lastDate: DateTime(2030),
-  //      // lastDate: DateTime(2102)
-  //   );
-  //   if (picked != null && picked != selectedDate) {
-  //     setState(() {
-  //       selectedDate = picked;
-  //       _gatepassdatecontroller.text=selectedDate.day.toString()+"/"+selectedDate.month.toString()+"/"+selectedDate.year.toString();
-  //       date=selectedDate.year.toString()+"-"+selectedDate.month.toString()+"-"+selectedDate.day.toString();
-  //
-  //     });
-  //   }
-  // }
-  ///
-  // Future<void> _selectDate(BuildContext context) async {
-  //   final DateTime? picked = await showDatePicker(
-  //     context: context,
-  //     initialDate: selectedDate,
-  //     firstDate: selectedDate.subtract(Duration(days: 40)),
-  //     lastDate: DateTime(2030),
-  //   );
-  //
-  //   if (picked != null && picked != selectedDate) {
-  //     setState(() {
-  //       selectedDate = picked;
-  //
-  //       // Format the date as dd/MM/yyyy
-  //       final DateFormat formatter = DateFormat('dd/MM/yyyy');
-  //       _gatepassdatecontroller.text = formatter.format(selectedDate);
-  //
-  //       // Additional date formatting if needed
-  //       date = formatter.format(selectedDate);
-  //     });
-  //   }
-  // }
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -1446,24 +1403,6 @@ class _AddGatePassState extends State<AddGatePass> {
     }
   }
 
-/*  void calculateTotalMin() {
-    // Define start and end time as strings
-    String startTimeStr = fromTimeInput.text;  // Start time as string
-    String endTimeStr = toTimeInput.text;    // End time as string
-    // Parse the time strings into DateTime objects (using today's date)
-    DateTime time1 = _parseTime(startTimeStr);
-    DateTime time2 = _parseTime(endTimeStr);
-
-    // Calculate the difference between the two times
-    Duration difference = time2.difference(time1);
-
-    // Get the difference in minutes
-    int minutes = difference.inMinutes;
-
-    print('The difference in minutes is: $minutes');
-
-    _totalmincontroller.text=minutes.toString();
-  }*/
   void calculateTotalMin() {
     String startTimeStr = fromTimeInput.text;
     String endTimeStr = toTimeInput.text;

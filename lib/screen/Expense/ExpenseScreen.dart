@@ -38,23 +38,23 @@ class _ExpensemanagementscreenState extends State<Expensemanagmentscreen> {
   String? _selectedDocumentBase64; // Store base64 of the selected file
   String? _selectedFileName; // Store the file name
 
-
   final TextEditingController _staffCodeController = TextEditingController();
   final TextEditingController _staffNameController = TextEditingController();
   final TextEditingController _appliedDateController = TextEditingController();
-  final TextEditingController _visitLocationController = TextEditingController();
+  final TextEditingController _visitLocationController =
+      TextEditingController();
   final TextEditingController _visitPurposeController = TextEditingController();
-  final TextEditingController _advanceTakenController = TextEditingController(
-      text: '0.0');
-  final TextEditingController _calculatedExpenseController = TextEditingController(
-      text: '0.0');
-  final TextEditingController _receivingAmountController = TextEditingController(
-      text: '0.0');
-  final TextEditingController _expendedamountController = TextEditingController();
+  final TextEditingController _advanceTakenController =
+      TextEditingController(text: '0.0');
+  final TextEditingController _calculatedExpenseController =
+      TextEditingController(text: '0.0');
+  final TextEditingController _receivingAmountController =
+      TextEditingController(text: '0.0');
+  final TextEditingController _expendedamountController =
+      TextEditingController();
   final TextEditingController _expendedDateController = TextEditingController();
   final TextEditingController _expendedDeatils = TextEditingController();
   final TextEditingController _expenseDocuments = TextEditingController();
-
 
   @override
   void initState() {
@@ -92,52 +92,6 @@ class _ExpensemanagementscreenState extends State<Expensemanagmentscreen> {
     _expendedDateController.text = today;
   }
 
-/*  void _pickDocument() async {
-    setState(() {
-      _isLoading = true; // Show progress indicator
-    });
-
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['pdf', 'jpg', 'png', 'jpeg'],
-    );
-
-    if (result != null) {
-      File file = File(result.files.single.path!);
-      String base64File = "";
-
-      // Check if it's an image or PDF and convert accordingly
-      if (result.files.single.extension == 'pdf') {
-        base64File = await _convertFileToBase64(file);
-      } else {
-        final compressedImage = await _compressImage(file);
-        base64File = await _convertFileToBase64(compressedImage);
-      }
-
-      setState(() {
-        _selectedFileName = result.files.single.name; // Store file name
-        _selectedDocumentBase64 = base64File; // Store base64 string
-        _expenseDocuments.text = _selectedFileName ?? "Document Selected";
-        _isLoading = false; // Hide progress indicator
-      });
-
-      // Log Base64 for debugging
-      print("Selected File Name: $_selectedFileName");
-      print("Base64 File String (first 100 chars): ${base64File.substring(0, 100)}...");
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('File uploaded successfully')),
-      );
-    } else {
-      setState(() {
-        _isLoading = false; // Hide progress indicator
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('File selection canceled')),
-      );
-    }
-  }*/
-
   void _pickDocument() async {
     setState(() {
       _isLoading = true; // Show progress indicator
@@ -171,8 +125,8 @@ class _ExpensemanagementscreenState extends State<Expensemanagmentscreen> {
         if (compressedImage != null) {
           base64File = await _convertFileToBase64(compressedImage);
         } else {
-          base64File =
-          await _convertFileToBase64(file); // Use original if compression fails
+          base64File = await _convertFileToBase64(
+              file); // Use original if compression fails
         }
       }
 
@@ -184,8 +138,8 @@ class _ExpensemanagementscreenState extends State<Expensemanagmentscreen> {
       });
 
       print("Selected File Name: $_selectedFileName");
-      print("Base64 File String (first 100 chars): ${base64File.substring(
-          0, 100)}...");
+      print(
+          "Base64 File String (first 100 chars): ${base64File.substring(0, 100)}...");
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('File uploaded successfully')),
       );
@@ -205,24 +159,10 @@ class _ExpensemanagementscreenState extends State<Expensemanagmentscreen> {
     return base64Encode(fileBytes);
   }
 
-  // Future<File> _compressImage(File file) async {
-  //   final directory = await getTemporaryDirectory();
-  //   final compressedFilePath = '${directory.path}/${DateTime
-  //       .now()
-  //       .millisecondsSinceEpoch}.jpg';
-  //
-  //   // Compress and save the image
-  //   final compressedImage = await FlutterImageCompress.compressAndGetFile(
-  //     file.absolute.path,
-  //     compressedFilePath,
-  //     quality: 50, // Adjust quality as needed
-  //   );
-  //   return compressedImage ?? file;
-  // }
-
   Future<File> _compressImage(File file) async {
     final directory = await getTemporaryDirectory();
-    final compressedFilePath = '${directory.path}/${DateTime.now().millisecondsSinceEpoch}.jpg';
+    final compressedFilePath =
+        '${directory.path}/${DateTime.now().millisecondsSinceEpoch}.jpg';
 
     final result = await FlutterImageCompress.compressAndGetFile(
       file.absolute.path,
@@ -238,7 +178,6 @@ class _ExpensemanagementscreenState extends State<Expensemanagmentscreen> {
       return file; // fallback
     }
   }
-
 
   void _updateCalculations() {
     double calculatedExpense = 0.0;
@@ -276,8 +215,7 @@ class _ExpensemanagementscreenState extends State<Expensemanagmentscreen> {
             _staffCodeController.text = user?.staffCode ?? '';
             // Handle profile picture
           });
-        }
-        else if (state is GetUserinfoErrorState) {
+        } else if (state is GetUserinfoErrorState) {
           setState(() {
             _isLoading = false;
           });
@@ -292,8 +230,7 @@ class _ExpensemanagementscreenState extends State<Expensemanagmentscreen> {
           setState(() {
             _isLoading = true;
           });
-        }
-        else if (state is SubmitexpenseLoadedState) {
+        } else if (state is SubmitexpenseLoadedState) {
           setState(() {
             _isLoading = false;
           });
@@ -307,8 +244,7 @@ class _ExpensemanagementscreenState extends State<Expensemanagmentscreen> {
           _expenseDocuments.clear();
 
           Fluttertoast.showToast(msg: 'Expense record submitted');
-        }
-        else if (state is SubmitexpenseErrorstate) {
+        } else if (state is SubmitexpenseErrorstate) {
           setState(() {
             _isLoading = false;
           });
@@ -340,8 +276,9 @@ class _ExpensemanagementscreenState extends State<Expensemanagmentscreen> {
                         children: [
                           TextSpan(
                             text: '*',
-                            style: TextStyle(color: Colors
-                                .red), // Red asterisk for required field
+                            style: TextStyle(
+                                color: Colors
+                                    .red), // Red asterisk for required field
                           ),
                         ],
                       ),
@@ -369,8 +306,9 @@ class _ExpensemanagementscreenState extends State<Expensemanagmentscreen> {
                         children: [
                           TextSpan(
                             text: '*',
-                            style: TextStyle(color: Colors
-                                .red), // Red asterisk for required field
+                            style: TextStyle(
+                                color: Colors
+                                    .red), // Red asterisk for required field
                           ),
                         ],
                       ),
@@ -398,8 +336,9 @@ class _ExpensemanagementscreenState extends State<Expensemanagmentscreen> {
                         children: [
                           TextSpan(
                             text: '*',
-                            style: TextStyle(color: Colors
-                                .red), // Red asterisk for required field
+                            style: TextStyle(
+                                color: Colors
+                                    .red), // Red asterisk for required field
                           ),
                         ],
                       ),
@@ -429,8 +368,9 @@ class _ExpensemanagementscreenState extends State<Expensemanagmentscreen> {
                         children: [
                           TextSpan(
                             text: '*',
-                            style: TextStyle(color: Colors
-                                .red), // Red asterisk for required field
+                            style: TextStyle(
+                                color: Colors
+                                    .red), // Red asterisk for required field
                           ),
                         ],
                       ),
@@ -457,8 +397,9 @@ class _ExpensemanagementscreenState extends State<Expensemanagmentscreen> {
                         children: [
                           TextSpan(
                             text: '*',
-                            style: TextStyle(color: Colors
-                                .red), // Red asterisk for required field
+                            style: TextStyle(
+                                color: Colors
+                                    .red), // Red asterisk for required field
                           ),
                         ],
                       ),
@@ -489,8 +430,9 @@ class _ExpensemanagementscreenState extends State<Expensemanagmentscreen> {
                         children: [
                           TextSpan(
                             text: '*',
-                            style: TextStyle(color: Colors
-                                .red), // Red asterisk for required field
+                            style: TextStyle(
+                                color: Colors
+                                    .red), // Red asterisk for required field
                           ),
                         ],
                       ),
@@ -523,8 +465,9 @@ class _ExpensemanagementscreenState extends State<Expensemanagmentscreen> {
                         children: [
                           TextSpan(
                             text: '*',
-                            style: TextStyle(color: Colors
-                                .red), // Red asterisk for required field
+                            style: TextStyle(
+                                color: Colors
+                                    .red), // Red asterisk for required field
                           ),
                         ],
                       ),
@@ -554,8 +497,9 @@ class _ExpensemanagementscreenState extends State<Expensemanagmentscreen> {
                         children: [
                           TextSpan(
                             text: '*',
-                            style: TextStyle(color: Colors
-                                .red), // Red asterisk for required field
+                            style: TextStyle(
+                                color: Colors
+                                    .red), // Red asterisk for required field
                           ),
                         ],
                       ),
@@ -567,32 +511,6 @@ class _ExpensemanagementscreenState extends State<Expensemanagmentscreen> {
                 //     textColor: Colors.green, readOnly: true, isRequired: true),
 
                 const SizedBox(height: 12),
-                /*   TextField(
-                  controller: _expendedDeatils,
-                  style: TextStyle(color: Colors.blue),
-                  inputFormatters: [
-                    FilteringTextInputFormatter.allow(
-                        RegExp(r'^\d*\.?\d{0,2}$')),
-                    // Restricts to 2 decimal places
-                  ],
-                  decoration: InputDecoration(
-                    label: RichText(
-                      text: TextSpan(
-                        text: 'Expended Details ',
-                        style: TextStyle(color: Colors.black),
-                        // Normal label color
-                        children: [
-                          TextSpan(
-                            text: '*',
-                            style: TextStyle(color: Colors
-                                .red), // Red asterisk for required field
-                          ),
-                        ],
-                      ),
-                    ),
-                    border: OutlineInputBorder(),
-                  ),
-                ),*/
                 TextField(
                   controller: _expendedDeatils,
                   enabled: true,
@@ -609,8 +527,9 @@ class _ExpensemanagementscreenState extends State<Expensemanagmentscreen> {
                         children: [
                           TextSpan(
                             text: '*',
-                            style: TextStyle(color: Colors
-                                .red), // Red asterisk for required field
+                            style: TextStyle(
+                                color: Colors
+                                    .red), // Red asterisk for required field
                           ),
                         ],
                       ),
@@ -634,8 +553,9 @@ class _ExpensemanagementscreenState extends State<Expensemanagmentscreen> {
                         children: [
                           TextSpan(
                             text: '*',
-                            style: TextStyle(color: Colors
-                                .red), // Red asterisk for required field
+                            style: TextStyle(
+                                color: Colors
+                                    .red), // Red asterisk for required field
                           ),
                         ],
                       ),
@@ -660,8 +580,9 @@ class _ExpensemanagementscreenState extends State<Expensemanagmentscreen> {
                           children: [
                             TextSpan(
                               text: '*',
-                              style: TextStyle(color: Colors
-                                  .red), // Red asterisk for required field
+                              style: TextStyle(
+                                  color: Colors
+                                      .red), // Red asterisk for required field
                             ),
                           ],
                         ),
@@ -692,38 +613,14 @@ class _ExpensemanagementscreenState extends State<Expensemanagmentscreen> {
     );
   }
 
-/*  Widget _buildTextField(String label, TextEditingController controller,
-      {bool readOnly = false, bool showIcon = false, Color? textColor,  bool isRequired = false,}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label),
-        const SizedBox(height: 8),
-        if (isRequired) // ✅ Conditionally add * mark
-          Text(
-            " *",
-            style: TextStyle(fontSize: 18, color: MyColors.redColorCode),
-          ),
-        TextField(
-          controller: controller,
-          readOnly: readOnly,
-          decoration: InputDecoration(
-            border: const OutlineInputBorder(),
-            suffixIcon: showIcon ? const Icon(Icons.calendar_today) : null,
-          ),
-          style: TextStyle(color: textColor),
-        ),
-        const SizedBox(height: 10),
-      ],
-    );
-  }*/
-  Widget _buildTextField(String label,
-      TextEditingController controller, {
-        bool readOnly = false,
-        bool showIcon = false,
-        Color? textColor,
-        bool isRequired = false,
-      }) {
+  Widget _buildTextField(
+    String label,
+    TextEditingController controller, {
+    bool readOnly = false,
+    bool showIcon = false,
+    Color? textColor,
+    bool isRequired = false,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -739,12 +636,9 @@ class _ExpensemanagementscreenState extends State<Expensemanagmentscreen> {
                 style: TextStyle(fontSize: 18, color: MyColors.redColorCode),
               ),
           ],
-
         ),
-
         const SizedBox(height: 8),
         TextField(
-
           controller: controller,
           readOnly: readOnly,
           decoration: InputDecoration(
@@ -752,7 +646,6 @@ class _ExpensemanagementscreenState extends State<Expensemanagmentscreen> {
             suffixIcon: showIcon ? const Icon(Icons.calendar_today) : null,
           ),
           style: TextStyle(color: textColor),
-
         ),
         const SizedBox(height: 10),
       ],
@@ -760,7 +653,7 @@ class _ExpensemanagementscreenState extends State<Expensemanagmentscreen> {
   }
 
   void _submitExpense() async {
-    if(_visitLocationController.text.isEmpty){
+    if (_visitLocationController.text.isEmpty) {
       Fluttertoast.showToast(
         msg: "Please fill Visit Location",
         toastLength: Toast.LENGTH_SHORT,
@@ -818,8 +711,8 @@ class _ExpensemanagementscreenState extends State<Expensemanagmentscreen> {
           amount: _expendedamountController.text,
           expenditureDetails: _expendedDeatils.text,
           document: _selectedDocumentBase64 ?? ""
-        //document: "iVBORw0KGgoAAAANSUhEUgAAAAAAACAIAAADwVnY8AAAAAElEQVRIDbXBAQEAAAABIP6/PcLAAAAAElFTkSuQmCC" // Use pre-converted base64 here
-      );
+          //document: "iVBORw0KGgoAAAANSUhEUgAAAAAAACAIAAADwVnY8AAAAAElEQVRIDbXBAQEAAAABIP6/PcLAAAAAElFTkSuQmCC" // Use pre-converted base64 here
+          );
       print(expenseModel.toJson());
       print(expenseModel.toString());
       mainbloc.add(SubmitExpensedata(
@@ -851,191 +744,3 @@ class _ExpensemanagementscreenState extends State<Expensemanagmentscreen> {
     });
   }
 }
-
-// Container(
-//   decoration: BoxDecoration(
-//     border: Border.all(color: Colors.lightBlue),
-//     borderRadius: BorderRadius.circular(8.0),
-//   ),
-//   padding: const EdgeInsets.all(8.0),
-//   child: Column(
-//     children: [
-//       Row(
-//         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//         children: [
-//           const Text(
-//             'Advance Details',
-//             style: TextStyle(
-//                 fontSize: 18, fontWeight: FontWeight.bold),
-//           ),
-//           IconButton(
-//             icon: const Icon(
-//                 Icons.add_circle, color: Colors.green),
-//             onPressed: _addRow,
-//           ),
-//         ],
-//       ),
-//       SingleChildScrollView(
-//         scrollDirection: Axis.horizontal,
-//         child: Table(
-//           border: TableBorder.all(color: Colors.black54),
-//           columnWidths: const {
-//             0: FixedColumnWidth(50),
-//             1: FixedColumnWidth(150),
-//             2: FixedColumnWidth(200),
-//             3: FixedColumnWidth(100),
-//             4: FixedColumnWidth(100),
-//             5: FixedColumnWidth(50),
-//           },
-//           children: [
-//             TableRow(
-//               decoration: const BoxDecoration(
-//                   color: Colors.grey),
-//               children: const [
-//                 Center(child: Text(
-//                     'Sr.No', style: TextStyle(fontSize: 16))),
-//                 Center(child: Text('Advance Date',
-//                     style: TextStyle(fontSize: 16))),
-//                 Center(child: Text(
-//                     'Details', style: TextStyle(fontSize: 16))),
-//                 Center(child: Text(
-//                     'Amount', style: TextStyle(fontSize: 16))),
-//                 Center(child: Text('Document',
-//                     style: TextStyle(fontSize: 16))),
-//                 Center(child: Text(
-//                     'Cancel', style: TextStyle(fontSize: 16))),
-//               ],
-//             ),
-//             ...rows
-//                 .asMap()
-//                 .entries
-//                 .map((entry) {
-//               int index = entry.key;
-//               var row = entry.value;
-//               return TableRow(
-//                   decoration: const BoxDecoration(
-//                     borderRadius: BorderRadius.all(
-//                         Radius.circular(4.0)),
-//                   ),
-//                   children: [
-//                     Center(child: Text(row["srNo"].toString())),
-//                     Column(
-//                       children: [
-//                         Text(row["advanceDate"],
-//                             style: const TextStyle(
-//                                 fontSize: 14)),
-//                         IconButton(
-//                           icon: const Icon(
-//                               Icons.calendar_today),
-//                           onPressed: () => _selectDate(index),
-//                         ),
-//                       ],
-//                     ),
-//                     TextField(
-//                       onChanged: (value) {
-//                         row["details"] = value;
-//                       },
-//                       decoration: const InputDecoration(
-//                         border: InputBorder.none,
-//                         hintText: 'Details',
-//                       ),
-//                     ),
-//                     TextField(
-//                       onChanged: (value) {
-//                         row["amount"] = value;
-//                         _updateCalculations();
-//                       },
-//                       decoration: const InputDecoration(
-//                         border: InputBorder.none,
-//                         hintText: 'Amount',
-//                       ),
-//                     ),
-//                     Column(
-//                       children: [
-//                         if (row["document"] != null)
-//                           Text(row["document"],
-//                               style: const TextStyle(
-//                                   fontSize: 12)),
-//                         IconButton(
-//                           icon: const Icon(Icons.upload_file),
-//                           onPressed: () => _pickDocument(index),
-//                         ),
-//                       ],
-//                     ),
-//                     IconButton(
-//                       icon: const Icon(
-//                           Icons.cancel, color: Colors.red),
-//                       onPressed: () => _deleteRow(index),
-//                     ),
-//                   ]);
-//             }).toList(),
-//           ],
-//         ),
-//       ),
-//     ],
-//   ),
-// ),
-/*
-* */
-// void _submitExpense() {
-//   try {
-//     // Collect the expense details
-//     List<ExpenseModel> expenseDetails = rows.map((row) {
-//       return ExpenseModel(
-//         todayDate: _appliedDateController.text,
-//         staffCode: _staffCodeController.text,
-//         staffName: _staffNameController.text,
-//         visitLocation: _visitLocationController.text,
-//         visitPurpose: _visitPurposeController.text,
-//         flagValue: "Submit",
-//         // Adjust this value based on your requirement
-//         advanceTaken: _advanceTakenController.text,
-//         calculateExpense: _calculatedExpenseController.text,
-//         balanceAmount: _receivingAmountController.text,
-//         expenditureDate: row['advanceDate'] ?? '',
-//         amount: row['amount'] ?? '',
-//         expenditureDetails: row['details'] ?? '',
-//         document: row['document'] ?? '',
-//       );
-//     }).toList();
-//
-//     // Check if the required fields are filled
-//     if (_staffCodeController.text.isEmpty ||
-//         _staffNameController.text.isEmpty ||
-//         _visitLocationController.text.isEmpty ||
-//         _visitPurposeController.text.isEmpty) {
-//       Fluttertoast.showToast(
-//         msg: "Please fill all required fields",
-//         toastLength: Toast.LENGTH_SHORT,
-//       );
-//       return;
-//     }
-//
-//     // Dispatch the event
-//     mainbloc.add(SubmitExpensedata(
-//       expensemodell: expenseDetails,
-//       token: auth_token!,
-//     ));
-//     print(expenseDetails);
-//     LogFileManager.writeLog("expense try $expenseDetails");
-//   }catch(e){
-//     LogFileManager.writeLog("submit expense catch $e");
-//   }
-// }
-//
-// void _pickDocument(int index) async {
-//   FilePickerResult? result = await FilePicker.platform.pickFiles(
-//     type: FileType.custom,
-//     allowedExtensions: ['pdf', 'jpg', 'png','jpeg'],
-//   );
-//
-//   if (result != null) {
-//     setState(() {
-//       rows[index]["document"] = result.files.single.name;
-//     });
-//     ScaffoldMessenger.of(context).showSnackBar(
-//       const SnackBar(content: Text('File uploaded successfully')),
-//     );
-//   }
-// }
-

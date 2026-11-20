@@ -1,5 +1,6 @@
 import 'package:attendance_system_ios/cleanarchitecture/core/DI/providers_di.dart';
 import 'package:attendance_system_ios/cleanarchitecture/feature/MOM/presentation/provider/meetingHistory/meetinghistorystate.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'meetinghistoryprovider.g.dart';
@@ -30,10 +31,15 @@ class MeetingHistoryNotifier extends _$MeetingHistoryNotifier {
         isLoading: false,
         meetingHistory: history,
       );
-    } catch (e) {
+    } catch (e, stack) {
       state = state.copyWith(
         isLoading: false,
         error: e.toString(),
+      );
+      await FirebaseCrashlytics.instance.recordError(
+        e,
+        stack,
+        reason: 'MOM meeting history',
       );
     }
   }

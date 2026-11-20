@@ -9,6 +9,7 @@ import 'package:attendance_system_ios/screen/Register/register_screen.dart';
 import 'package:attendance_system_ios/service/WebService.dart';
 import 'package:attendance_system_ios/service/log_file_manager.dart';
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -127,14 +128,26 @@ class _LoginScreenState extends State<LoginScreen> {
       }
 
       return null;
-    } on PlatformException catch (e) {
+    } on PlatformException catch (e, stack) {
       print("Failed to get Device ID: ${e.message}");
       LogFileManager.writeLog("Failed to get Device ID: ${e.message}");
 
+      await FirebaseCrashlytics.instance.recordError(
+        e,
+        stack,
+        reason: 'Failed to get device ID',
+      );
+
       return null;
-    } catch (e) {
+    } catch (e, stack) {
       print("Error getting Device ID: $e");
       LogFileManager.writeLog("Error getting Device ID: $e");
+
+      await FirebaseCrashlytics.instance.recordError(
+        e,
+        stack,
+        reason: 'Unexpected error while getting devic ID',
+      );
 
       return null;
     }
@@ -206,45 +219,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   );
                 }
                 /*else {
-                  // User login - check registered device UUID
-                  String? responseDeviceId = state.loginResponse!.message!.uuid;
-
-                  print("Database response Device Id: $responseDeviceId");
-                  LogFileManager.writeLog(
-                      "Database response Device Id: $responseDeviceId");
-
-                  // Get current device ID
-                  String? currentDeviceId = await _getId();
-
-                  print("Current device Id: $currentDeviceId");
-                  LogFileManager.writeLog(
-                      "Current device Id: $currentDeviceId");
-
-                  // If UUID is blank/null OR matches current device ID,
-                  // allow biometric authentication.
-                  if (responseDeviceId == null ||
-                      responseDeviceId.trim().isEmpty ||
-                      responseDeviceId == currentDeviceId) {
-                    print("Device ID validation passed.");
-                    LogFileManager.writeLog("Device ID validation passed.");
-
-                    await checkBiometrics();
-                  } else {
-                    // UUID exists but does not match current device
-                    print("Device ID validation failed.");
-                    LogFileManager.writeLog(
-                        "Device ID validation failed. Registered Device: "
-                        "$responseDeviceId, Current Device: $currentDeviceId");
-
-                    Fluttertoast.showToast(
-                      msg: "Login using registered device",
-                      toastLength: Toast.LENGTH_LONG,
-                      timeInSecForIosWeb: 1,
-                    );
-                  }
-                }*/
-
-                /*       else {
                   // User login - check registered device UUID
                   String? responseDeviceId = state.loginResponse!.message!.uuid;
 
@@ -531,6 +505,12 @@ class _LoginScreenState extends State<LoginScreen> {
                                 },
                                 child: const Text("Register"),
                               ),
+                              TextButton(
+                                onPressed: () {
+                                  FirebaseCrashlytics.instance.crash();
+                                },
+                                child: const Text("Test"),
+                              ),
                             ],
                           ),
                         ),
@@ -554,25 +534,6 @@ class _LoginScreenState extends State<LoginScreen> {
             ],
           )),
         ));
-  }
-
-  Future<void> _updateUuidAndProceed(
-      String staffCode, String currentDeviceId) async {
-    print("UUID is empty. Updating UUID for staff: $staffCode");
-    print("New UUID: $currentDeviceId");
-
-    LogFileManager.writeLog(
-        "UUID is empty. Updating UUID for staff: $staffCode");
-
-    LogFileManager.writeLog("New UUID: $currentDeviceId");
-
-    _mainBloc.add(
-      UpdateUUID(
-        UserId: staffCode,
-        UUID: currentDeviceId,
-        UUIDFlag: "Y",
-      ),
-    );
   }
 
   void doLogin(String username, String passwordd) {
@@ -650,9 +611,14 @@ class _LoginScreenState extends State<LoginScreen> {
 
         await authenticate();
       }
-    } catch (e) {
+    } catch (e, stack) {
       LogFileManager.writeLog('Error checking biometrics: $e');
       print("Error checking biometrics: $e");
+      await FirebaseCrashlytics.instance.recordError(
+        e,
+        stack,
+        reason: 'Error while checking biometric availability',
+      );
     }
   }
 
@@ -688,7 +654,7 @@ class _LoginScreenState extends State<LoginScreen> {
         );
         print("Authentication failed.");
       }
-    } catch (e) {
+    } catch (e, stack) {
       if (e is PlatformException) {
         print("Authentication e.code----" + e.code);
         LogFileManager.writeLog("Authentication e.code----" + e.code);
