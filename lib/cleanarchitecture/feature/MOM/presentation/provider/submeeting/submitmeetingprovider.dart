@@ -1,4 +1,5 @@
 import 'package:attendance_system_ios/cleanarchitecture/feature/MOM/presentation/provider/submeeting/submitmeetingstate.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../../core/DI/providers_di.dart';
@@ -30,11 +31,16 @@ class MeetingSubmitNotifier extends _$MeetingSubmitNotifier {
         result: result,
         error: null,
       );
-    } catch (e) {
+    } catch (e, stack) {
       state = state.copyWith(
         isLoading: false,
         error: e.toString(),
         result: null,
+      );
+      await FirebaseCrashlytics.instance.recordError(
+        e,
+        stack,
+        reason: 'submetting meeting MOM',
       );
     }
   }

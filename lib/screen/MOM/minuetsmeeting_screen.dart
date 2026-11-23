@@ -6,6 +6,7 @@
 //       _MinutesOfTheMeetingFormScreenState();
 // }
 import 'package:dropdown_search/dropdown_search.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -814,7 +815,7 @@ class _MinutesOfTheMeetingFormScreenState
           ),
         );
       }
-    } catch (e) {
+    } catch (e, stack) {
       print("Add Customer Error: $e");
 
       if (!mounted) return;
@@ -825,6 +826,11 @@ class _MinutesOfTheMeetingFormScreenState
             "Failed to add customer: $e",
           ),
         ),
+      );
+      await FirebaseCrashlytics.instance.recordError(
+        e,
+        stack,
+        reason: 'mom add customer',
       );
     }
   }

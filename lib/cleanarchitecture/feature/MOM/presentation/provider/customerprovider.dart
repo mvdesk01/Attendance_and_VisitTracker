@@ -1,3 +1,4 @@
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -59,10 +60,15 @@ class CustomerNotifier extends _$CustomerNotifier {
               meetingDate: "",
             );
       }
-    } catch (e) {
+    } catch (e, stack) {
       state = state.copyWith(
         isLoading: false,
         error: e.toString(),
+      );
+      await FirebaseCrashlytics.instance.recordError(
+        e,
+        stack,
+        reason: 'MOM load customer',
       );
     }
   }

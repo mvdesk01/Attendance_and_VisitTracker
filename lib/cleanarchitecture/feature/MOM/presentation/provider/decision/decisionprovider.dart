@@ -1,5 +1,6 @@
 import 'package:attendance_system_ios/cleanarchitecture/core/DI/providers_di.dart';
 import 'package:attendance_system_ios/cleanarchitecture/feature/MOM/domain/enteties/decision.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -51,10 +52,15 @@ class DecisionNotifier extends _$DecisionNotifier {
         decisions: decision,
         selectedDecision: selectedDecision,
       );
-    } catch (e) {
+    } catch (e, stack) {
       state = state.copyWith(
         isLoading: false,
         error: e.toString(),
+      );
+      await FirebaseCrashlytics.instance.recordError(
+        e,
+        stack,
+        reason: 'MOM load decision',
       );
     }
   }
@@ -138,9 +144,14 @@ class DecisionNotifier extends _$DecisionNotifier {
       );
 
       return true;
-    } catch (e) {
+    } catch (e, stack) {
       print(
         "Add Custom Decision Error: $e",
+      );
+      await FirebaseCrashlytics.instance.recordError(
+        e,
+        stack,
+        reason: 'mom add decision',
       );
 
       state = state.copyWith(

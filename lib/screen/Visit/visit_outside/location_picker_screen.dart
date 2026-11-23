@@ -1,12 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geocoding/geocoding.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -27,7 +28,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
   Set<Polyline> _polylines = {};
   Set<Marker> _markers = {};
   bool isLoading = false;
-  String lastSearch="";
+  String lastSearch = "";
 
   @override
   void initState() {
@@ -50,7 +51,6 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString('lastSearch', query);
   }
-
 
   static Future<bool> handleLocationPermission() async {
     bool serviceEnabled;
@@ -89,14 +89,16 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
       isLoading = true;
     });
     Position position = await Geolocator.getCurrentPosition(
-      // forceAndroidLocationManager: true,
-      // desiredAccuracy: LocationAccuracy.medium,
-      // timeLimit: Duration(seconds: 10),
-    ).catchError((e) {
+            // forceAndroidLocationManager: true,
+            // desiredAccuracy: LocationAccuracy.medium,
+            // timeLimit: Duration(seconds: 10),
+            )
+        .catchError((e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("Try again"),
-          action: SnackBarAction(label: "retry", onPressed: _getCurrentLocation),
+          action:
+              SnackBarAction(label: "retry", onPressed: _getCurrentLocation),
           duration: Duration(milliseconds: 3000),
         ),
       );
@@ -104,10 +106,12 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
     setState(() {
       isLoading = false;
       _currentLocation = LatLng(position.latitude, position.longitude);
-      _addMarker(_currentLocation!, "Current Location", BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue));
+      _addMarker(_currentLocation!, "Current Location",
+          BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue));
       _moveCameraToLocation(_currentLocation!);
     });
-    List<Placemark> placemarks = await placemarkFromCoordinates(position.latitude, position.longitude);
+    List<Placemark> placemarks =
+        await placemarkFromCoordinates(position.latitude, position.longitude);
     Placemark place = placemarks.first;
     _currentAddress = "${place.street}, ${place.locality}, ${place.country}";
   }
@@ -163,7 +167,8 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
               Expanded(
                 child: GoogleMap(
                   initialCameraPosition: CameraPosition(
-                    target: _currentLocation ?? LatLng(18.5834, 73.7358), // Default to your desired location
+                    target: _currentLocation ?? LatLng(18.5834, 73.7358),
+                    // Default to your desired location
                     zoom: 14.0,
                   ),
                   onMapCreated: (GoogleMapController controller) {
@@ -176,20 +181,26 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                       _pickedLocation = location;
                     });
                     _getAddress(location);
-                    _addMarker(location, "Picked Location", BitmapDescriptor.defaultMarker);
+                    _addMarker(location, "Picked Location",
+                        BitmapDescriptor.defaultMarker);
                     if (_currentLocation != null && _pickedLocation != null) {
                       _getDirections(_currentLocation!, _pickedLocation!);
                     }
                   },
-                  zoomGesturesEnabled: true,   // Enable zooming
-                  scrollGesturesEnabled: true, // Allow scrolling
-                  rotateGesturesEnabled: true, // Allow rotating the map
-                  tiltGesturesEnabled: true,   // Allow tilting the map
-                  myLocationEnabled: true,     // Show user location
+                  zoomGesturesEnabled: true,
+                  // Enable zooming
+                  scrollGesturesEnabled: true,
+                  // Allow scrolling
+                  rotateGesturesEnabled: true,
+                  // Allow rotating the map
+                  tiltGesturesEnabled: true,
+                  // Allow tilting the map
+                  myLocationEnabled: true,
+                  // Show user location
                   myLocationButtonEnabled: true,
                   gestureRecognizers: Set()
                     ..add(Factory<OneSequenceGestureRecognizer>(
-                            () => ScaleGestureRecognizer())),
+                        () => ScaleGestureRecognizer())),
                 ),
               ),
               Padding(
@@ -200,7 +211,8 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
           ),
           if (isLoading)
             Container(
-              color: Colors.black.withOpacity(0.5), // Semi-transparent background
+              color: Colors.black.withOpacity(0.5),
+              // Semi-transparent background
               child: const Center(
                 child: CircularProgressIndicator(
                   color: MyColors.lightBlue,
@@ -216,13 +228,15 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
     try {
       List<Location> locations = await locationFromAddress(query);
       if (locations.isNotEmpty) {
-        LatLng location = LatLng(locations.first.latitude, locations.first.longitude);
+        LatLng location =
+            LatLng(locations.first.latitude, locations.first.longitude);
         setState(() {
           _pickedLocation = location;
-            lastSearch = query;
+          lastSearch = query;
         });
         _getAddress(location);
-        _addMarker(location, "Searched Location", BitmapDescriptor.defaultMarker);
+        _addMarker(
+            location, "Searched Location", BitmapDescriptor.defaultMarker);
         _moveCameraToLocation(location);
 
         if (_currentLocation != null) {
@@ -254,7 +268,8 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
 
   Future<void> _getAddress(LatLng location) async {
     try {
-      List<Placemark> placemarks = await placemarkFromCoordinates(location.latitude, location.longitude);
+      List<Placemark> placemarks =
+          await placemarkFromCoordinates(location.latitude, location.longitude);
       Placemark place = placemarks.first;
       setState(() {
         _pickedAddress = "${place.street}, ${place.locality}, ${place.country}";
@@ -328,7 +343,6 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
     return polyline;
   }
 }
-
 
 /*
   import 'dart:async';
