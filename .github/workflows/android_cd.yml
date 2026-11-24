@@ -30,6 +30,18 @@ jobs:
       - name: Flutter dependencies
         run: flutter pub get
 
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Verify Java and Gradle
+        run: |
+          java -version
+          cd android
+          ./gradlew --version
+
       - name: Prepare Android version
         run: |
           VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //; s/[[:space:]]*$//')
