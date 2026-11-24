@@ -2,6 +2,7 @@ import 'package:attendance_system_ios/cleanarchitecture/feature/MOM/data/datasou
 import 'package:attendance_system_ios/cleanarchitecture/feature/MOM/data/model/ResponsibiltyModel.dart';
 import 'package:attendance_system_ios/cleanarchitecture/feature/MOM/data/model/meetinghistory_model.dart';
 import 'package:dio/dio.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
 import '../../../../core/network/dio_client.dart';
@@ -36,6 +37,11 @@ class MomRemoteDatasourceImpl implements MomRemoteDatasource {
           .map((e) => CustomerModel.fromJson(e))
           .toList();
     } catch (e, s) {
+      await FirebaseCrashlytics.instance.recordError(
+        e,
+        s,
+        reason: 'MOMdatsource get customer',
+      );
       print("Customer API Error:");
       print(e);
       print(s);
@@ -99,7 +105,12 @@ class MomRemoteDatasourceImpl implements MomRemoteDatasource {
           "Meeting saved successfully.";
     } on DioException catch (e) {
       throw _handleDioException(e);
-    } catch (e) {
+    } catch (e, stack) {
+      await FirebaseCrashlytics.instance.recordError(
+        e,
+        stack,
+        reason: 'MOMdatsource submitM',
+      );
       throw Exception(
         "Unable to save meeting. Please try again.",
       );
@@ -131,7 +142,12 @@ class MomRemoteDatasourceImpl implements MomRemoteDatasource {
           "Discussion point saved successfully.";
     } on DioException catch (e) {
       throw _handleDioException(e);
-    } catch (e) {
+    } catch (e, s) {
+      await FirebaseCrashlytics.instance.recordError(
+        e,
+        s,
+        reason: 'MOMdatsource save discussion',
+      );
       throw Exception(
         "Unable to save discussion point. Please try again.",
       );
@@ -169,48 +185,6 @@ class MomRemoteDatasourceImpl implements MomRemoteDatasource {
     return list;
   }
 
-  // @override
-  // Future<String> addCustomDecision(
-  //   DecisionMasterRequest request,
-  // ) async {
-  //   final Response response =
-  //       await dio.post("DecisionMaster", data: jsonEncode(request.toJson()));
-  //
-  //   if (response.statusCode == 200 || response.statusCode == 201) {
-  //     final json = jsonDecode(response.data);
-  //     final result = DecisionMasterResponse.fromJson(json);
-  //     return result.outMsg;
-  //   }
-  //   throw Exception(
-  //     'Failed to add decision. '
-  //     'Status code: ${response.statusCode}',
-  //   );
-  // }
-  /*@override
-  Future<String> addCustomDecision(
-    DecisionMasterRequest request,
-  ) async {
-    final Response response = await dio.post(
-      "DecisionMaster",
-      data: request.toJson(),
-    );
-
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      final data =
-          response.data is String ? jsonDecode(response.data) : response.data;
-
-      final result = DecisionMasterResponse.fromJson(
-        Map<String, dynamic>.from(data),
-      );
-
-      return result.outMsg;
-    }
-
-    throw Exception(
-      'Failed to add decision. '
-      'Status code: ${response.statusCode}',
-    );
-  }*/
   @override
   Future<String> addCustomDecision(
     DecisionMasterRequest request,

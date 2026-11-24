@@ -2,6 +2,7 @@ import 'package:attendance_system_ios/cleanarchitecture/feature/MOM/data/model/R
 import 'package:attendance_system_ios/cleanarchitecture/feature/MOM/domain/enteties/decision.dart';
 import 'package:attendance_system_ios/cleanarchitecture/feature/MOM/domain/enteties/meetinghistory.dart';
 import 'package:attendance_system_ios/cleanarchitecture/feature/MOM/domain/enteties/responsibility.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 
 import '../../domain/enteties/customer.dart';
 import '../../domain/enteties/meetinghistory_group.dart';
@@ -75,9 +76,14 @@ class MomRepositoryImpl implements MomRepository {
       await localDatasource.cacheCustomers(customers);
 
       return customers;
-    } catch (e) {
+    } catch (e, stack) {
       // API unavailable → fall back to cached data
       final cachedCustomers = await localDatasource.getCachedCustomers();
+      await FirebaseCrashlytics.instance.recordError(
+        e,
+        stack,
+        reason: 'MOMrepoimpl get customer',
+      );
 
       if (cachedCustomers.isNotEmpty) {
         print(
@@ -106,6 +112,27 @@ class MomRepositoryImpl implements MomRepository {
   }
 
   ///decision
+  // @override
+  // Future<List<Decision>> getDecisions({
+  //   required String userName,
+  //   bool forceRefresh = false,
+  // }) async {
+  //   if (!forceRefresh) {
+  //     final cachedDecisions = await localDatasource.getCachedDecisions();
+  //
+  //     if (cachedDecisions.isNotEmpty) {
+  //       return cachedDecisions;
+  //     }
+  //   }
+  //
+  //   final decisions = await remoteDatasource.getDecisions(
+  //     userName: userName,
+  //   );
+  //
+  //   await localDatasource.cacheDecisions(decisions);
+  //
+  //   return decisions;
+  // }
   @override
   Future<List<Decision>> getDecisions({
     required String userName,
@@ -119,13 +146,31 @@ class MomRepositoryImpl implements MomRepository {
       }
     }
 
-    final decisions = await remoteDatasource.getDecisions(
-      userName: userName,
-    );
+    try {
+      final decisions = await remoteDatasource.getDecisions(
+        userName: userName,
+      );
 
-    await localDatasource.cacheDecisions(decisions);
+      // Replace the old cache with the latest API list.
+      await localDatasource.cacheDecisions(decisions);
 
-    return decisions;
+      return decisions;
+    } catch (e, stack) {
+      // API unavailable → use cached data.
+      final cachedDecisions = await localDatasource.getCachedDecisions();
+      await FirebaseCrashlytics.instance.recordError(
+        e,
+        stack,
+        reason: 'MOMrepoimpl get decision',
+      );
+
+      if (cachedDecisions.isNotEmpty) {
+        return cachedDecisions;
+      }
+
+      // No cache available either.
+      rethrow;
+    }
   }
 
   @override
@@ -226,7 +271,12 @@ class MomRepositoryImpl implements MomRepository {
           pointsSaved = false;
         }
       }
-    } catch (e) {
+    } catch (e, stack) {
+      await FirebaseCrashlytics.instance.recordError(
+        e,
+        stack,
+        reason: 'MOMrepoimpl submitM',
+      );
       return SubmitMeetingResult(
         meetingSaved: false,
         pointsSaved: false,

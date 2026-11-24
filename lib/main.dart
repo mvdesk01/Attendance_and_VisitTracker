@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:attendance_system_ios/bloc/main_bloc.dart';
 import 'package:attendance_system_ios/screen/AdminHomeScreen/AdminHome.dart';
@@ -11,6 +12,8 @@ import 'package:attendance_system_ios/screen/Visit/Start%20Stop%20Visit/start_st
 import 'package:attendance_system_ios/service/WebService.dart';
 import 'package:attendance_system_ios/service/internet_service.dart';
 import 'package:attendance_system_ios/simple_bloc_observer.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -31,12 +34,30 @@ void main() async {
   // print("Active environment: $appFlavor"); // Prints 'dev', 'staging', or 'prod'
 
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize Firebase
+  // if (Firebase.apps.isEmpty) {
+  //   await Firebase.initializeApp(
+  //     options: DefaultFirebaseOptions.currentPlatform,
+  //   );
+  // }
+  await Firebase.initializeApp();
+
+  // Report Flutter framework errors to Crashlytics
+  FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+
+  // Report uncaught asynchronous/platform errors to Crashlytics
+  PlatformDispatcher.instance.onError = (error, stack) {
+    FirebaseCrashlytics.instance.recordError(
+      error,
+      stack,
+      fatal: true,
+    );
+    return true;
+  };
+
   tz_data.initializeTimeZones();
   HttpOverrides.global = MyHttpOverrides();
-  // ✅ Initialize AlarmManager only on Android
-  // if (Platform.isAndroid) {
-  //   await AndroidAlarmManager.initialize();
-  // }
 
   await Workmanager().initialize(
     callbackDispatcher,

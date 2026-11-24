@@ -4,7 +4,9 @@ import 'dart:math';
 
 import 'package:attendance_system_ios/screen/Login/login_screen.dart';
 import 'package:attendance_system_ios/util/MyColor.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
+// import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
@@ -32,8 +34,8 @@ class _ForgotPasswordState extends State<ForgotPassword> {
   final TextEditingController _staffCodeController = TextEditingController();
   final TextEditingController _otpController = TextEditingController();
   final TextEditingController _newPasswordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
-
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
 
   bool isLoading = false;
 
@@ -75,7 +77,8 @@ class _ForgotPasswordState extends State<ForgotPassword> {
 
     try {
       final response = await http.get(
-        Uri.parse('http://114.143.140.28:8020/Users/GetUserInfoByStaffCode?staffCode=$staffCode'),
+        Uri.parse(
+            'http://114.143.140.28:8020/Users/GetUserInfoByStaffCode?staffCode=$staffCode'),
         headers: {'Content-Type': 'application/json'},
       );
 
@@ -101,32 +104,39 @@ class _ForgotPasswordState extends State<ForgotPassword> {
         });
         Fluttertoast.showToast(msg: "Failed to fetch user info. Try again.");
       }
-    } catch (e) {
+    } catch (e, stack) {
       setState(() {
         isLoading = false;
       });
       Fluttertoast.showToast(msg: "Error fetching user details: $e");
+      await FirebaseCrashlytics.instance.recordError(
+        e,
+        stack,
+        reason: 'Error fetching user details,forgetpassword',
+      );
     }
   }
 
   String _maskPhone(String emaill) {
-    return emaill.substring(0, 2) + "*" * (emaill.length - 4) + emaill.substring(emaill.length - 2);
+    return emaill.substring(0, 2) +
+        "*" * (emaill.length - 4) +
+        emaill.substring(emaill.length - 2);
   }
 
   String _maskEmail(String email) {
     int atIndex = email.indexOf('@');
     if (atIndex > 2) {
-      return email.substring(0, 2) + "*" * (atIndex - 2) + email.substring(atIndex);
+      return email.substring(0, 2) +
+          "*" * (atIndex - 2) +
+          email.substring(atIndex);
     }
     return email; // If email is too short, return it as is.
   }
 
   void sendOtpEmail() async {
-
     setState(() {
       isLoading = true;
     });
-
 
     // Generate OTP
     generatedOtp = generateOtp();
@@ -166,9 +176,10 @@ M-Tech Attendance System Support Team
         isLoading = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('OTP sent successfully to your registered mail!')),
+        const SnackBar(
+            content: Text('OTP sent successfully to your registered mail!')),
       );
-    } catch (e) {
+    } catch (e, stack) {
       setState(() {
         isLoading = false;
       });
@@ -177,27 +188,36 @@ M-Tech Attendance System Support Team
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to send OTP: $e')),
       );
+      await FirebaseCrashlytics.instance.recordError(
+        e,
+        stack,
+        reason: 'Email not sent,forgetpassword',
+      );
     }
   }
+
   String generateOtp() {
     final random = Random();
     return List.generate(6, (index) => random.nextInt(10)).join();
   }
+
   //940071
 
   Future<void> _verifyOtp() async {
     String enteredOtp = _otpController.text.trim();
 
-    if ( enteredOtp.isEmpty) {
+    if (enteredOtp.isEmpty) {
       Fluttertoast.showToast(msg: "Please enter the OTP.");
       return;
     }
-    if (otpTimestamp == null || DateTime.now().difference(otpTimestamp!).inMinutes > 5) {
+    if (otpTimestamp == null ||
+        DateTime.now().difference(otpTimestamp!).inMinutes > 5) {
       Fluttertoast.showToast(msg: "OTP has expired. Please request a new one.");
       setState(() {
         generatedOtp = null;
-        otpTimestamp = null; // Clear timestamp// Keep OTP null so a new one can be sent
-        isResendOtp = true;  // Allow resend
+        otpTimestamp =
+            null; // Clear timestamp// Keep OTP null so a new one can be sent
+        isResendOtp = true; // Allow resend
       });
       return;
     }
@@ -222,7 +242,6 @@ M-Tech Attendance System Support Team
     } else {
       Fluttertoast.showToast(msg: "Invalid OTP. Please try again.");
     }
-
   }
 
   Future<void> _resetPassword() async {
@@ -236,16 +255,18 @@ M-Tech Attendance System Support Team
     if (_newPasswordController.text.trim().length < 8 ||
         !RegExp(r'^(?=.*[a-zA-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$')
             .hasMatch(_newPasswordController.text.trim())) {
-      Fluttertoast.showToast(msg: 'Password must be at least 8 characters long, contain a special character, a letter, and a number.');
-      return ;
+      Fluttertoast.showToast(
+          msg:
+              'Password must be at least 8 characters long, contain a special character, a letter, and a number.');
+      return;
     }
 
     if (newPassword != confirmPassword) {
       Fluttertoast.showToast(msg: "Passwords do not match.");
       return;
     }
-   await _oldewpassword();
-    if(Oldpassword== confirmPassword){
+    await _oldewpassword();
+    if (Oldpassword == confirmPassword) {
       Fluttertoast.showToast(msg: "New Password cannot be same as old one");
     }
     await _forgetPassword(newPassword);
@@ -258,7 +279,8 @@ M-Tech Attendance System Support Team
 
     try {
       final response = await http.get(
-        Uri.parse('http://114.143.140.28:8020/Users/GetUserInfoByStaffCode?staffCode=$staffCode'),
+        Uri.parse(
+            'http://114.143.140.28:8020/Users/GetUserInfoByStaffCode?staffCode=$staffCode'),
         headers: {'Content-Type': 'application/json'},
       );
 
@@ -286,7 +308,6 @@ M-Tech Attendance System Support Team
     }
   }
 
-
   Future<void> _forgetPassword(String password) async {
     setState(() {
       isLoading = true;
@@ -294,7 +315,8 @@ M-Tech Attendance System Support Team
 
     try {
       final response = await http.post(
-        Uri.parse('http://114.143.140.28:8020/Users/ForgotPassword?StaffCode=$staffCode&Password=$password'),
+        Uri.parse(
+            'http://114.143.140.28:8020/Users/ForgotPassword?StaffCode=$staffCode&Password=$password'),
       );
 
       setState(() {
@@ -326,14 +348,18 @@ M-Tech Attendance System Support Team
           SnackBar(content: Text(errorMessage)),
         );
       }
-    } catch (e) {
+    } catch (e, stack) {
       setState(() {
         isLoading = false;
       });
       print("Error on forget password: $e");
+      await FirebaseCrashlytics.instance.recordError(
+        e,
+        stack,
+        reason: 'Error,forgetpassword',
+      );
     }
   }
-
 
   @override
   void dispose() {
@@ -377,12 +403,14 @@ M-Tech Attendance System Support Team
                 _isResendDisabled ? Colors.grey : Colors.blue,
               ),
             ),
-            onPressed: _isResendDisabled ? null : () {
-              sendOtpEmail();
-              setState(() {
-                isResendOtp = false; // Hide after resending
-              });
-            },
+            onPressed: _isResendDisabled
+                ? null
+                : () {
+                    sendOtpEmail();
+                    setState(() {
+                      isResendOtp = false; // Hide after resending
+                    });
+                  },
             child: const Text('Resend OTP'),
           ),
           if (_isResendDisabled)
@@ -399,7 +427,6 @@ M-Tech Attendance System Support Team
     );
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -410,7 +437,8 @@ M-Tech Attendance System Support Team
             child: Column(
               children: [
                 Padding(
-                  padding: const EdgeInsets.only(top: 100, bottom: 20), // <-- Add top padding here
+                  padding: const EdgeInsets.only(top: 100, bottom: 20),
+                  // <-- Add top padding here
                   child: Stack(
                     alignment: Alignment.center,
                     children: [
@@ -438,14 +466,14 @@ M-Tech Attendance System Support Team
                   ),
                 ),
                 const SizedBox(height: 30),
-
-                Image.asset("assets/icons/graphic-design.png",
+                Image.asset(
+                  "assets/icons/graphic-design.png",
                   width: 100,
                   height: 110,
                 ),
-
-                const SizedBox(height: 30,),
-
+                const SizedBox(
+                  height: 30,
+                ),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 42),
                   child: TextFormField(
@@ -456,44 +484,52 @@ M-Tech Attendance System Support Team
                     ),
                   ),
                 ),
-                SizedBox(height: 10,),
+                SizedBox(
+                  height: 10,
+                ),
                 ElevatedButton(
                   style: raisedButtonStyle,
                   onPressed: _getUserInfoByStaffCode,
                   child: const Text('Confirm'),
                 ),
-
-                if (_maskedEmail != null) Text("Email id:"+email!, style: const TextStyle(fontSize: 16)),
+                if (_maskedEmail != null)
+                  Text("Email id:" + email!,
+                      style: const TextStyle(fontSize: 16)),
                 if (_isOTPSent && !_isOTPVerified)
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 42, vertical: 16),
-                    child: Column(
-                      children: [
-                        // TextField(controller: _otpController, decoration: InputDecoration(labelText: "Enter OTP")),
-                        TextFormField(
-                          controller: _otpController,
-                          decoration: const InputDecoration(
-                            labelText: "Enter OTP",
-                            border: OutlineInputBorder(),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 42, vertical: 16),
+                      child: Column(
+                        children: [
+                          // TextField(controller: _otpController, decoration: InputDecoration(labelText: "Enter OTP")),
+                          TextFormField(
+                            controller: _otpController,
+                            decoration: const InputDecoration(
+                              labelText: "Enter OTP",
+                              border: OutlineInputBorder(),
+                            ),
                           ),
-                        ),
-                        ElevatedButton(onPressed: _verifyOtp, child: Text("Verify OTP")),
-                        _buildResendOtpButton(), // Resend OTP button appears only when needed
-                      ],
-                    )
-                  ),
+                          ElevatedButton(
+                              onPressed: _verifyOtp, child: Text("Verify OTP")),
+                          _buildResendOtpButton(),
+                          // Resend OTP button appears only when needed
+                        ],
+                      )),
                 if (_isOTPVerified)
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 42, vertical: 16),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 42, vertical: 16),
                     child: Column(
                       children: [
                         TextFormField(
                           controller: _newPasswordController,
-                          decoration: const InputDecoration(hintText: 'Enter New Password'),
+                          decoration: const InputDecoration(
+                              hintText: 'Enter New Password'),
                         ),
                         TextFormField(
                           controller: _confirmPasswordController,
-                          decoration: const InputDecoration(hintText: 'Confirm New Password'),
+                          decoration: const InputDecoration(
+                              hintText: 'Confirm New Password'),
                         ),
                         ElevatedButton(
                           style: raisedButtonStyle,
@@ -506,24 +542,20 @@ M-Tech Attendance System Support Team
               ],
             ),
           ),
-
-          if(isLoading)
+          if (isLoading)
             Container(
                 color: Colors.black.withOpacity(0.5),
                 child: const Center(
                   child: CircularProgressIndicator(
                     color: MyColors.lightBlue,
                   ),
-                )
-            )
-
+                ))
         ],
       ),
-
     );
   }
-
 }
+
 ///old
 // Future<void> _sendOtp() async {
 //   if (_phone == null) {

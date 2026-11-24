@@ -1,6 +1,7 @@
 import 'package:attendance_system_ios/cleanarchitecture/core/DI/providers_di.dart';
 import 'package:attendance_system_ios/cleanarchitecture/feature/MOM/domain/enteties/responsibility.dart';
 import 'package:attendance_system_ios/cleanarchitecture/feature/MOM/presentation/provider/responsibility/responsibilitystate.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -50,10 +51,15 @@ class ResponsibilityNotifier extends _$ResponsibilityNotifier {
         responsibility: responsibility,
         selectedResponsibility: selectedresponsibility,
       );
-    } catch (e) {
+    } catch (e, stack) {
       state = state.copyWith(
         isLoading: false,
         error: e.toString(),
+      );
+      await FirebaseCrashlytics.instance.recordError(
+        e,
+        stack,
+        reason: 'MOM load responsibility',
       );
     }
   }
