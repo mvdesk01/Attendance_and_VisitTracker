@@ -5,6 +5,7 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:intl/intl.dart';
 
 import '../../cleanarchitecture/core/network/dio_client.dart';
 
@@ -422,14 +423,33 @@ class _TimeLogTableState extends State<TimeLogTable> {
       showMessage("End time must be after start time");
       row.endTimeController.clear();
     }
-    final now = TimeOfDay.now();
-    final currentMinutes = now.hour * 60 + now.minute;
+    // final now = TimeOfDay.now();
+    // final currentMinutes = now.hour * 60 + now.minute;
+    //
+    // if (endMinutes > currentMinutes) {
+    //   showMessage("End time cannot be greater than current time");
+    //   row.endTimeController.clear();
+    //   return;
+    // }
+    final selectedDate = DateFormat('dd/MM/yyyy').parse(widget.logdate);
+    final today = DateTime.now();
 
-    if (endMinutes > currentMinutes) {
-      showMessage("End time cannot be greater than current time");
-      row.endTimeController.clear();
-      return;
+    final isToday = selectedDate.year == today.year &&
+        selectedDate.month == today.month &&
+        selectedDate.day == today.day;
+
+    if (isToday) {
+      final now = TimeOfDay.now();
+      final currentMinutes = now.hour * 60 + now.minute;
+
+      if (endMinutes > currentMinutes) {
+        showMessage("End time cannot be greater than current time");
+        row.endTimeController.clear();
+        return;
+      }
     }
+
+
   }
 
   Widget buildHeaderCell(String title, double width) {
