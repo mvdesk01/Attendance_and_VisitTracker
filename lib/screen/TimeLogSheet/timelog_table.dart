@@ -37,6 +37,7 @@ class _TimeLogTableState extends State<TimeLogTable> {
   String? projectError;
   bool isSaving = false;
   bool isLoadingTimeLogs = true;
+  final List<TimeLogRowState> fetchedRows = [];
 
   // bool isNewRow = true;
 
@@ -182,7 +183,7 @@ class _TimeLogTableState extends State<TimeLogTable> {
         }
 
         final List<dynamic> data = response.data;
-        final List<TimeLogRowState> fetchedRows = [];
+
 
         for (final item in data) {
           final row = TimeLogRowState();
@@ -800,6 +801,10 @@ class _TimeLogTableState extends State<TimeLogTable> {
   }
 
   void clearTimeLogData() {
+    if(!fetchedRows.isEmpty)
+      {
+        return;
+      }
     setState(() {
       for (var row in timeLogRows) {
         row.projectName = null;
@@ -935,7 +940,7 @@ class _TimeLogTableState extends State<TimeLogTable> {
       //     }
       //   }),
       // );
-      final results = await Future.wait(
+     /* final results = await Future.wait(
         enteredRows.map((row) async {
           try {
             final requestData = {
@@ -1040,9 +1045,123 @@ class _TimeLogTableState extends State<TimeLogTable> {
             "$failedCount row(s) failed. "
             "${successMessages.join(", ")}",
           );
+        }*/
+      final results = await Future.wait(
+        enteredRows.map((row) async {
+          try {
+            final requestData = {
+              "UserName": staffCode,
+              "LogDate": widget.logdate,
+              "ProjectCode": row.projectCode,
+              "Activity": row.activityController.text.trim(),
+              "StartTime": row.startTimeController.text.trim(),
+              "EndTime": row.endTimeController.text.trim(),
+              "ProblemFaced": row.problemController.text.trim().isEmpty
+                  ? "NA"
+                  : row.problemController.text.trim(),
+              "TimeWasted": row.timeWastedController.text.trim().isEmpty
+                  ? "0"
+                  : row.timeWastedController.text.trim(),
+              "Flag": "I",
+            };
+
+            final response = await DioClient().dio.post(
+              "TimeLogSheet",
+              data: requestData,
+            );
+
+            final responseData = response.data;
+
+            String outMsg = "";
+
+            if (responseData is List && responseData.isNotEmpty) {
+              outMsg = responseData[0]["OutMsg"]?.toString() ?? "";
+            }
+
+            if (response.statusCode == 201 &&
+                outMsg.toLowerCase().contains("save successfully")) {
+              return {
+                "success": true,
+                "message": outMsg,
+              };
+            }
+
+            return {
+              "success": false,
+              "message": outMsg,
+            };
+          } catch (e, stack) {
+            await FirebaseCrashlytics.instance.recordError(
+              e,
+              stack,
+              reason: 'TimeLog row API error: $e',
+            );
+
+            debugPrint("TimeLog row API error: $e");
+
+            // Capture API error response if available.
+            String errorMessage = "";
+
+            // if (e is DioException && e.response?.data != null) {
+            //   final errorData = e.response!.data;
+            //
+            //   if (errorData is List && errorData.isNotEmpty) {
+            //     errorMessage = errorData[0]["OutMsg"]?.toString() ?? "";
+            //   } else if (errorData is Map) {
+            //     errorMessage = errorData["OutMsg"]?.toString() ?? "";
+            //   }
+            // }
+
+            return {
+              "success": false,
+              "message": errorMessage.isNotEmpty
+                  ? errorMessage
+                  : "Unable to save row. Please try again.",
+            };
+          }
+        }),
+      );
+
+      final successCount = results.where((r) => r["success"] ==
+          true).length;
+
+      final failedCount = results.length - successCount;
+
+// Collect messages from both successful and failed responses.
+      final responseMessages = results
+          .map((r) => r["message"].toString())
+          .where((message) => message.isNotEmpty)
+          .toSet();
+
+      if (!mounted) return;
+
+      if (failedCount == 0) {
+        showMessage(
+          "$successCount row(s) saved successfully. "
+              "${responseMessages.join(", ")}",
+        );
+
+        // Close the table after all new rows are saved.
+        widget.onClose?.call();
+      } else {
+        // Successful rows should not be submitted again.
+        for (int i = 0; i < results.length; i++) {
+          if (results[i]["success"] == true) {
+            enteredRows[i].isNewRow = false;
+          }
         }
 
-        if (mounted) {
+        if (successCount == 0) {
+          showMessage("${responseMessages.join(", ")}"
+              "Check the entered details");
+        } else {
+          showMessage(
+            "$successCount row(s) saved. "
+                "$failedCount row(s) failed. "
+                "${responseMessages.join(", ")}",
+          );
+        }
+      if (mounted) {
           setState(() {});
         }
       }
