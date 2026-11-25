@@ -257,7 +257,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   }
                 }*/
 
-                /*       else {
+                       else {
                   // User login - check registered device UUID
                   String? responseDeviceId = state.loginResponse!.message!.uuid;
 
@@ -334,11 +334,11 @@ class _LoginScreenState extends State<LoginScreen> {
                       timeInSecForIosWeb: 1,
                     );
                   }
-                }*/
-
-                else {
-                  await checkBiometrics();
                 }
+
+                /*else {
+                  await checkBiometrics();
+                }*/
               } else {
                 // uncomment if login gives the issue in second time login
                 storage.delete(key: 'username');
@@ -508,7 +508,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         Padding(
                           padding: const EdgeInsets.all(12),
-                          child: Row(
+                          child: Expanded(child:
+                          Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               TextButton(
@@ -544,14 +545,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                 },
                                 child: const Text("Register"),
                               ),
-                              TextButton(
-                                onPressed: () {
-                                  FirebaseCrashlytics.instance.crash();
-                                },
-                                child: const Text("Test"),
-                              ),
+
                             ],
-                          ),
+                          ),),
                         ),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
