@@ -5,6 +5,7 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:intl/intl.dart';
 
 import '../../cleanarchitecture/core/network/dio_client.dart';
 
@@ -36,6 +37,7 @@ class _TimeLogTableState extends State<TimeLogTable> {
   String? projectError;
   bool isSaving = false;
   bool isLoadingTimeLogs = true;
+  final List<TimeLogRowState> fetchedRows = [];
 
   // bool isNewRow = true;
 
@@ -181,12 +183,14 @@ class _TimeLogTableState extends State<TimeLogTable> {
         }
 
         final List<dynamic> data = response.data;
-        final List<TimeLogRowState> fetchedRows = [];
 
         for (final item in data) {
           final row = TimeLogRowState();
 
           row.isNewRow = false;
+          row.hasChanges = false;
+
+          row.transactionId = item["TransactionID"] ?? 0;
 
           row.projectCode = item["ProjectCode"]?.toString();
           row.projectName = item["ProjectName"]?.toString();
@@ -320,6 +324,7 @@ class _TimeLogTableState extends State<TimeLogTable> {
                                               project["ProjectName"];
                                           row.projectCode =
                                               project["ProjectCode"];
+                                          row.hasChanges = true;
                                         });
 
                                         Navigator.pop(dialogContext);
@@ -422,13 +427,30 @@ class _TimeLogTableState extends State<TimeLogTable> {
       showMessage("End time must be after start time");
       row.endTimeController.clear();
     }
-    final now = TimeOfDay.now();
-    final currentMinutes = now.hour * 60 + now.minute;
+    // final now = TimeOfDay.now();
+    // final currentMinutes = now.hour * 60 + now.minute;
+    //
+    // if (endMinutes > currentMinutes) {
+    //   showMessage("End time cannot be greater than current time");
+    //   row.endTimeController.clear();
+    //   return;
+    // }
+    final selectedDate = DateFormat('dd/MM/yyyy').parse(widget.logdate);
+    final today = DateTime.now();
 
-    if (endMinutes > currentMinutes) {
-      showMessage("End time cannot be greater than current time");
-      row.endTimeController.clear();
-      return;
+    final isToday = selectedDate.year == today.year &&
+        selectedDate.month == today.month &&
+        selectedDate.day == today.day;
+
+    if (isToday) {
+      final now = TimeOfDay.now();
+      final currentMinutes = now.hour * 60 + now.minute;
+
+      if (endMinutes > currentMinutes) {
+        showMessage("End time cannot be greater than current time");
+        row.endTimeController.clear();
+        return;
+      }
     }
   }
 
@@ -547,11 +569,9 @@ class _TimeLogTableState extends State<TimeLogTable> {
               height: 130,
               child: Center(
                 child: InkWell(
-                  onTap: row.isNewRow
-                      ? () {
-                          showProjectPicker(row);
-                        }
-                      : null,
+                  onTap: () {
+                    showProjectPicker(row);
+                  },
                   child: Container(
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(
@@ -576,7 +596,7 @@ class _TimeLogTableState extends State<TimeLogTable> {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        if (row.isNewRow) const Icon(Icons.arrow_drop_down),
+                        const Icon(Icons.arrow_drop_down),
                       ],
                     ),
                   ),
@@ -591,7 +611,10 @@ class _TimeLogTableState extends State<TimeLogTable> {
               minLines: 3,
               maxLines: 5,
               hint: "Enter Activity",
-              readOnly: !row.isNewRow,
+              onChanged: (value) {
+                row.hasChanges = true;
+              },
+              //readOnly: !row.isNewRow,
             ),
           ),
           buildDataCell(
@@ -601,8 +624,9 @@ class _TimeLogTableState extends State<TimeLogTable> {
               hint: "HH:mm",
               keyboardType: TextInputType.datetime,
               maxLength: 5,
-              readOnly: !row.isNewRow,
+              //readOnly: !row.isNewRow,
               onChanged: (value) {
+                row.hasChanges = true;
                 validateStartTime(row, value);
               },
             ),
@@ -614,8 +638,9 @@ class _TimeLogTableState extends State<TimeLogTable> {
               hint: "HH:mm",
               keyboardType: TextInputType.datetime,
               maxLength: 5,
-              readOnly: !row.isNewRow,
+              //readOnly: !row.isNewRow,
               onChanged: (value) {
+                row.hasChanges = true;
                 validateEndTime(row, value);
               },
             ),
@@ -627,7 +652,10 @@ class _TimeLogTableState extends State<TimeLogTable> {
               minLines: 3,
               maxLines: 5,
               hint: "Enter Problem",
-              readOnly: !row.isNewRow,
+              //readOnly: !row.isNewRow,
+              onChanged: (value) {
+                row.hasChanges = true;
+              },
             ),
           ),
           buildDataCell(
@@ -635,7 +663,10 @@ class _TimeLogTableState extends State<TimeLogTable> {
             child: buildTextField(
               controller: row.timeWastedController,
               hint: "Enter Time",
-              readOnly: !row.isNewRow,
+              // readOnly: !row.isNewRow,
+              onChanged: (value) {
+                row.hasChanges = true;
+              },
             ),
           ),
         ],
@@ -780,6 +811,10 @@ class _TimeLogTableState extends State<TimeLogTable> {
   }
 
   void clearTimeLogData() {
+    if (!fetchedRows.isEmpty) {
+      return;
+    }
+
     setState(() {
       for (var row in timeLogRows) {
         row.projectName = null;
@@ -800,22 +835,23 @@ class _TimeLogTableState extends State<TimeLogTable> {
 
     // Consider only rows containing entered data.
     // final enteredRows = timeLogRows.where((row) {
-    //   return row.projectCode != null ||
-    //       row.activityController.text.trim().isNotEmpty ||
-    //       row.startTimeController.text.trim().isNotEmpty ||
-    //       row.endTimeController.text.trim().isNotEmpty ||
-    //       row.problemController.text.trim().isNotEmpty ||
-    //       row.timeWastedController.text.trim().isNotEmpty;
+    //   return row.isNewRow &&
+    //       (row.projectCode != null ||
+    //           row.activityController.text.trim().isNotEmpty ||
+    //           row.startTimeController.text.trim().isNotEmpty ||
+    //           row.endTimeController.text.trim().isNotEmpty ||
+    //           row.problemController.text.trim().isNotEmpty ||
+    //           row.timeWastedController.text.trim().isNotEmpty);
     // }).toList();
-
     final enteredRows = timeLogRows.where((row) {
-      return row.isNewRow &&
-          (row.projectCode != null ||
-              row.activityController.text.trim().isNotEmpty ||
-              row.startTimeController.text.trim().isNotEmpty ||
-              row.endTimeController.text.trim().isNotEmpty ||
-              row.problemController.text.trim().isNotEmpty ||
-              row.timeWastedController.text.trim().isNotEmpty);
+      final hasData = row.projectCode != null ||
+          row.activityController.text.trim().isNotEmpty ||
+          row.startTimeController.text.trim().isNotEmpty ||
+          row.endTimeController.text.trim().isNotEmpty ||
+          row.problemController.text.trim().isNotEmpty ||
+          row.timeWastedController.text.trim().isNotEmpty;
+
+      return hasData && (row.isNewRow || row.hasChanges);
     }).toList();
 
     if (enteredRows.isEmpty) {
@@ -868,54 +904,9 @@ class _TimeLogTableState extends State<TimeLogTable> {
         return;
       }
 
-      // Send all row requests concurrently for faster submission.
       // final results = await Future.wait(
-      //   enteredRows.map((row) async {
-      //     try {
-      //       final requestData = {
-      //         "UserName": staffCode,
-      //         "LogDate": widget.logdate,
-      //         "ProjectCode": row.projectCode,
-      //         "Activity": row.activityController.text.trim(),
-      //         "StartTime": row.startTimeController.text.trim(),
-      //         "EndTime": row.endTimeController.text.trim(),
-      //         "ProblemFaced": row.problemController.text.trim().isEmpty
-      //             ? "NA"
-      //             : row.problemController.text.trim(),
-      //         "TimeWasted": row.timeWastedController.text.trim().isEmpty
-      //             ? "0"
-      //             : row.timeWastedController.text.trim(),
-      //         "Flag": "I",
-      //       };
-      //
-      //       final response = await DioClient().dio.post(
-      //             "TimeLogSheet",
-      //             data: requestData,
-      //           );
-      //
-      //       final responseData = response.data;
-      //
-      //       if (response.statusCode == 201 &&
-      //           responseData is List &&
-      //           responseData.isNotEmpty) {
-      //         final outMsg = responseData[0]["OutMsg"]?.toString() ?? "";
-      //
-      //         if (outMsg.toLowerCase().contains("save successfully")) {
-      //           showMessage(outMsg);
-      //           clearTimeLogData();
-      //           return true;
-      //         }
-      //       }
-      //
-      //       return false;
-      //     } catch (e) {
-      //       showMessage("Failed to submit");
-      //       debugPrint("TimeLog row API error: $e");
-      //       return false;
-      //     }
-      //   }),
-      // );
-      final results = await Future.wait(
+      final List<Map<String, dynamic>> results =
+          await Future.wait<Map<String, dynamic>>(
         enteredRows.map((row) async {
           try {
             final requestData = {
@@ -931,8 +922,11 @@ class _TimeLogTableState extends State<TimeLogTable> {
               "TimeWasted": row.timeWastedController.text.trim().isEmpty
                   ? "0"
                   : row.timeWastedController.text.trim(),
-              "Flag": "I",
+              "TransactionID": row.isNewRow ? 0 : row.transactionId,
+              "Flag": row.isNewRow ? "I" : "U",
             };
+
+            debugPrint("TimeLog Request: ${jsonEncode(requestData)}");
 
             final response = await DioClient().dio.post(
                   "TimeLogSheet",
@@ -941,22 +935,26 @@ class _TimeLogTableState extends State<TimeLogTable> {
 
             final responseData = response.data;
 
-            if (response.statusCode == 201 &&
-                responseData is List &&
-                responseData.isNotEmpty) {
-              final outMsg = responseData[0]["OutMsg"]?.toString() ?? "";
+            String outMsg = "";
 
-              if (outMsg.toLowerCase().contains("save successfully")) {
-                return {
-                  "success": true,
-                  "message": outMsg,
-                };
-              }
+            if (responseData is List && responseData.isNotEmpty) {
+              outMsg = responseData[0]["OutMsg"]?.toString() ?? "";
+            }
+
+            final isSuccess = row.isNewRow
+                ? outMsg.toLowerCase().contains("details save successfully")
+                : outMsg.toLowerCase().contains("details updated successfully");
+
+            if (response.statusCode == 201 && isSuccess) {
+              return {
+                "success": true,
+                "message": outMsg,
+              };
             }
 
             return {
               "success": false,
-              "message": "",
+              "message": outMsg,
             };
           } catch (e, stack) {
             await FirebaseCrashlytics.instance.recordError(
@@ -964,26 +962,18 @@ class _TimeLogTableState extends State<TimeLogTable> {
               stack,
               reason: 'TimeLog row API error: $e',
             );
+
             debugPrint("TimeLog row API error: $e");
+
+            // String errorMessage = "";
 
             return {
               "success": false,
-              "message": "",
+              "message": e.toString(),
             };
           }
         }),
       );
-
-      // final successCount = results.where((result) => result).length;
-      // final failedCount = results.length - successCount;
-      //
-      // if (!mounted) return;
-      //
-      // if (failedCount == 0) {
-      //   showMessage("$successCount row(s) saved successfully");
-      // } else {
-      //   showMessage("$successCount saved, $failedCount failed");
-      // }
       final successCount = results.where((r) => r["success"] == true).length;
 
       final failedCount = results.length - successCount;
@@ -1009,6 +999,7 @@ class _TimeLogTableState extends State<TimeLogTable> {
         for (int i = 0; i < results.length; i++) {
           if (results[i]["success"] == true) {
             enteredRows[i].isNewRow = false;
+            enteredRows[i].hasChanges = false;
           }
         }
 
@@ -1109,3 +1100,109 @@ class _TimeLogTableState extends State<TimeLogTable> {
     );
   }
 }
+
+// Send all row requests concurrently for faster submission.
+// final results = await Future.wait(
+//   enteredRows.map((row) async {
+//     try {
+//       final requestData = {
+//         "UserName": staffCode,
+//         "LogDate": widget.logdate,
+//         "ProjectCode": row.projectCode,
+//         "Activity": row.activityController.text.trim(),
+//         "StartTime": row.startTimeController.text.trim(),
+//         "EndTime": row.endTimeController.text.trim(),
+//         "ProblemFaced": row.problemController.text.trim().isEmpty
+//             ? "NA"
+//             : row.problemController.text.trim(),
+//         "TimeWasted": row.timeWastedController.text.trim().isEmpty
+//             ? "0"
+//             : row.timeWastedController.text.trim(),
+//         "Flag": "I",
+//       };
+//
+//       final response = await DioClient().dio.post(
+//             "TimeLogSheet",
+//             data: requestData,
+//           );
+//
+//       final responseData = response.data;
+//
+//       if (response.statusCode == 201 &&
+//           responseData is List &&
+//           responseData.isNotEmpty) {
+//         final outMsg = responseData[0]["OutMsg"]?.toString() ?? "";
+//
+//         if (outMsg.toLowerCase().contains("save successfully")) {
+//           showMessage(outMsg);
+//           clearTimeLogData();
+//           return true;
+//         }
+//       }
+//
+//       return false;
+//     } catch (e) {
+//       showMessage("Failed to submit");
+//       debugPrint("TimeLog row API error: $e");
+//       return false;
+//     }
+//   }),
+// );
+/*final results = await Future.wait(
+        enteredRows.map((row) async {
+          try {
+            final requestData = {
+              "UserName": staffCode,
+              "LogDate": widget.logdate,
+              "ProjectCode": row.projectCode,
+              "Activity": row.activityController.text.trim(),
+              "StartTime": row.startTimeController.text.trim(),
+              "EndTime": row.endTimeController.text.trim(),
+              "ProblemFaced": row.problemController.text.trim().isEmpty
+                  ? "NA"
+                  : row.problemController.text.trim(),
+              "TimeWasted": row.timeWastedController.text.trim().isEmpty
+                  ? "0"
+                  : row.timeWastedController.text.trim(),
+              "Flag": "I",
+            };
+
+            final response = await DioClient().dio.post(
+                  "TimeLogSheet",
+                  data: requestData,
+                );
+
+            final responseData = response.data;
+
+            if (response.statusCode == 201 &&
+                responseData is List &&
+                responseData.isNotEmpty) {
+              final outMsg = responseData[0]["OutMsg"]?.toString() ?? "";
+
+              if (outMsg.toLowerCase().contains("save successfully")) {
+                return {
+                  "success": true,
+                  "message": outMsg,
+                };
+              }
+            }
+
+            return {
+              "success": false,
+              "message": "",
+            };
+          } catch (e, stack) {
+            await FirebaseCrashlytics.instance.recordError(
+              e,
+              stack,
+              reason: 'TimeLog row API error: $e',
+            );
+            debugPrint("TimeLog row API error: $e");
+
+            return {
+              "success": false,
+              "message": "",
+            };
+          }
+        }),
+      );*/

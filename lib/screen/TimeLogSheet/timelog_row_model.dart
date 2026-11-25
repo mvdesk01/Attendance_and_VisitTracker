@@ -5,6 +5,9 @@ class TimeLogRowState {
   String? projectCode;
   bool isNewRow = true;
   bool isSaveEnabled = false;
+  bool hasChanges = false;
+
+  dynamic transactionId = 0;
 
   final TextEditingController activityController = TextEditingController();
 
