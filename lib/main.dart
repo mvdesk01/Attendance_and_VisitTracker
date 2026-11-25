@@ -38,12 +38,13 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Initialize Firebase
-  if (Firebase.apps.isEmpty) {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-  }
+  // if (Firebase.apps.isEmpty) {
+  //   await Firebase.initializeApp(
+  //     options: DefaultFirebaseOptions.currentPlatform,
+  //   );
+  // }
   // await Firebase.initializeApp();
+  await initializeFirebase();
 
   // Report Flutter framework errors to Crashlytics
   FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
@@ -125,6 +126,26 @@ void handleNotificationResponse(String? payload) {
       '/track_visit_location',
       arguments: payload,
     );
+  }
+}
+
+Future<void> initializeFirebase() async {
+  try {
+    if (Firebase.apps.isEmpty) {
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+    } else {
+      debugPrint('Firebase is already initialized.');
+    }
+  } on FirebaseException catch (e) {
+    if (e.code == 'duplicate-app') {
+      // The default Firebase app already exists.
+      debugPrint('Firebase default app already exists.');
+      Firebase.app();
+    } else {
+      rethrow;
+    }
   }
 }
 
