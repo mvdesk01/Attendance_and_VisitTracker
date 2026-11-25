@@ -452,6 +452,8 @@ class _TimeLogTableState extends State<TimeLogTable> {
         return;
       }
     }
+
+
   }
 
   Widget buildHeaderCell(String title, double width) {
