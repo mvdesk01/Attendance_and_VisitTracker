@@ -5,7 +5,14 @@ class TimeLogRowState {
   String? projectCode;
   bool isNewRow = true;
   bool isSaveEnabled = false;
+  bool hasChanges = false;
 
+  dynamic transactionId = 0;
+  String? moduleCode;
+  String? moduleName;
+
+  List<Map<String, String>> subModuleList = [];
+  bool isSubModuleLoading = false;
   final TextEditingController activityController = TextEditingController();
 
   final TextEditingController startTimeController = TextEditingController();
