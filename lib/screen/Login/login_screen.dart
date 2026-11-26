@@ -510,46 +510,53 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         Padding(
                           padding: const EdgeInsets.all(12),
-                          child: Expanded(child:
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                          child: Wrap(
+                            alignment: WrapAlignment.center,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            spacing: 4,
+                            runSpacing: 4,
                             children: [
                               TextButton(
                                 onPressed: () {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                        builder: (_) =>
-                                            const PasswordRetrieval()),
-                                  );
-                                },
-                                child: const Text("Password\nRetrieval"),
-                              ),
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (_) => const ForgotPassword()),
+                                      builder: (_) => const PasswordRetrieval(),
+                                    ),
                                   );
                                 },
                                 child: const Text(
-                                    " Forgot Password?\n(only for operators) "),
+                                  'Password\nRetrieval',
+                                  textAlign: TextAlign.center,
+                                ),
                               ),
-                              // const SizedBox(width: 10),
                               TextButton(
                                 onPressed: () {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                        builder: (_) => const RegisterScreen()),
+                                      builder: (_) => const ForgotPassword(),
+                                    ),
                                   );
                                 },
-                                child: const Text("Register"),
+                                child: const Text(
+                                  'Forgot Password?\n(only for operators)',
+                                  textAlign: TextAlign.center,
+                                ),
                               ),
-
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => const RegisterScreen(),
+                                    ),
+                                  );
+                                },
+                                child: const Text('Register'),
+                              ),
                             ],
-                          ),),
+                          ),
                         ),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
