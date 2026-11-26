@@ -13,13 +13,14 @@ class TimeLogTable extends StatefulWidget {
   final Color primaryColor;
   final String logdate;
   final VoidCallback? onClose;
+  final String? deptname;
 
-  const TimeLogTable({
-    super.key,
-    required this.primaryColor,
-    required this.logdate,
-    this.onClose,
-  });
+  const TimeLogTable(
+      {super.key,
+      required this.primaryColor,
+      required this.logdate,
+      this.onClose,
+      required this.deptname});
 
   @override
   State<TimeLogTable> createState() => _TimeLogTableState();
@@ -39,6 +40,8 @@ class _TimeLogTableState extends State<TimeLogTable> {
   bool isLoadingTimeLogs = true;
   final List<TimeLogRowState> fetchedRows = [];
 
+  bool get isDdDepartment => widget.deptname?.trim().toLowerCase() == "d & d";
+
   // bool isNewRow = true;
 
   static const String projectCacheKey = "TimeLog_Project_Cache";
@@ -52,11 +55,117 @@ class _TimeLogTableState extends State<TimeLogTable> {
     //timeLogRows.add(TimeLogRowState());
     // Fetch saved records only in View mode.
     viewTimeLogSheet();
+
     // Start with one blank row for new entry.
     //timeLogRows.add(TimeLogRowState());
 
     //timeLogRows.add(TimeLogRowState());
     print(widget.logdate);
+    print(widget.deptname);
+  }
+
+  // Future<void> getmodulelist(TimeLogRowState row, String projectCode) async {
+  //   setState(() {
+  //     row.isSubModuleLoading = true;
+  //     row.moduleCode = null;
+  //     row.moduleName = null;
+  //     row.subModuleList = [];
+  //   });
+  //
+  //   try {
+  //     final response = await DioClient().dio.post(
+  //       "SubModule",
+  //       data: {
+  //         "ProjectCode": projectCode,
+  //       },
+  //     );
+  //
+  //     if (response.statusCode == 200 || response.statusCode == 201) {
+  //       final List<dynamic> data = response.data;
+  //
+  //       if (mounted) {
+  //         setState(() {
+  //           row.subModuleList = data.map((item) {
+  //             return {
+  //               "SubmoduleCode": item["SubmoduleCode"].toString(),
+  //               "SubmoduleName": item["SubmoduleName"].toString(),
+  //             };
+  //           }).toList();
+  //         });
+  //       }
+  //     }
+  //   } catch (e, stack) {
+  //     await FirebaseCrashlytics.instance.recordError(
+  //       e,
+  //       stack,
+  //       reason: 'SubModule API error: $e',
+  //     );
+  //
+  //     debugPrint("SubModule API error: $e");
+  //     showMessage("Unable to load submodules");
+  //   } finally {
+  //     if (mounted) {
+  //       setState(() {
+  //         row.isSubModuleLoading = false;
+  //       });
+  //     }
+  //   }
+  // }
+  Future<void> getmodulelist(
+    TimeLogRowState row,
+    String projectCode, {
+    bool preserveSelection = false,
+  }) async {
+    if (!mounted) return;
+
+    setState(() {
+      row.isSubModuleLoading = true;
+      row.subModuleList = [];
+
+      if (!preserveSelection) {
+        row.moduleCode = null;
+        row.moduleName = null;
+      }
+    });
+
+    try {
+      final response = await DioClient().dio.post(
+        "SubModule",
+        data: {
+          "ProjectCode": projectCode,
+        },
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final List<dynamic> data = response.data;
+
+        if (mounted) {
+          setState(() {
+            row.subModuleList = data.map((item) {
+              return {
+                "SubmoduleCode": item["SubmoduleCode"].toString(),
+                "SubmoduleName": item["SubmoduleName"].toString(),
+              };
+            }).toList();
+          });
+        }
+      }
+    } catch (e, stack) {
+      await FirebaseCrashlytics.instance.recordError(
+        e,
+        stack,
+        reason: 'SubModule API error: $e',
+      );
+
+      debugPrint("SubModule API error: $e");
+      showMessage("Unable to load submodules");
+    } finally {
+      if (mounted) {
+        setState(() {
+          row.isSubModuleLoading = false;
+        });
+      }
+    }
   }
 
   Future<void> fetchProjects() async {
@@ -195,6 +304,20 @@ class _TimeLogTableState extends State<TimeLogTable> {
           row.projectCode = item["ProjectCode"]?.toString();
           row.projectName = item["ProjectName"]?.toString();
 
+          final moduleCode = item["ModuleCode"]?.toString().trim() ?? "";
+          final moduleName = item["ModuleName"]?.toString().trim() ?? "";
+
+          row.moduleCode = moduleCode.isEmpty ? null : moduleCode;
+          row.moduleName = moduleName.isEmpty ? null : moduleName;
+
+          if (isDdDepartment && row.projectCode != null) {
+            await getmodulelist(
+              row,
+              row.projectCode!,
+              preserveSelection: true,
+            );
+          }
+
           row.activityController.text = item["Activity"]?.toString() ?? "";
 
           row.startTimeController.text = item["StartTime"]?.toString() ?? "";
@@ -328,6 +451,10 @@ class _TimeLogTableState extends State<TimeLogTable> {
                                         });
 
                                         Navigator.pop(dialogContext);
+                                        if (widget.deptname?.toLowerCase() ==
+                                            "d & d") {
+                                          getmodulelist(row, row.projectCode!);
+                                        }
                                       },
                                     );
                                   },
@@ -452,8 +579,6 @@ class _TimeLogTableState extends State<TimeLogTable> {
         return;
       }
     }
-
-
   }
 
   Widget buildHeaderCell(String title, double width) {
@@ -534,6 +659,7 @@ class _TimeLogTableState extends State<TimeLogTable> {
   }) {
     return TextFormField(
       controller: controller,
+      key: ValueKey(controller),
       minLines: minLines,
       maxLines: maxLines,
       keyboardType: keyboardType,
@@ -551,6 +677,13 @@ class _TimeLogTableState extends State<TimeLogTable> {
   }
 
   Widget buildTimeLogRow(TimeLogRowState row, int index) {
+    final selectedmodule = row.moduleCode != null &&
+            row.moduleCode!.trim().isNotEmpty &&
+            row.subModuleList.any(
+              (module) => module["SubmoduleCode"] == row.moduleCode,
+            )
+        ? row.moduleCode
+        : null;
     return Container(
       color: index.isEven ? Colors.grey.shade100 : Colors.white,
       child: Row(
@@ -606,6 +739,52 @@ class _TimeLogTableState extends State<TimeLogTable> {
               ),
             ),
           ),
+          if (widget.deptname?.trim().toLowerCase() == "d & d")
+            buildDataCell(
+              width: 220,
+              child: SizedBox(
+                height: 130,
+                child: Center(
+                  child: row.isSubModuleLoading
+                      ? const CircularProgressIndicator(strokeWidth: 2)
+                      : DropdownButtonFormField<String>(
+                          value: selectedmodule,
+                          isExpanded: true,
+                          decoration: const InputDecoration(
+                            border: OutlineInputBorder(),
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 10,
+                            ),
+                            hintText: "Select Sub Module",
+                          ),
+                          items: row.subModuleList.map((module) {
+                            return DropdownMenuItem<String>(
+                              value: module["SubmoduleCode"],
+                              child: Text(
+                                module["SubmoduleName"] ?? "",
+                                style: const TextStyle(fontSize: 12),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            );
+                          }).toList(),
+                          onChanged: row.subModuleList.isEmpty
+                              ? null
+                              : (value) {
+                                  setState(() {
+                                    row.moduleCode = value;
+                                    row.moduleName =
+                                        row.subModuleList.firstWhere(
+                                      (module) =>
+                                          module["SubmoduleCode"] == value,
+                                    )["SubmoduleName"];
+                                    row.hasChanges = true;
+                                  });
+                                },
+                        ),
+                ),
+              ),
+            ),
           buildDataCell(
             width: 200,
             child: buildTextField(
@@ -677,7 +856,10 @@ class _TimeLogTableState extends State<TimeLogTable> {
   }
 
   Widget buildTimeLogTable() {
-    const double tableWidth = 1050;
+    final bool isDdDepartment =
+        widget.deptname?.trim().toLowerCase() == "d & d";
+
+    final double tableWidth = isDdDepartment ? 1270 : 1050;
 
     return Container(
       width: double.infinity,
@@ -788,6 +970,8 @@ class _TimeLogTableState extends State<TimeLogTable> {
                         children: [
                           buildHeaderCell("Sr. No.", 55),
                           buildHeaderCell("Project Name", 215),
+                          if (widget.deptname?.trim().toLowerCase() == "d & d")
+                            buildHeaderCell("Sub Module", 220),
                           buildHeaderCell("Activity", 200),
                           buildHeaderCell("Start Time", 120),
                           buildHeaderCell("End Time", 120),
@@ -812,24 +996,51 @@ class _TimeLogTableState extends State<TimeLogTable> {
     );
   }
 
+  // void clearTimeLogData() {
+  //   if (!fetchedRows.isEmpty) {
+  //     return;
+  //   }
+  //
+  //   setState(() {
+  //     for (var row in timeLogRows) {
+  //       row.projectName = null;
+  //       row.activityController.clear();
+  //       row.startTimeController.clear();
+  //       row.endTimeController.clear();
+  //       row.problemController.clear();
+  //       row.timeWastedController.clear();
+  //       row.projectCode = null;
+  //     }
+  //   });
+  //
+  //   //showMessage("Entered data cleared");
+  // }
   void clearTimeLogData() {
-    if (!fetchedRows.isEmpty) {
+    // Do not clear records already fetched from the server.
+    if (fetchedRows.any((row) => !row.isNewRow)) {
       return;
     }
 
     setState(() {
       for (var row in timeLogRows) {
         row.projectName = null;
+        row.projectCode = null;
+
+        row.moduleCode = null;
+        row.moduleName = null;
+        row.subModuleList = [];
+
         row.activityController.clear();
         row.startTimeController.clear();
         row.endTimeController.clear();
         row.problemController.clear();
         row.timeWastedController.clear();
-        row.projectCode = null;
+
+        row.hasChanges = false;
+        row.isNewRow = true;
+        row.transactionId = 0;
       }
     });
-
-    //showMessage("Entered data cleared");
   }
 
   Future<void> saveTimeLogData() async {
@@ -866,6 +1077,10 @@ class _TimeLogTableState extends State<TimeLogTable> {
       final row = enteredRows[i];
 
       if (row.projectCode == null) {
+        showMessage("Select project in row ${i + 1}");
+        return;
+      }
+      if (row.moduleCode == null) {
         showMessage("Select project in row ${i + 1}");
         return;
       }
@@ -915,6 +1130,7 @@ class _TimeLogTableState extends State<TimeLogTable> {
               "UserName": staffCode,
               "LogDate": widget.logdate,
               "ProjectCode": row.projectCode,
+              "ModuleCode": row.moduleCode ?? "",
               "Activity": row.activityController.text.trim(),
               "StartTime": row.startTimeController.text.trim(),
               "EndTime": row.endTimeController.text.trim(),
