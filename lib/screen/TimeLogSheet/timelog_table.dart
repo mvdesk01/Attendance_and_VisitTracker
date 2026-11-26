@@ -1073,6 +1073,44 @@ class _TimeLogTableState extends State<TimeLogTable> {
     }
 
     // Validate all rows before making API calls.
+    // for (int i = 0; i < enteredRows.length; i++) {
+    //   final row = enteredRows[i];
+    //
+    //   if (row.projectCode == null) {
+    //     showMessage("Select project in row ${i + 1}");
+    //     return;
+    //   }
+    //   if (row.moduleCode == null) {
+    //     showMessage("Select project in row ${i + 1}");
+    //     return;
+    //   }
+    //
+    //   if (row.activityController.text.trim().isEmpty) {
+    //     showMessage("Enter activity in row ${i + 1}");
+    //     return;
+    //   }
+    //
+    //   if (convertTimeToMinutes(row.startTimeController.text) == null) {
+    //     showMessage("Enter valid start time in row ${i + 1}");
+    //     return;
+    //   }
+    //
+    //   if (convertTimeToMinutes(row.endTimeController.text) == null) {
+    //     showMessage("Enter valid end time in row ${i + 1}");
+    //     return;
+    //   }
+    //
+    //   final start = convertTimeToMinutes(row.startTimeController.text)!;
+    //   final end = convertTimeToMinutes(row.endTimeController.text)!;
+    //
+    //   if (start < 515 || end <= start) {
+    //     showMessage("Check start and end time in row ${i + 1}");
+    //     return;
+    //   }
+    // }
+    final bool isDdDepartment =
+        widget.deptname?.trim().toLowerCase() == "d & d";
+
     for (int i = 0; i < enteredRows.length; i++) {
       final row = enteredRows[i];
 
@@ -1080,8 +1118,9 @@ class _TimeLogTableState extends State<TimeLogTable> {
         showMessage("Select project in row ${i + 1}");
         return;
       }
-      if (row.moduleCode == null) {
-        showMessage("Select project in row ${i + 1}");
+
+      if (isDdDepartment && row.moduleCode == null) {
+        showMessage("Select sub module in row ${i + 1}");
         return;
       }
 
@@ -1108,7 +1147,6 @@ class _TimeLogTableState extends State<TimeLogTable> {
         return;
       }
     }
-
     setState(() {
       isSaving = true;
     });
