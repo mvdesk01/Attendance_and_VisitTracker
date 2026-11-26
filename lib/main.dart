@@ -129,6 +129,7 @@ void handleNotificationResponse(String? payload) {
   }
 }
 
+// initializes firebase without blocking android/ios startup
 Future<void> initializeFirebase() async {
   try {
     if (Firebase.apps.isEmpty) {
