@@ -1168,7 +1168,7 @@ class _TimeLogTableState extends State<TimeLogTable> {
               "UserName": staffCode,
               "LogDate": widget.logdate,
               "ProjectCode": row.projectCode,
-              "ModuleCode": row.moduleCode ?? "",
+              "ModuleCode": row.moduleCode ?? 0,
               "Activity": row.activityController.text.trim(),
               "StartTime": row.startTimeController.text.trim(),
               "EndTime": row.endTimeController.text.trim(),
