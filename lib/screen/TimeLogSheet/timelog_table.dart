@@ -1168,7 +1168,7 @@ class _TimeLogTableState extends State<TimeLogTable> {
               "UserName": staffCode,
               "LogDate": widget.logdate,
               "ProjectCode": row.projectCode,
-              "ModuleCode": row.moduleCode ?? "",
+              "ModuleCode": row.moduleCode ?? 0,
               "Activity": row.activityController.text.trim(),
               "StartTime": row.startTimeController.text.trim(),
               "EndTime": row.endTimeController.text.trim(),
@@ -1356,109 +1356,3 @@ class _TimeLogTableState extends State<TimeLogTable> {
     );
   }
 }
-
-// Send all row requests concurrently for faster submission.
-// final results = await Future.wait(
-//   enteredRows.map((row) async {
-//     try {
-//       final requestData = {
-//         "UserName": staffCode,
-//         "LogDate": widget.logdate,
-//         "ProjectCode": row.projectCode,
-//         "Activity": row.activityController.text.trim(),
-//         "StartTime": row.startTimeController.text.trim(),
-//         "EndTime": row.endTimeController.text.trim(),
-//         "ProblemFaced": row.problemController.text.trim().isEmpty
-//             ? "NA"
-//             : row.problemController.text.trim(),
-//         "TimeWasted": row.timeWastedController.text.trim().isEmpty
-//             ? "0"
-//             : row.timeWastedController.text.trim(),
-//         "Flag": "I",
-//       };
-//
-//       final response = await DioClient().dio.post(
-//             "TimeLogSheet",
-//             data: requestData,
-//           );
-//
-//       final responseData = response.data;
-//
-//       if (response.statusCode == 201 &&
-//           responseData is List &&
-//           responseData.isNotEmpty) {
-//         final outMsg = responseData[0]["OutMsg"]?.toString() ?? "";
-//
-//         if (outMsg.toLowerCase().contains("save successfully")) {
-//           showMessage(outMsg);
-//           clearTimeLogData();
-//           return true;
-//         }
-//       }
-//
-//       return false;
-//     } catch (e) {
-//       showMessage("Failed to submit");
-//       debugPrint("TimeLog row API error: $e");
-//       return false;
-//     }
-//   }),
-// );
-/*final results = await Future.wait(
-        enteredRows.map((row) async {
-          try {
-            final requestData = {
-              "UserName": staffCode,
-              "LogDate": widget.logdate,
-              "ProjectCode": row.projectCode,
-              "Activity": row.activityController.text.trim(),
-              "StartTime": row.startTimeController.text.trim(),
-              "EndTime": row.endTimeController.text.trim(),
-              "ProblemFaced": row.problemController.text.trim().isEmpty
-                  ? "NA"
-                  : row.problemController.text.trim(),
-              "TimeWasted": row.timeWastedController.text.trim().isEmpty
-                  ? "0"
-                  : row.timeWastedController.text.trim(),
-              "Flag": "I",
-            };
-
-            final response = await DioClient().dio.post(
-                  "TimeLogSheet",
-                  data: requestData,
-                );
-
-            final responseData = response.data;
-
-            if (response.statusCode == 201 &&
-                responseData is List &&
-                responseData.isNotEmpty) {
-              final outMsg = responseData[0]["OutMsg"]?.toString() ?? "";
-
-              if (outMsg.toLowerCase().contains("save successfully")) {
-                return {
-                  "success": true,
-                  "message": outMsg,
-                };
-              }
-            }
-
-            return {
-              "success": false,
-              "message": "",
-            };
-          } catch (e, stack) {
-            await FirebaseCrashlytics.instance.recordError(
-              e,
-              stack,
-              reason: 'TimeLog row API error: $e',
-            );
-            debugPrint("TimeLog row API error: $e");
-
-            return {
-              "success": false,
-              "message": "",
-            };
-          }
-        }),
-      );*/
