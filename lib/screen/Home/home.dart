@@ -42,6 +42,7 @@ import '../AdminProfile/Databsepunchin.dart';
 import '../Expense/ExpenseScreen.dart';
 import '../MOM/minuetsmeeting_screen.dart';
 import '../Settings/Timer.dart';
+import '../TimeLogSheet/timelogsheet_screen.dart';
 import '../Tour/TourmainScreen.dart';
 import '../Visit/Start Stop Visit/start_stop_visit.dart';
 import '../Visit/visit_outside/visit_outside.dart';
@@ -956,6 +957,21 @@ class _HomeScreenState extends State<HomeScreen> {
                               },
                               child: MinutesOfTheMeetingFormScreen(),
                             )));
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.file_copy_outlined),
+              title: const Text('Time Log Sheet'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => BlocProvider(
+                      create: (context) => MainBloc(webService: WebService()),
+                      child: TaskManagementScreen(),
+                    ),
+                  ),
+                );
               },
             ),
             ListTile(

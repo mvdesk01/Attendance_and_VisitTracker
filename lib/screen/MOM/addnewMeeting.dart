@@ -1,12 +1,20 @@
+import 'dart:async';
+
 import 'package:attendance_system_ios/cleanarchitecture/feature/MOM/presentation/provider/responsibility/responsibilityprovider.dart';
+import 'package:attendance_system_ios/screen/MOM/textinputformatter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
+import '../../cleanarchitecture/core/storage/mom_draft_service.dart';
 import '../../cleanarchitecture/feature/MOM/domain/enteties/customer.dart';
+import '../../cleanarchitecture/feature/MOM/domain/enteties/meeting.dart';
 import '../../cleanarchitecture/feature/MOM/domain/enteties/meetinghistory_group.dart';
+import '../../cleanarchitecture/feature/MOM/domain/enteties/meetingpoints.dart';
+import '../../cleanarchitecture/feature/MOM/domain/enteties/submitmeeting_request.dart';
+import '../../cleanarchitecture/feature/MOM/presentation/provider/customerprovider.dart';
 import '../../cleanarchitecture/feature/MOM/presentation/provider/decision/decisionprovider.dart';
 import '../../cleanarchitecture/feature/MOM/presentation/provider/submeeting/submitmeetingprovider.dart';
 import '../../cleanarchitecture/feature/MOM/presentation/provider/submeeting/submitmeetingstate.dart';
@@ -23,16 +31,17 @@ class AddMeetingScreen extends ConsumerStatefulWidget {
 
   const AddMeetingScreen(
       {Key? key,
-      required this.customer,
-      this.meetingHistory,
-      this.meetingId,
-      this.selectedMeetingDate,
-      this.isEditing = false})
+        required this.customer,
+        this.meetingHistory,
+        this.meetingId,
+        this.selectedMeetingDate,
+        this.isEditing = false})
       : super(key: key);
 
   @override
   ConsumerState<AddMeetingScreen> createState() => _AddMeetingScreenState();
 }
+//test
 
 ///test
 class _AddMeetingScreenState extends ConsumerState<AddMeetingScreen> {
@@ -41,6 +50,7 @@ class _AddMeetingScreenState extends ConsumerState<AddMeetingScreen> {
 
   String? _staffName;
   bool _isLoadingStaff = true;
+  Timer? _draftTimer;
 
   late DateTime selectedDate;
   late TimeOfDay selectedTime;
@@ -75,19 +85,25 @@ class _AddMeetingScreenState extends ConsumerState<AddMeetingScreen> {
     _loadStaffName();
     Future.microtask(() async {
       print("Calling Decision");
-      await ref.read(decisionNotifierProvider.notifier).loadDecisions();
+      await ref
+          .read(decisionNotifierProvider.notifier)
+          .loadDecisions(forceRefresh: true);
 
       print("Calling Responsibility");
       await ref
           .read(responsibilityNotifierProvider.notifier)
-          .loadResponsibility();
+          .loadResponsibility(forceRefresh: true);
+
+      if (!widget.isEditing) {
+        await _checkForDraft();
+      }
     });
 
     selectedDate = widget.selectedMeetingDate ?? DateTime.now();
     selectedTime = TimeOfDay.now();
     dateController.text = DateFormat('dd/MM/yyyy').format(selectedDate);
     timeController.text =
-        "${selectedTime.hour.toString().padLeft(2, '0')}:${selectedTime.minute.toString().padLeft(2, '0')}";
+    "${selectedTime.hour.toString().padLeft(2, '0')}:${selectedTime.minute.toString().padLeft(2, '0')}";
 
     addDiscussionRow();
   }
@@ -115,7 +131,7 @@ class _AddMeetingScreenState extends ConsumerState<AddMeetingScreen> {
         .split(",")
         .map((e) => e.trim())
         .where((e) =>
-            e.isNotEmpty && e.toLowerCase() != (_staffName ?? "").toLowerCase())
+    e.isNotEmpty && e.toLowerCase() != (_staffName ?? "").toLowerCase())
         .toList();
 
     dynamicAbsentMembers =
@@ -127,21 +143,13 @@ class _AddMeetingScreenState extends ConsumerState<AddMeetingScreen> {
 
     initialDiscussionPoints = meeting.discussionPoints
         .map((e) => {
-              "point": e.point,
-              "discussedWith": e.discussedWith,
-              "decisionTaken": e.decision,
-              "responsibility": e.responsibility,
-              "targetDate": e.targetDate,
-            })
+      "point": e.point,
+      "discussedWith": e.discussedWith,
+      "decisionTaken": e.decision,
+      "responsibility": e.responsibility,
+      "targetDate": e.targetDate,
+    })
         .toList();
-
-    // rowKeys.clear();
-    //
-    // for (int i = 0; i < initialDiscussionPoints.length; i++) {
-    //   rowKeys.add(
-    //     GlobalKey<DiscussionPointRowState>(),
-    //   );
-    // }
     rowKeys.clear();
     rowIsExisting.clear();
 
@@ -157,6 +165,117 @@ class _AddMeetingScreenState extends ConsumerState<AddMeetingScreen> {
     //  initialDiscussionPoints.clear();
   }
 
+  Future<void> _checkForDraft() async {
+    if (widget.isEditing) return;
+
+    final draft = await MomDraftService.getDraft(
+      customerCode: widget.customer.customerCode,
+    );
+
+    if (draft == null || !mounted) return;
+
+    final draftData = draft['draftData'] as Map<String, dynamic>;
+
+    final continueDraft = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Draft Found"),
+          content: const Text(
+            "A previous unfinished MOM was found for this customer. "
+                "Do you want to continue it?",
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context, false);
+              },
+              child: const Text("Start New"),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context, true);
+              },
+              child: const Text("Continue Draft"),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (!mounted) return;
+
+    if (continueDraft == true) {
+      await _restoreDraft(draftData);
+    } else if (continueDraft == false) {
+      await MomDraftService.deleteDraft(
+        customerCode: widget.customer.customerCode,
+      );
+    }
+  }
+
+  Map<String, dynamic> _buildDraftData() {
+    final discussionPoints = <Map<String, dynamic>>[];
+
+    for (final key in rowKeys) {
+      final rowState = key.currentState;
+
+      if (rowState != null) {
+        discussionPoints.add(
+          rowState.getDraftData(),
+        );
+      }
+    }
+
+    return {
+      "meetingDate": dateController.text,
+      "meetingTime": timeController.text,
+      "presentMembers": List<String>.from(
+        dynamicPresentMembers,
+      ),
+      "absentMembers": List<String>.from(
+        dynamicAbsentMembers,
+      ),
+      "discussionPoints": discussionPoints,
+    };
+  }
+
+  Future<void> _saveDraft() async {
+    if (!mounted) return;
+
+    final customerState = ref.read(customerNotifierProvider);
+
+    final customer = customerState.selectedCustomer;
+
+    if (customer == null) {
+      return;
+    }
+
+    final draftData = _buildDraftData();
+
+    await MomDraftService.saveDraft(
+      customerCode: customer.customerCode,
+      customerName: customer.customerName,
+      draftData: draftData,
+    );
+
+    print(
+      "MOM DRAFT SAVED: ${customer.customerCode}",
+    );
+  }
+
+  void _scheduleDraftSave() {
+    _draftTimer?.cancel();
+
+    _draftTimer = Timer(
+      const Duration(milliseconds: 800),
+          () async {
+        await _saveDraft();
+      },
+    );
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -164,11 +283,86 @@ class _AddMeetingScreenState extends ConsumerState<AddMeetingScreen> {
     if (!_timeInitialized) {
       if (widget.meetingHistory == null) {
         timeController.text =
-            "${selectedTime.hour.toString().padLeft(2, '0')}:${selectedTime.minute.toString().padLeft(2, '0')}";
+        "${selectedTime.hour.toString().padLeft(2, '0')}:${selectedTime.minute.toString().padLeft(2, '0')}";
       }
 
       _timeInitialized = true;
     }
+  }
+
+  Future<Map<String, dynamic>?> _loadDraft() async {
+    final draft = await MomDraftService.getDraft(
+      customerCode: widget.customer.customerCode,
+    );
+
+    return draft?['draftData'] as Map<String, dynamic>?;
+  }
+
+  Future<void> _restoreDraft(Map<String, dynamic> draftData) async {
+    if (!mounted) return;
+
+    setState(() {
+      dateController.text = draftData['meetingDate']?.toString() ?? '';
+
+      timeController.text = draftData['meetingTime']?.toString() ?? '';
+
+      dynamicPresentMembers =
+      List<String>.from(draftData['presentMembers'] ?? []);
+
+      dynamicAbsentMembers =
+      List<String>.from(draftData['absentMembers'] ?? []);
+
+      presentInputController.text = dynamicPresentMembers.join(",");
+
+      absentInputController.text = dynamicAbsentMembers.join(",");
+
+      final discussionPoints = List<Map<String, dynamic>>.from(
+        (draftData['discussionPoints'] ?? []).map(
+              (e) => Map<String, dynamic>.from(e),
+        ),
+      );
+
+      rowKeys.clear();
+      rowIsExisting.clear();
+      initialDiscussionPoints.clear();
+
+      for (final point in discussionPoints) {
+        rowKeys.add(
+          GlobalKey<DiscussionPointRowState>(),
+        );
+
+        rowIsExisting.add(false);
+
+        initialDiscussionPoints.add({
+          "point": point['point']?.toString() ?? '',
+          "discussedWith": point['discussedWith']?.toString() ?? '',
+          "decisionTaken": point['decision']?.toString() ?? '',
+          "decisionCode": point['decisionCode']?.toString() ?? '',
+          "otherDecisionText": point['otherDecisionText']?.toString() ?? '',
+          "responsibility": point['responsibilityNames']?.toString() ?? '',
+          "responsibilityCodes": point['responsibilityCodes']?.toString() ?? '',
+          "targetDate": point['targetDate']?.toString() ?? '',
+        });
+      }
+
+      if (rowKeys.isEmpty) {
+        rowKeys.add(
+          GlobalKey<DiscussionPointRowState>(),
+        );
+
+        rowIsExisting.add(false);
+        initialDiscussionPoints.add({});
+      }
+
+      _rebuildDiscussionRows();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        for (final key in rowKeys) {
+          key.currentState?.restoreResponsibilities();
+        }
+      });
+    });
+
+    print("MOM DRAFT RESTORED");
   }
 
   /// Fetches staff name from FlutterSecureStorage
@@ -200,6 +394,7 @@ class _AddMeetingScreenState extends ConsumerState<AddMeetingScreen> {
         dynamicAbsentMembers = parsed;
       }
     });
+    _scheduleDraftSave();
   }
 
   Future<bool> _confirmBack() async {
@@ -298,12 +493,13 @@ class _AddMeetingScreenState extends ConsumerState<AddMeetingScreen> {
 
       _rebuildDiscussionRows();
     });
+    // _scheduleDraftSave();
   }
 
   void _rebuildDiscussionRows([Map<String, String>? initialData]) {
     discussionRows = List.generate(
       rowKeys.length,
-      (index) {
+          (index) {
         Map<String, String>? data;
 
         if (index < initialDiscussionPoints.length &&
@@ -319,6 +515,9 @@ class _AddMeetingScreenState extends ConsumerState<AddMeetingScreen> {
           isExisting: rowIsExisting[index],
           onDelete: () {
             deleteDiscussionRow(index);
+          },
+          onDraftChanged: () {
+            _scheduleDraftSave();
           },
         );
       },
@@ -339,6 +538,7 @@ class _AddMeetingScreenState extends ConsumerState<AddMeetingScreen> {
 
       _rebuildDiscussionRows();
     });
+    _scheduleDraftSave();
   }
 
   Future<void> _selectDate(BuildContext context) async {
@@ -354,6 +554,7 @@ class _AddMeetingScreenState extends ConsumerState<AddMeetingScreen> {
         dateController.text = DateFormat('dd/MM/yyyy').format(picked);
       });
     }
+    _scheduleDraftSave();
   }
 
   Future<void> _selectTime(BuildContext context) async {
@@ -374,9 +575,10 @@ class _AddMeetingScreenState extends ConsumerState<AddMeetingScreen> {
       setState(() {
         selectedTime = picked;
         timeController.text =
-            "${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}";
+        "${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}";
       });
     }
+    _scheduleDraftSave();
   }
 
   @override
@@ -403,7 +605,13 @@ class _AddMeetingScreenState extends ConsumerState<AddMeetingScreen> {
             leading: IconButton(
               icon: const Icon(Icons.arrow_back_ios_new_rounded,
                   color: textPrimary, size: 20),
-              onPressed: () => Navigator.pop(context),
+              onPressed: () async {
+                final shouldGoBack = await _confirmBack();
+
+                if (shouldGoBack && mounted) {
+                  Navigator.of(context).pop();
+                }
+              },
             ),
             title: Text(
               widget.isEditing ? "Update Meeting Details" : "Add New Meeting",
@@ -489,6 +697,9 @@ class _AddMeetingScreenState extends ConsumerState<AddMeetingScreen> {
             controller: TextEditingController(
               text: widget.customer.customerName,
             ),
+            onChanged: (_) {
+              _scheduleDraftSave();
+            },
             style: GoogleFonts.inter(
                 fontSize: 14, fontWeight: FontWeight.w600, color: textPrimary),
             decoration: InputDecoration(
@@ -501,7 +712,7 @@ class _AddMeetingScreenState extends ConsumerState<AddMeetingScreen> {
               prefixIcon: const Icon(Icons.business_rounded,
                   color: textSecondary, size: 20),
               contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             ),
           ),
           const SizedBox(height: 16),
@@ -517,10 +728,13 @@ class _AddMeetingScreenState extends ConsumerState<AddMeetingScreen> {
                     const SizedBox(height: 8),
                     TextField(
                       controller: dateController,
+                      onChanged: (_) {
+                        _scheduleDraftSave();
+                      },
                       readOnly: true,
                       onTap: () => _selectDate(context),
                       style:
-                          GoogleFonts.inter(fontSize: 14, color: textPrimary),
+                      GoogleFonts.inter(fontSize: 14, color: textPrimary),
                       decoration: InputDecoration(
                         filled: true,
                         fillColor: Colors.white,
@@ -531,7 +745,7 @@ class _AddMeetingScreenState extends ConsumerState<AddMeetingScreen> {
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide:
-                              const BorderSide(color: accentColor, width: 1.5),
+                          const BorderSide(color: accentColor, width: 1.5),
                         ),
                         prefixIcon: const Icon(Icons.calendar_today_outlined,
                             color: accentColor, size: 18),
@@ -554,7 +768,7 @@ class _AddMeetingScreenState extends ConsumerState<AddMeetingScreen> {
                       readOnly: true,
                       onTap: () => _selectTime(context),
                       style:
-                          GoogleFonts.inter(fontSize: 14, color: textPrimary),
+                      GoogleFonts.inter(fontSize: 14, color: textPrimary),
                       decoration: InputDecoration(
                         filled: true,
                         fillColor: Colors.white,
@@ -565,7 +779,7 @@ class _AddMeetingScreenState extends ConsumerState<AddMeetingScreen> {
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide:
-                              const BorderSide(color: accentColor, width: 1.5),
+                          const BorderSide(color: accentColor, width: 1.5),
                         ),
                         prefixIcon: const Icon(Icons.access_time_rounded,
                             color: accentColor, size: 18),
@@ -585,104 +799,25 @@ class _AddMeetingScreenState extends ConsumerState<AddMeetingScreen> {
           const SizedBox(height: 8),
           _isLoadingStaff
               ? const SizedBox(
-                  height: 24,
-                  child: CircularProgressIndicator(
-                      strokeWidth: 2, color: accentColor),
-                )
+            height: 24,
+            child: CircularProgressIndicator(
+                strokeWidth: 2, color: accentColor),
+          )
               : Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    TextField(
-                      controller: presentInputController,
-                      style: GoogleFonts.inter(fontSize: 14),
-                      onChanged: (val) => _updateMembersFromInput(val, true),
-                      decoration: InputDecoration(
-                        hintText:
-                            "Add members separated by comma (e.g. John, Sarah)",
-                        hintStyle: GoogleFonts.inter(
-                            color: textSecondary, fontSize: 13),
-                        filled: true,
-                        fillColor: Colors.white,
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: cardBorderColor),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide:
-                              const BorderSide(color: accentColor, width: 1.5),
-                        ),
-                        prefixIcon: const Icon(Icons.group_add_outlined,
-                            color: textSecondary, size: 20),
-                        contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 14),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        // Ineditable Fetched Staff Chip (Clean & Simple, No Lock Icon)
-                        if (_staffName != null)
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFDCFCE7),
-                              borderRadius: BorderRadius.circular(20),
-                              border:
-                                  Border.all(color: const Color(0xFF86EFAC)),
-                            ),
-                            child: Text(
-                              _staffName!,
-                              style: GoogleFonts.inter(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
-                                color: const Color(0xFF15803D),
-                              ),
-                            ),
-                          ),
-                        ...dynamicPresentMembers.map(
-                          (name) => Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFDCFCE7),
-                              borderRadius: BorderRadius.circular(20),
-                              border:
-                                  Border.all(color: const Color(0xFF86EFAC)),
-                            ),
-                            child: Text(
-                              name,
-                              style: GoogleFonts.inter(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
-                                color: const Color(0xFF15803D),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-          const SizedBox(height: 16),
-
-          // Members Absent Section
-          _fieldLabel("Members Absent", required: false),
-          const SizedBox(height: 8),
-          Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               TextField(
-                controller: absentInputController,
+                inputFormatters: [
+                  TitleCaseTextFormatter(),
+                ],
+                controller: presentInputController,
                 style: GoogleFonts.inter(fontSize: 14),
-                onChanged: (val) => _updateMembersFromInput(val, false),
+                onChanged: (val) => _updateMembersFromInput(val, true),
                 decoration: InputDecoration(
-                  hintText: "Add absent members separated by comma",
-                  hintStyle:
-                      GoogleFonts.inter(color: textSecondary, fontSize: 13),
+                  hintText:
+                  "Add members separated by comma (e.g. John, Sarah)",
+                  hintStyle: GoogleFonts.inter(
+                      color: textSecondary, fontSize: 13),
                   filled: true,
                   fillColor: Colors.white,
                   enabledBorder: OutlineInputBorder(
@@ -692,12 +827,97 @@ class _AddMeetingScreenState extends ConsumerState<AddMeetingScreen> {
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide:
-                        const BorderSide(color: accentColor, width: 1.5),
+                    const BorderSide(color: accentColor, width: 1.5),
+                  ),
+                  prefixIcon: const Icon(Icons.group_add_outlined,
+                      color: textSecondary, size: 20),
+                  contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16, vertical: 14),
+                ),
+              ),
+              const SizedBox(height: 10),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  // Ineditable Fetched Staff Chip (Clean & Simple, No Lock Icon)
+                  if (_staffName != null)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFDCFCE7),
+                        borderRadius: BorderRadius.circular(20),
+                        border:
+                        Border.all(color: const Color(0xFF86EFAC)),
+                      ),
+                      child: Text(
+                        _staffName!,
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: const Color(0xFF15803D),
+                        ),
+                      ),
+                    ),
+                  ...dynamicPresentMembers.map(
+                        (name) => Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFDCFCE7),
+                        borderRadius: BorderRadius.circular(20),
+                        border:
+                        Border.all(color: const Color(0xFF86EFAC)),
+                      ),
+                      child: Text(
+                        name,
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: const Color(0xFF15803D),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          // Members Absent Section
+          _fieldLabel("Members Absent", required: false),
+          const SizedBox(height: 8),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextField(
+                inputFormatters: [
+                  TitleCaseTextFormatter(),
+                ],
+                controller: absentInputController,
+                style: GoogleFonts.inter(fontSize: 14),
+                onChanged: (val) => _updateMembersFromInput(val, false),
+                decoration: InputDecoration(
+                  hintText: "Add absent members separated by comma",
+                  hintStyle:
+                  GoogleFonts.inter(color: textSecondary, fontSize: 13),
+                  filled: true,
+                  fillColor: Colors.white,
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: cardBorderColor),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide:
+                    const BorderSide(color: accentColor, width: 1.5),
                   ),
                   prefixIcon: const Icon(Icons.person_off_outlined,
                       color: textSecondary, size: 20),
                   contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 ),
               ),
               if (dynamicAbsentMembers.isNotEmpty) ...[
@@ -708,23 +928,23 @@ class _AddMeetingScreenState extends ConsumerState<AddMeetingScreen> {
                   children: dynamicAbsentMembers
                       .map(
                         (name) => Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFFEE2E2),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: const Color(0xFFFCA5A5)),
-                          ),
-                          child: Text(
-                            name,
-                            style: GoogleFonts.inter(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500,
-                              color: const Color(0xFFB91C1C),
-                            ),
-                          ),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFEE2E2),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: const Color(0xFFFCA5A5)),
+                      ),
+                      child: Text(
+                        name,
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: const Color(0xFFB91C1C),
                         ),
-                      )
+                      ),
+                    ),
+                  )
                       .toList(),
                 ),
               ],
@@ -798,215 +1018,9 @@ class _AddMeetingScreenState extends ConsumerState<AddMeetingScreen> {
     );
   }
 
-  // Widget _buildBottomActionBar(
-  //   MeetingSubmitState submitState,
-  // ) {
-  //   return Container(
-  //     padding: const EdgeInsets.all(16),
-  //     decoration: const BoxDecoration(
-  //       color: Colors.white,
-  //       border: Border(top: BorderSide(color: cardBorderColor, width: 1)),
-  //     ),
-  //     child: Row(
-  //       children: [
-  //         Expanded(
-  //           child: OutlinedButton(
-  //             onPressed: () => Navigator.pop(context),
-  //             style: OutlinedButton.styleFrom(
-  //               foregroundColor: textSecondary,
-  //               side: const BorderSide(color: cardBorderColor),
-  //               shape: RoundedRectangleBorder(
-  //                 borderRadius: BorderRadius.circular(12),
-  //               ),
-  //               padding: const EdgeInsets.symmetric(vertical: 14),
-  //             ),
-  //             child: Text(
-  //               widget.isEditing ? "Cancel" : "Cancel",
-  //               style: GoogleFonts.inter(
-  //                 fontWeight: FontWeight.w600,
-  //                 fontSize: 14,
-  //               ),
-  //             ),
-  //           ),
-  //         ),
-  //         const SizedBox(width: 12),
-  //         Expanded(
-  //           flex: 2,
-  //           child: ElevatedButton.icon(
-  //             onPressed: submitState.isLoading
-  //                 ? null
-  //                 : () async {
-  //                     if (!validateForm()) {
-  //                       return;
-  //                     }
-  //
-  //                     final staffCode = await storage.read(
-  //                       key: "Staff_Code",
-  //                     );
-  //
-  //                     /// Present Members
-  //                     final allPresent = <String>[
-  //                       if (_staffName != null) _staffName!,
-  //                       ...dynamicPresentMembers,
-  //                     ].toSet().toList();
-  //
-  //                     /// Meeting Entity
-  //                     final meeting = Meeting(
-  //                       meetingId: widget.isEditing
-  //                           ? widget.meetingHistory!.meetingId
-  //                           : "",
-  //                       customerCode: widget.customer.customerCode,
-  //                       memberPresent: allPresent.join(","),
-  //                       memberAbsent: dynamicAbsentMembers.join(","),
-  //                       meetingDateTime:
-  //                           "${dateController.text} ${timeController.text}",
-  //                       nextMeetingDate: dateController.text,
-  //                       entryBy: staffCode!,
-  //                       flag: widget.isEditing ? "U" : "I",
-  //                     );
-  //
-  //                     /// Discussion Points
-  //                     final List<DiscussionPoint> points = [];
-  //
-  //                     // for (final key in rowKeys) {
-  //                     //   print("Rows = ${rowKeys.length}");
-  //                     //   print("Points = ${points.length}");
-  //                     //   final row = key.currentState;
-  //                     //
-  //                     //   if (row != null) {
-  //                     //     points.add(
-  //                     //       row.getDiscussionPoint(
-  //                     //         entryBy: staffCode,
-  //                     //       ),
-  //                     //     );
-  //                     //   }
-  //                     // }
-  //                     for (int i = 0; i < rowKeys.length; i++) {
-  //                       print("Rows = ${rowKeys.length}");
-  //                       print("Points = ${points.length}");
-  //
-  //                       final row = rowKeys[i].currentState;
-  //
-  //                       if (row != null) {
-  //                         final isLast = i == rowKeys.length - 1;
-  //
-  //                         points.add(
-  //                           row.getDiscussionPoint(
-  //                             entryBy: staffCode,
-  //                             last: isLast ? "Y" : "N",
-  //                           ),
-  //                         );
-  //                       }
-  //                     }
-  //
-  //                     final request = SubmitMeetingRequest(
-  //                       meeting: meeting,
-  //                       discussionPoints: points,
-  //                     );
-  //
-  //                     await ref
-  //                         .read(meetingSubmitNotifierProvider.notifier)
-  //                         .submitMeeting(request);
-  //
-  //                     if (!mounted) return;
-  //
-  //                     final state = ref.read(meetingSubmitNotifierProvider);
-  //
-  //                     if (state.error != null) {
-  //                       ScaffoldMessenger.of(context).showSnackBar(
-  //                         SnackBar(
-  //                           content: Text(state.error!),
-  //                           backgroundColor: Colors.red,
-  //                         ),
-  //                       );
-  //                       return;
-  //                     }
-  //
-  //                     final result = state.result;
-  //
-  //                     if (result == null) return;
-  //
-  //                     if (result.meetingSaved && result.pointsSaved) {
-  //                       ScaffoldMessenger.of(context).showSnackBar(
-  //                         SnackBar(
-  //                           content: Text(result.meetingMessage),
-  //                           backgroundColor: Colors.green,
-  //                         ),
-  //                       );
-  //
-  //                       Navigator.pop(context, true);
-  //                     } else {
-  //                       showDialog(
-  //                         context: context,
-  //                         builder: (_) => AlertDialog(
-  //                           title: const Text("Submission Result"),
-  //                           content: SingleChildScrollView(
-  //                             child: Column(
-  //                               crossAxisAlignment: CrossAxisAlignment.start,
-  //                               children: [
-  //                                 Text(result.meetingMessage),
-  //                                 const SizedBox(height: 12),
-  //                                 ...result.pointMessages.map(
-  //                                   (e) => Text("• $e"),
-  //                                 ),
-  //                               ],
-  //                             ),
-  //                           ),
-  //                           actions: [
-  //                             TextButton(
-  //                               onPressed: () => Navigator.pop(context),
-  //                               child: const Text("OK"),
-  //                             )
-  //                           ],
-  //                         ),
-  //                       );
-  //                     }
-  //                   },
-  //             style: ElevatedButton.styleFrom(
-  //               backgroundColor: primaryColor,
-  //               foregroundColor: Colors.white,
-  //               elevation: 0,
-  //               shape: RoundedRectangleBorder(
-  //                 borderRadius: BorderRadius.circular(12),
-  //               ),
-  //               padding: const EdgeInsets.symmetric(vertical: 14),
-  //             ),
-  //             icon: submitState.isLoading
-  //                 ? const SizedBox(
-  //                     width: 18,
-  //                     height: 18,
-  //                     child: CircularProgressIndicator(
-  //                       strokeWidth: 2,
-  //                       color: Colors.white,
-  //                     ),
-  //                   )
-  //                 : const Icon(
-  //                     Icons.check_circle_outline_rounded,
-  //                     size: 18,
-  //                   ),
-  //             label: Text(
-  //               submitState.isLoading
-  //                   ? "Submitting..."
-  //                   : widget.isEditing
-  //                       ? "Update Meeting"
-  //                       : "Save Meeting",
-  //               style: GoogleFonts.inter(
-  //                 fontSize: 14,
-  //                 fontWeight: FontWeight.w600,
-  //               ),
-  //             ),
-  //           ),
-  //         ),
-  //         // ElevatedButton(onPressed: () {
-  //         //   Navigator.push(context, MaterialPageRoute(builder: (context) => MOMListScreen()));
-  //         // }, child: Text('MOM List')),
-  //       ],
-  //     ),
-  //   );
-  // }
   Widget _buildBottomActionBar(
-    MeetingSubmitState submitState,
-  ) {
+      MeetingSubmitState submitState,
+      ) {
     return SafeArea(
       top: false,
       child: Container(
@@ -1059,8 +1073,152 @@ class _AddMeetingScreenState extends ConsumerState<AddMeetingScreen> {
                 onPressed: submitState.isLoading
                     ? null
                     : () async {
-                        // KEEP YOUR EXISTING SUBMIT CODE HERE
-                      },
+                  if (!validateForm()) {
+                    return;
+                  }
+
+                  final staffCode = await storage.read(
+                    key: "Staff_Code",
+                  );
+
+                  /// Present Members
+                  final allPresent = <String>[
+                    if (_staffName != null) _staffName!,
+                    ...dynamicPresentMembers,
+                  ].toSet().toList();
+
+                  /// Meeting Entity
+                  final meeting = Meeting(
+                    meetingId: widget.isEditing
+                        ? widget.meetingHistory!.meetingId
+                        : "",
+                    customerCode: widget.customer.customerCode,
+                    memberPresent: allPresent.join(","),
+                    memberAbsent: dynamicAbsentMembers.join(","),
+                    meetingDateTime:
+                    "${dateController.text} ${timeController.text}",
+                    nextMeetingDate: dateController.text,
+                    entryBy: staffCode!,
+                    flag: widget.isEditing ? "U" : "I",
+                  );
+
+                  /// Discussion Points
+                  final List<DiscussionPoint> points = [];
+
+                  // for (final key in rowKeys) {
+                  //   print("Rows = ${rowKeys.length}");
+                  //   print("Points = ${points.length}");
+                  //   final row = key.currentState;
+                  //
+                  //   if (row != null) {
+                  //     points.add(
+                  //       row.getDiscussionPoint(
+                  //         entryBy: staffCode,
+                  //       ),
+                  //     );
+                  //   }
+                  // }
+                  for (int i = 0; i < rowKeys.length; i++) {
+                    print("Rows = ${rowKeys.length}");
+                    print("Points = ${points.length}");
+
+                    final row = rowKeys[i].currentState;
+
+                    if (row != null) {
+                      final isLast = i == rowKeys.length - 1;
+
+                      points.add(
+                        row.getDiscussionPoint(
+                          entryBy: staffCode,
+                          last: isLast ? "Y" : "N",
+                        ),
+                      );
+                    }
+                  }
+                  print("result$points");
+
+                  final request = SubmitMeetingRequest(
+                    meeting: meeting,
+                    discussionPoints: points,
+                  );
+                  print("result$request");
+
+                  await ref
+                      .read(meetingSubmitNotifierProvider.notifier)
+                      .submitMeeting(request);
+
+                  if (!mounted) return;
+
+                  final state = ref.read(meetingSubmitNotifierProvider);
+
+                  if (state.error != null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(state.error!),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                    return;
+                  }
+
+                  final result = state.result;
+
+                  if (result == null) return;
+
+                  // if (result.meetingSaved && result.pointsSaved) {
+                  //   ScaffoldMessenger.of(context).showSnackBar(
+                  //     SnackBar(
+                  //       content: Text(result.meetingMessage),
+                  //       backgroundColor: Colors.green,
+                  //     ),
+                  //   );
+                  //
+
+                  //   Navigator.pop(context, true);
+                  // }
+                  if (result.meetingSaved && result.pointsSaved) {
+                    final customerState =
+                    ref.read(customerNotifierProvider);
+
+                    final customer = customerState.selectedCustomer;
+
+                    if (customer != null) {
+                      await MomDraftService.deleteDraft(
+                        customerCode: customer.customerCode,
+                      );
+                    }
+
+                    // Existing success code
+                    if (mounted) {
+                      Navigator.pop(context, true);
+                    }
+                  } else {
+                    showDialog(
+                      context: context,
+                      builder: (_) => AlertDialog(
+                        title: const Text("Submission Result"),
+                        content: SingleChildScrollView(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(result.meetingMessage),
+                              const SizedBox(height: 12),
+                              ...result.pointMessages.map(
+                                    (e) => Text("• $e"),
+                              ),
+                            ],
+                          ),
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text("OK"),
+                          )
+                        ],
+                      ),
+                    );
+                  }
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: primaryColor,
                   foregroundColor: Colors.white,
@@ -1074,23 +1232,23 @@ class _AddMeetingScreenState extends ConsumerState<AddMeetingScreen> {
                 ),
                 icon: submitState.isLoading
                     ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                )
                     : const Icon(
-                        Icons.check_circle_outline_rounded,
-                        size: 18,
-                      ),
+                  Icons.check_circle_outline_rounded,
+                  size: 18,
+                ),
                 label: Text(
                   submitState.isLoading
                       ? "Submitting..."
                       : widget.isEditing
-                          ? "Update Meeting"
-                          : "Save Meeting",
+                      ? "Update Meeting"
+                      : "Save Meeting",
                   style: GoogleFonts.inter(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
