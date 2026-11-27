@@ -29,3 +29,32 @@ class DioClient {
     );
   }
 }
+
+class DioClientnew {
+  static final DioClientnew _instancenew = DioClientnew._internal();
+
+  factory DioClientnew() => _instancenew;
+
+  late final Dio dionew;
+
+  DioClientnew._internal() {
+    dionew = Dio(
+      BaseOptions(
+        baseUrl: 'http://m-techinnovations.co.in:8199/TLSKD/API/',
+        connectTimeout: const Duration(seconds: 30),
+        receiveTimeout: const Duration(seconds: 30),
+        sendTimeout: const Duration(seconds: 30),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      ),
+    );
+
+    dionew.interceptors.add(
+      LogInterceptor(
+        requestBody: true,
+        responseBody: true,
+      ),
+    );
+  }
+}
