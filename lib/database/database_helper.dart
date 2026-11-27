@@ -30,36 +30,38 @@ class DatabaseHelper {
 
   ///  **Create the table**
   Future<void> _createTable(Database db) async {
-    await db.execute(
-      '''CREATE TABLE locations (
+
+    await db.execute('''
+    CREATE TABLE IF NOT EXISTS locations (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      latitude REAL, 
-      longitude REAL, 
+      latitude REAL,
+      longitude REAL,
       address TEXT,
       speed REAL,
       distanceInMeters REAL,
       distanceInKm REAL,
       srNo_Vo TEXT,
       timestamp TEXT,
-      datestamp TEXT,  -- ✅ Add this column
+      datestamp TEXT,
       staffcode TEXT,
       batteryPercentage TEXT,
       synced INTEGER DEFAULT 0
-  )''',
-    );
+    )
+  ''');
 
     await db.execute('''
-  CREATE TABLE punch_state (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    staff_code TEXT NOT NULL,
-    transaction_date TEXT NOT NULL,
-    transaction_time TEXT NOT NULL,
-    flag_value TEXT NOT NULL,
-    shift_date TEXT,
-    shift_type TEXT
-  )
-''');
-    print("✅ Table 'locations' created with all required columns.");
+    CREATE TABLE IF NOT EXISTS punch_state (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      staff_code TEXT NOT NULL,
+      transaction_date TEXT NOT NULL,
+      transaction_time TEXT NOT NULL,
+      flag_value TEXT NOT NULL,
+      shift_date TEXT,
+      shift_type TEXT
+    )
+  ''');
+
+    print("SQLite tables initialized successfully.");
   }
 
   Future<void> markAsSynced(int id) async {

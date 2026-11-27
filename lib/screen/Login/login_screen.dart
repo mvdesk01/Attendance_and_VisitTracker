@@ -206,88 +206,88 @@ class _LoginScreenState extends State<LoginScreen> {
                   );
                 }
 
-                       else {
-                  // User login - check registered device UUID
-                  String? responseDeviceId = state.loginResponse!.message!.uuid;
-
-                  String? staffCode = state.loginResponse!.message!.staffCode;
-
-                  print("Database response Device Id: $responseDeviceId");
-                  LogFileManager.writeLog(
-                      "Database response Device Id: $responseDeviceId");
-
-                  // Get current device ID
-                  String? currentDeviceId = await _getId();
-
-                  print("Current device Id: $currentDeviceId");
-                  LogFileManager.writeLog(
-                      "Current device Id: $currentDeviceId");
-
-                  // Safety check - unable to get device ID
-                  if (currentDeviceId == null ||
-                      currentDeviceId.trim().isEmpty) {
-                    print("Unable to get current device ID.");
-                    LogFileManager.writeLog("Unable to get current device ID.");
-
-                    Fluttertoast.showToast(
-                      msg: "Unable to identify this device.",
-                      toastLength: Toast.LENGTH_LONG,
-                    );
-
-                    return;
-                  }
-
-                  // UUID is empty/null
-                  // This means the user has not registered a device yet.
-                  if (responseDeviceId == null ||
-                      responseDeviceId.trim().isEmpty) {
-                    print("UUID is empty. Registering current device.");
-                    LogFileManager.writeLog(
-                        "UUID is empty. Registering current device.");
-
-                    // Update UUID using existing UpdateUUID API
-                    _mainBloc.add(
-                      UpdateUUID(
-                        UserId: staffCode!,
-                        UUID: currentDeviceId,
-                        UUIDFlag: "Y",
-                      ),
-                    );
-
-                    // Continue login immediately, same as previous behavior
-                    print("Proceeding with biometric authentication.");
-                    LogFileManager.writeLog(
-                        "Proceeding with biometric authentication.");
-
-                    await checkBiometrics();
-                  }
-
-                  // UUID exists and matches current device
-                  else if (responseDeviceId == currentDeviceId) {
-                    print("Device ID validation passed.");
-                    LogFileManager.writeLog("Device ID validation passed.");
-
-                    await checkBiometrics();
-                  }
-
-                  // UUID exists but belongs to another device
-                  else {
-                    print("Device ID validation failed.");
-                    LogFileManager.writeLog("Device ID validation failed. "
-                        "Registered Device: $responseDeviceId, "
-                        "Current Device: $currentDeviceId");
-
-                    Fluttertoast.showToast(
-                      msg: "Login using registered device",
-                      toastLength: Toast.LENGTH_LONG,
-                      timeInSecForIosWeb: 1,
-                    );
-                  }
-                }
-
-                // else {
-                //   await checkBiometrics();
+                //        else {
+                //   // User login - check registered device UUID
+                //   String? responseDeviceId = state.loginResponse!.message!.uuid;
+                //
+                //   String? staffCode = state.loginResponse!.message!.staffCode;
+                //
+                //   print("Database response Device Id: $responseDeviceId");
+                //   LogFileManager.writeLog(
+                //       "Database response Device Id: $responseDeviceId");
+                //
+                //   // Get current device ID
+                //   String? currentDeviceId = await _getId();
+                //
+                //   print("Current device Id: $currentDeviceId");
+                //   LogFileManager.writeLog(
+                //       "Current device Id: $currentDeviceId");
+                //
+                //   // Safety check - unable to get device ID
+                //   if (currentDeviceId == null ||
+                //       currentDeviceId.trim().isEmpty) {
+                //     print("Unable to get current device ID.");
+                //     LogFileManager.writeLog("Unable to get current device ID.");
+                //
+                //     Fluttertoast.showToast(
+                //       msg: "Unable to identify this device.",
+                //       toastLength: Toast.LENGTH_LONG,
+                //     );
+                //
+                //     return;
+                //   }
+                //
+                //   // UUID is empty/null
+                //   // This means the user has not registered a device yet.
+                //   if (responseDeviceId == null ||
+                //       responseDeviceId.trim().isEmpty) {
+                //     print("UUID is empty. Registering current device.");
+                //     LogFileManager.writeLog(
+                //         "UUID is empty. Registering current device.");
+                //
+                //     // Update UUID using existing UpdateUUID API
+                //     _mainBloc.add(
+                //       UpdateUUID(
+                //         UserId: staffCode!,
+                //         UUID: currentDeviceId,
+                //         UUIDFlag: "Y",
+                //       ),
+                //     );
+                //
+                //     // Continue login immediately, same as previous behavior
+                //     print("Proceeding with biometric authentication.");
+                //     LogFileManager.writeLog(
+                //         "Proceeding with biometric authentication.");
+                //
+                //     await checkBiometrics();
+                //   }
+                //
+                //   // UUID exists and matches current device
+                //   else if (responseDeviceId == currentDeviceId) {
+                //     print("Device ID validation passed.");
+                //     LogFileManager.writeLog("Device ID validation passed.");
+                //
+                //     await checkBiometrics();
+                //   }
+                //
+                //   // UUID exists but belongs to another device
+                //   else {
+                //     print("Device ID validation failed.");
+                //     LogFileManager.writeLog("Device ID validation failed. "
+                //         "Registered Device: $responseDeviceId, "
+                //         "Current Device: $currentDeviceId");
+                //
+                //     Fluttertoast.showToast(
+                //       msg: "Login using registered device",
+                //       toastLength: Toast.LENGTH_LONG,
+                //       timeInSecForIosWeb: 1,
+                //     );
+                //   }
                 // }
+
+                else {
+                  await checkBiometrics();
+                }
               } else {
                 // uncomment if login gives the issue in second time login
                 storage.delete(key: 'username');
